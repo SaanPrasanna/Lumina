@@ -10,12 +10,19 @@ allow = [
   "Unicode-3.0",
   "Zlib",
   "MPL-2.0",
+  # webpki-roots / webpki-root-certs (Mozilla's CA list, used by every rustls
+  # HTTPS client including Tauri's): a permissive open-data licence.
+  "CDLA-Permissive-2.0",
 ]
 confidence-threshold = 0.8
 unused-allowed-license = "allow"
 
 [advisories]
 yanked = "warn"
+# Only fail on unmaintained crates we depend on directly. The ones reported
+# today (unic-*, proc-macro-error) come in through Tauri and its GTK bindings
+# and cannot be replaced from here; they are tracked upstream.
+unmaintained = "workspace"
 
 [bans]
 multiple-versions = "warn"

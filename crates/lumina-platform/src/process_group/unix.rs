@@ -55,8 +55,17 @@ fn signal_group(pgid: u32, signal: Signal) -> io::Result<()> {
     }
 }
 
+/// Kills the group led by `leader_pid` and the process itself. The recorded PID
+/// is normally a group leader (Lumina starts servers with `setpgid(0, 0)`), but
+/// a leftover from an older Lumina, or a process started some other way, may
+/// live in someone else's group; killing only the group would then miss it.
 pub(super) fn kill_orphaned_group(leader_pid: u32) -> io::Result<()> {
-    signal_group(leader_pid, Signal::SIGKILL)
+    signal_group(leader_pid, Signal::SIGKILL)?;
+    let pid = i32::try_from(leader_pid).map_err(io::Error::other)?;
+    match nix::sys::signal::kill(Pid::from_raw(pid), Signal::SIGKILL) {
+        Ok(()) | Err(Errno::ESRCH) => Ok(()),
+        Err(e) => Err(e.into()),
+    }
 }
 
 /// Live (non-zombie) processes whose process group is `pgid`, from /proc.
@@ -113,6 +122,12 @@ fn group_members(pgid: u32) -> io::Result<Vec<u32>> {
         .collect())
 }
 
+/// The members of the group led by `leader_pid`, plus `leader_pid` itself even
+/// when it is not a group leader (see [`kill_orphaned_group`]).
 pub(super) fn orphaned_members(leader_pid: u32) -> io::Result<Vec<u32>> {
-    group_members(leader_pid)
+    let mut members = group_members(leader_pid)?;
+    if !members.contains(&leader_pid) {
+        members.push(leader_pid);
+    }
+    Ok(members)
 }
