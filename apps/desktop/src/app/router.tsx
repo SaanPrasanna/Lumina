@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { ComingSoonPage } from "@/components/layout/ComingSoonPage";
 import { DashboardPage } from "@/features/dashboard";
 import { PackagesPage } from "@/features/packages";
+import { ProfilesPage } from "@/features/profiles";
 import { ServicesPage } from "@/features/services";
 import { SettingsPage } from "@/features/settings";
 import { SitesPage } from "@/features/sites";
@@ -13,6 +14,7 @@ const PAGES: Record<string, React.ReactNode> = {
   "/services": <ServicesPage />,
   "/sites": <SitesPage />,
   "/packages": <PackagesPage />,
+  "/profiles": <ProfilesPage />,
   "/settings": <SettingsPage />,
 };
 

@@ -3,6 +3,7 @@ import { NavLink } from "react-router";
 import { NAV_ITEMS } from "@/app/nav";
 import { LanguageSelect } from "@/components/LanguageSelect";
 import { ThemeSelect } from "@/components/ThemeSelect";
+import { ProfileSwitcher } from "@/features/profiles/ProfileSwitcher";
 import { Logo } from "@/components/Logo";
 
 export function Sidebar() {
@@ -17,6 +18,8 @@ export function Sidebar() {
           <div className="truncate text-xs text-muted">{t("app.tagline")}</div>
         </div>
       </div>
+
+      <ProfileSwitcher />
 
       <nav className="flex-1 overflow-y-auto px-2" aria-label={t("app.title")}>
         <ul className="space-y-0.5">

@@ -435,6 +435,14 @@ pub async fn package_uninstall(
     if running_version(&rt, &id).await.as_deref() == Some(version.as_str()) {
         return Err(Error::Other(format!("{id} {version} is running; stop it first")).into());
     }
+    let profiles = crate::commands::profiles::referencing(&cfg, &id, &version);
+    if !profiles.is_empty() {
+        return Err(Error::Other(format!(
+            "{id} {version} is used by the profile(s) {}; change them first",
+            profiles.join(", ")
+        ))
+        .into());
+    }
     if selected(&cfg, &id).is_some_and(|s| s == version) {
         return Err(Error::Other(format!(
             "{id} {version} is selected in the settings; choose another version first"

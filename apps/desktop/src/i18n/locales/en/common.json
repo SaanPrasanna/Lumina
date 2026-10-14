@@ -267,5 +267,25 @@
     "cancelled": "Cancelled. Install again to resume the download.",
     "failed": "Not installed: {{error}}",
     "dismiss": "Dismiss"
+  },
+  "profiles": {
+    "intro": "Save whole stacks and switch between them in one click. Only the services that differ are restarted; if anything fails, the previous stack is restored.",
+    "switching": "Switching… only the services that differ are restarted.",
+    "empty": "No profiles yet. Save the current stack below, or create one.",
+    "current": "Current",
+    "newest": "newest",
+    "missing": "Not installed: {{what}}.",
+    "openQuickAdd": "Open Quick Add",
+    "switch": "Switch",
+    "delete": "Delete",
+    "confirmDelete": "Delete for good",
+    "saveCurrentTitle": "Save the current stack",
+    "name": "Name",
+    "namePlaceholder": "e.g. Legacy",
+    "saveCurrent": "Save as profile",
+    "new": "New profile",
+    "editTitle": "Edit profile",
+    "switcher": "Profile",
+    "custom": "Custom stack"
   }
 }

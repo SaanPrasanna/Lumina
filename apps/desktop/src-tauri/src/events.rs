@@ -15,6 +15,8 @@ pub const CONFIG_CHANGED: &str = "config-changed";
 pub const SITES_CHANGED: &str = "sites-changed";
 /// An install advanced: `{ id, version, stage, received, total }`.
 pub const PACKAGE_PROGRESS: &str = "package-progress";
+/// A profile switch started from the tray failed; payload: the message.
+pub const PROFILE_SWITCH_FAILED: &str = "profile-switch-failed";
 /// Installed versions or install jobs changed; the UI refetches Quick Add.
 pub const PACKAGES_CHANGED: &str = "packages-changed";
 

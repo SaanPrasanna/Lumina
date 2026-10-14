@@ -475,6 +475,154 @@ async fn apache_db_ui_follows_the_active_php() {
     db_ui_follows_the_active_php(WebServer::Apache).await;
 }
 
+/// Both web servers and PHP 8.3 + 8.4, or `None` (the test is skipped).
+fn profile_env() -> Option<Env> {
+    let phps = std::env::var("LUMINA_TEST_PHP_DIRS").unwrap_or_default();
+    if std::env::var("LUMINA_TEST_APACHE_DIR").is_err()
+        || !(phps.contains("8.3") && phps.contains("8.4"))
+    {
+        eprintln!("needs nginx, Apache and PHP 8.3 + 8.4");
+        return None;
+    }
+    let env = setup(WebServer::Nginx)?;
+    let blog = env.layout.www().join("blog");
+    std::fs::create_dir_all(&blog).expect("mkdir");
+    std::fs::write(
+        blog.join("index.php"),
+        r#"<?php echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION . " " . ($_SERVER['SERVER_SOFTWARE'] ?? '');"#,
+    )
+    .expect("index");
+    Some(env)
+}
+
+fn profile(name: &str, web: WebServer, php: &str) -> lumina_config::schema::Profile {
+    lumina_config::schema::Profile {
+        name: name.into(),
+        web,
+        php: php.into(),
+        ..Default::default()
+    }
+}
+
+/// Processes running from `bin/<rel>` (e.g. `nginx` or `php/8.3.35`).
+fn running_from(env: &Env, rel: &str) -> usize {
+    let root = env.layout.bin().join(rel);
+    processes_under(&root).len()
+}
+
+fn php_dir(env: &Env, minor: &str) -> String {
+    let dir = std::fs::read_dir(env.layout.bin().join("php"))
+        .expect("php dir")
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .find(|v| v.starts_with(&format!("{minor}.")))
+        .expect("php version");
+    format!("php/{dir}")
+}
+
+/// Blueprint §5: "Nginx + PHP 8.3" ↔ "Apache + PHP 8.4", 50 switches. After
+/// each one the site answers from the right server and PHP, and nothing of
+/// the previous stack is still running.
+#[tokio::test]
+async fn profile_switching_50_times_leaves_no_stale_processes() {
+    let Some(mut env) = profile_env() else { return };
+    let legacy = profile("Legacy", WebServer::Nginx, "8.3");
+    let modern = profile("Modern", WebServer::Apache, "8.4");
+    legacy.apply(&mut env.cfg);
+    env.start_web().await.expect("start");
+    let (php83, php84) = (php_dir(&env, "8.3"), php_dir(&env, "8.4"));
+
+    let started = std::time::Instant::now();
+    for round in 0..50 {
+        let (next, server, php, old_web, old_php) = if round % 2 == 0 {
+            (&modern, "Apache", "8.4", "nginx", &php83)
+        } else {
+            (&legacy, "nginx", "8.3", "apache", &php84)
+        };
+        let old = env.cfg.clone();
+        next.apply(&mut env.cfg);
+        let plan = env
+            .stack
+            .switch(&old, &env.cfg)
+            .await
+            .unwrap_or_else(|e| panic!("round {round}: {e}\n{}", env.logs()));
+        assert_eq!(plan.stop.len(), 2, "round {round}: web + PHP change");
+
+        let (status, body) = get_host(&env, "blog.test", "/").await;
+        assert_eq!(status, 200, "round {round}");
+        assert!(
+            body.starts_with(php) && body.contains(server),
+            "round {round}: {body}"
+        );
+        assert_eq!(
+            running_from(&env, old_web),
+            0,
+            "round {round}: {old_web} left running"
+        );
+        assert_eq!(
+            running_from(&env, old_php),
+            0,
+            "round {round}: {old_php} left running"
+        );
+    }
+    println!("50 switches in {:?}", started.elapsed());
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+    assert!(
+        processes_under(&env.layout.bin()).is_empty(),
+        "leftovers after stop_all"
+    );
+}
+
+/// A profile that cannot start (here: a PHP version that is not installed)
+/// rolls back to the previous stack, which keeps serving.
+#[tokio::test]
+async fn failing_profile_rolls_back() {
+    let Some(mut env) = profile_env() else { return };
+    profile("Current", WebServer::Nginx, "8.4").apply(&mut env.cfg);
+    env.start_web().await.expect("start");
+
+    let old = env.cfg.clone();
+    let mut broken = env.cfg.clone();
+    profile("Broken", WebServer::Apache, "7.0").apply(&mut broken);
+    let err = env
+        .stack
+        .switch(&old, &broken)
+        .await
+        .expect_err("PHP 7.0 is not installed");
+    let msg = err.to_string();
+    assert!(
+        msg.contains("7.0") && msg.contains("previous stack was restored"),
+        "{msg}"
+    );
+
+    let (status, body) = get_host(&env, "blog.test", "/").await;
+    assert_eq!(status, 200);
+    assert!(body.starts_with("8.4") && body.contains("nginx"), "{body}");
+    assert_eq!(running_from(&env, "apache"), 0);
+
+    // A port conflict on the new web server's HTTPS port fails the same way.
+    let holder = std::net::TcpListener::bind(("127.0.0.1", 0)).expect("bind");
+    let mut conflicting = env.cfg.clone();
+    profile("Busy port", WebServer::Apache, "8.4").apply(&mut conflicting);
+    conflicting.web.https_port = holder.local_addr().expect("addr").port();
+    let err = env
+        .stack
+        .switch(&old, &conflicting)
+        .await
+        .expect_err("busy port");
+    assert!(
+        err.to_string().contains("previous stack was restored"),
+        "{err}"
+    );
+    let (_, body) = get_host(&env, "blog.test", "/").await;
+    assert!(body.contains("nginx"), "{body}");
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
 #[tokio::test]
 async fn nginx_auto_vhosts_follow_the_projects_folder() {
     auto_vhosts_follow_the_projects_folder(WebServer::Nginx).await;

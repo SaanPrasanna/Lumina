@@ -420,6 +420,99 @@ impl Orchestrator {
         Ok(())
     }
 
+    /// What runs right now.
+    pub async fn running(&self) -> crate::profiles::Running {
+        let database = if self.inner.mysql.status().await.runtime.is_some() {
+            Some(ServiceKind::Mysql)
+        } else if self.inner.mariadb.status().await.runtime.is_some() {
+            Some(ServiceKind::Mariadb)
+        } else {
+            None
+        };
+        crate::profiles::Running {
+            php: self.inner.php.status().await.runtime.is_some(),
+            web: self.running_web().await,
+            database,
+            redis: self.inner.redis.status().await.runtime.is_some(),
+        }
+    }
+
+    /// Switches the running stack from `old` to `new` (e.g. after applying a
+    /// profile): stops only what changed (web server first, each stop verified
+    /// by the supervisor), then starts the replacements (database first; each
+    /// start waits for its health check). If anything fails, everything this
+    /// switch started is stopped again and what it stopped is started with
+    /// `old`, and the error says so.
+    pub async fn switch(&self, old: &AppConfig, new: &AppConfig) -> Result<crate::profiles::Plan> {
+        let _guard = self.inner.lock.lock().await;
+        let running = self.running().await;
+        let plan = crate::profiles::plan(&running, old, new);
+        if plan.is_empty() {
+            return Ok(plan);
+        }
+        tracing::info!(
+            "switching stack: stop {:?}, start {:?}, keep {:?}",
+            plan.stop,
+            plan.start,
+            plan.keep
+        );
+
+        let mut stopped = Vec::new();
+        let mut started = Vec::new();
+        let mut failure = None;
+        for &kind in &plan.stop {
+            match self.stop_locked(kind).await {
+                Ok(()) => stopped.push(kind),
+                Err(err) => {
+                    failure = Some((kind, err));
+                    break;
+                }
+            }
+        }
+        if failure.is_none() {
+            for &kind in &plan.start {
+                if let Err(err) = self.start_locked(kind, new).await {
+                    failure = Some((kind, err));
+                    break;
+                }
+                started.push(kind);
+            }
+        }
+        let Some((failed, err)) = failure else {
+            // PHP stayed but the web server is new, or the other way round:
+            // the web server's config already follows PHP's port.
+            return Ok(plan);
+        };
+
+        tracing::error!("switch failed at {failed:?}: {err}; restoring the previous stack");
+        let mut problems = Vec::new();
+        // The failed service may have left a supervised process behind.
+        let _ = self.stop_locked(failed).await;
+        for &kind in started.iter().rev() {
+            if let Err(e) = self.stop_locked(kind).await {
+                problems.push(format!("could not stop {kind:?}: {e}"));
+            }
+        }
+        // Restart what was stopped, dependencies first.
+        for &kind in stopped.iter().rev() {
+            if let Err(e) = self.start_locked(kind, old).await {
+                problems.push(format!("could not restart {kind:?}: {e}"));
+            }
+        }
+        let restored = if problems.is_empty() {
+            "the previous stack was restored".to_owned()
+        } else {
+            format!(
+                "restoring the previous stack failed too: {}",
+                problems.join("; ")
+            )
+        };
+        Err(Error::Service(
+            format!("{failed:?}"),
+            format!("{err}\n{restored}"),
+        ))
+    }
+
     /// Database, Redis (if enabled), PHP, then the configured web server. Every
     /// service is attempted; the first error is returned.
     pub async fn start_all(&self, cfg: &AppConfig) -> Result<()> {

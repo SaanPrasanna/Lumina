@@ -42,19 +42,59 @@ pub async fn discover(
         else {
             continue;
         };
-        let reported = run(&exe, version_args, Duration::from_secs(10))
-            .await
-            .ok()
-            .and_then(|out| {
-                let mut text = String::from_utf8_lossy(&out.stdout).into_owned();
-                text.push_str(&String::from_utf8_lossy(&out.stderr));
-                parse(&text)
-            });
+        let reported = match cached_version(&exe) {
+            Some(cached) => cached,
+            None => {
+                let version = run(&exe, version_args, Duration::from_secs(10))
+                    .await
+                    .ok()
+                    .and_then(|out| {
+                        let mut text = String::from_utf8_lossy(&out.stdout).into_owned();
+                        text.push_str(&String::from_utf8_lossy(&out.stderr));
+                        parse(&text)
+                    });
+                remember_version(&exe, version.clone());
+                version
+            }
+        };
         let version = reported.unwrap_or_else(|| entry.file_name().to_string_lossy().into_owned());
         installs.push(Install { version, dir, exe });
     }
     installs.sort_by_key(|i| std::cmp::Reverse(version_key(&i.version)));
     installs
+}
+
+/// What identifies an executable's build: path, size and modification time.
+type ExeKey = (PathBuf, u64, Option<std::time::SystemTime>);
+
+/// Versions reported by executables, so listing installs (which the UI does
+/// often) does not start `httpd -v`, `php-cgi -v`, ... every time. A replaced
+/// executable has another size or time and is asked again.
+static VERSIONS: std::sync::LazyLock<
+    std::sync::Mutex<std::collections::HashMap<ExeKey, Option<String>>>,
+> = std::sync::LazyLock::new(Default::default);
+
+fn exe_key(exe: &Path) -> Option<ExeKey> {
+    let meta = std::fs::metadata(exe).ok()?;
+    Some((exe.to_path_buf(), meta.len(), meta.modified().ok()))
+}
+
+fn cached_version(exe: &Path) -> Option<Option<String>> {
+    let key = exe_key(exe)?;
+    VERSIONS
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .get(&key)
+        .cloned()
+}
+
+fn remember_version(exe: &Path, version: Option<String>) {
+    if let Some(key) = exe_key(exe) {
+        VERSIONS
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(key, version);
+    }
 }
 
 /// Picks an install: empty → newest; `"8.4"` → newest 8.4.x; `"8.4.26"` → exact.
@@ -123,6 +163,20 @@ mod tests {
             dir: PathBuf::from(v),
             exe: PathBuf::from(v),
         }
+    }
+
+    #[test]
+    fn version_cache_is_keyed_on_the_file() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let exe = tmp.path().join("httpd.exe");
+        std::fs::write(&exe, b"build 1").expect("write");
+        assert_eq!(cached_version(&exe), None, "not asked yet");
+        remember_version(&exe, Some("2.4.69".into()));
+        assert_eq!(cached_version(&exe), Some(Some("2.4.69".into())));
+
+        // A replaced binary (other size) is asked again.
+        std::fs::write(&exe, b"build two").expect("rewrite");
+        assert_eq!(cached_version(&exe), None);
     }
 
     #[test]

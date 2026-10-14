@@ -5,7 +5,7 @@
 
 use lumina_core::types::ServiceKind;
 use lumina_services::orchestrator::Orchestrator;
-use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{CheckMenuItem, IsMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Wry};
 
@@ -19,6 +19,7 @@ struct Labels {
     stop_all: &'static str,
     web: &'static str,
     database: &'static str,
+    profiles: &'static str,
     open_localhost: &'static str,
     open_www: &'static str,
     show: &'static str,
@@ -32,6 +33,7 @@ fn labels(language: &str) -> Labels {
             stop_all: "සියල්ල නවත්වන්න",
             web: "වෙබ් සේවාදායකය",
             database: "දත්ත සමුදාය",
+            profiles: "පැතිකඩ",
             open_localhost: "localhost විවෘත කරන්න",
             open_www: "www ෆෝල්ඩරය විවෘත කරන්න",
             show: "Lumina පෙන්වන්න",
@@ -42,6 +44,7 @@ fn labels(language: &str) -> Labels {
             stop_all: "Stop All",
             web: "Web server",
             database: "Database",
+            profiles: "Profile",
             open_localhost: "Open localhost",
             open_www: "Open www folder",
             show: "Show Lumina",
@@ -67,6 +70,8 @@ struct States {
     web_name: &'static str,
     db: bool,
     db_name: &'static str,
+    /// (name, current) of every saved profile.
+    profiles: Vec<(String, bool)>,
 }
 
 async fn service_states(app: &AppHandle) -> States {
@@ -77,6 +82,7 @@ async fn service_states(app: &AppHandle) -> States {
             web_name: "nginx",
             db: false,
             db_name: "MySQL",
+            profiles: Vec::new(),
         };
     };
     let cfg = rt.config();
@@ -95,15 +101,39 @@ async fn service_states(app: &AppHandle) -> States {
         web_name,
         db: status.database.runtime.is_some(),
         db_name,
+        profiles: crate::commands::profiles::tray_entries(app),
     }
 }
 
 fn build_menu(app: &AppHandle, language: &str, s: &States) -> tauri::Result<Menu<Wry>> {
     let l = labels(language);
     let configured = app.state::<AppState>().runtime().is_ok();
+    // One checkable entry per saved profile; ids are `profile:<index>`.
+    let profile_items = s
+        .profiles
+        .iter()
+        .enumerate()
+        .map(|(i, (name, current))| {
+            CheckMenuItem::with_id(
+                app,
+                format!("profile:{i}"),
+                name,
+                configured,
+                *current,
+                None::<&str>,
+            )
+        })
+        .collect::<tauri::Result<Vec<_>>>()?;
+    let profile_refs: Vec<&dyn IsMenuItem<Wry>> = profile_items
+        .iter()
+        .map(|i| i as &dyn IsMenuItem<Wry>)
+        .collect();
+    let profiles = Submenu::with_items(app, l.profiles, !profile_items.is_empty(), &profile_refs)?;
     Menu::with_items(
         app,
         &[
+            &profiles,
+            &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "start-all", l.start_all, configured, None::<&str>)?,
             &MenuItem::with_id(app, "stop-all", l.stop_all, configured, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
@@ -147,6 +177,7 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
         web_name: "nginx",
         db: false,
         db_name: "MySQL",
+        profiles: Vec::new(),
     };
     let menu = build_menu(app, &language(app), &initial)?;
     let mut builder = TrayIconBuilder::with_id(TRAY_ID)
@@ -202,6 +233,25 @@ fn on_menu(app: &AppHandle, id: &str) {
         "quit" => app.exit(0), // RunEvent::Exit stops every service
         "open-localhost" => report(app, crate::commands::services::open_localhost_for(app)),
         "open-www" => report(app, crate::commands::services::open_www_for(app)),
+        id if id.starts_with("profile:") => {
+            let app = app.clone();
+            let index: Option<usize> = id["profile:".len()..].parse().ok();
+            tauri::async_runtime::spawn(async move {
+                let Ok(rt) = app.state::<AppState>().runtime() else {
+                    return;
+                };
+                let name =
+                    index.and_then(|i| rt.config().profiles.list.get(i).map(|p| p.name.clone()));
+                let Some(name) = name else { return };
+                if let Err(err) = crate::commands::profiles::switch(&app, &rt, &name).await {
+                    log::warn!("tray: switching to \"{name}\" failed: {err}");
+                    show_main(&app);
+                    let _ = app.emit("navigate", "/profiles");
+                    let _ = app.emit(events::PROFILE_SWITCH_FAILED, err.to_string());
+                }
+                refresh(app);
+            });
+        }
         "start-all" | "stop-all" | "toggle-php" | "toggle-web" | "toggle-db" => {
             let app = app.clone();
             let id = id.to_owned();

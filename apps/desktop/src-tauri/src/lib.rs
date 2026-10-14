@@ -97,6 +97,11 @@ pub fn run() {
             commands::packages::package_uninstall,
             commands::packages::package_set_active,
             commands::packages::db_ui_open,
+            commands::profiles::profiles_list,
+            commands::profiles::profile_save,
+            commands::profiles::profile_save_current,
+            commands::profiles::profile_delete,
+            commands::profiles::profile_switch,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Lumina");

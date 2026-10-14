@@ -313,7 +313,10 @@ mod tests {
         assert_eq!(std::fs::read(&dest).expect("read"), body());
         assert!(!part_path(&dest).exists());
         assert_eq!(*last.lock().expect("lock"), (300_000, Some(300_000)));
-        assert_eq!(server.ranges.lock().expect("lock")[1], format!("bytes={kept}-"));
+        assert_eq!(
+            server.ranges.lock().expect("lock")[1],
+            format!("bytes={kept}-")
+        );
     }
 
     #[tokio::test]

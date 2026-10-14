@@ -161,6 +161,27 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
         );
     }
 
+    // Profiles need a unique, non-empty name: the UI and the tray switch by name.
+    let mut seen = std::collections::BTreeSet::new();
+    let before = cfg.profiles.list.len();
+    cfg.profiles.list.retain_mut(|p| {
+        p.name = p.name.trim().to_owned();
+        !p.name.is_empty() && seen.insert(p.name.to_lowercase())
+    });
+    let dropped = before - cfg.profiles.list.len();
+    if dropped > 0 {
+        warnings.push(
+            Warning::new(
+                "profiles_dropped",
+                "profiles.list",
+                format!(
+                    "{dropped} profile(s) without a name or with a duplicate name were ignored"
+                ),
+            )
+            .with("count", dropped),
+        );
+    }
+
     if cfg.editor.command.trim().is_empty() {
         cfg.editor = Editor::default();
         warnings.push(Warning::new(
@@ -268,6 +289,26 @@ mod tests {
         assert_eq!(cfg.general.tld, "test");
         assert_eq!(cfg.editor, Editor::default());
         assert_eq!(codes(&warnings), ["tld_reset", "editor_reset"]);
+    }
+
+    #[test]
+    fn profiles_need_unique_names() {
+        use crate::schema::Profile;
+        let mut cfg = AppConfig::default();
+        let named = |n: &str| Profile {
+            name: n.into(),
+            ..Profile::default()
+        };
+        cfg.profiles.list = vec![
+            named(" Legacy "),
+            named("legacy"),
+            named(""),
+            named("Modern"),
+        ];
+        let warnings = validate(&mut cfg);
+        assert_eq!(codes(&warnings), ["profiles_dropped"]);
+        let names: Vec<&str> = cfg.profiles.list.iter().map(|p| p.name.as_str()).collect();
+        assert_eq!(names, ["Legacy", "Modern"]);
     }
 
     #[test]

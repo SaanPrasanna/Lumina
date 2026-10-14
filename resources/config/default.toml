@@ -51,6 +51,14 @@ provider = "ngrok"           # the auth token is stored in the OS keychain, not 
 
 [profiles]
 active = "default"
+# Saved stacks, switched in one click from the Profiles page or the tray:
+# [[profiles.list]]
+# name = "Legacy"
+# web = "apache"               # "nginx" | "apache"
+# web_version = ""             # empty = newest installed
+# php = "8.3"                  # newest 8.3.x
+# database = { engine = "mysql", version = "8.4" }
+# redis = false
 
 [tools]
 # Versions of tools that are not services; empty = newest installed.

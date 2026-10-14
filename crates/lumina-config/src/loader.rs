@@ -160,6 +160,45 @@ mod tests {
     }
 
     #[test]
+    fn profiles_capture_apply_and_survive_a_save() {
+        use crate::schema::{DatabaseEngine, Profile, WebServer};
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let path = tmp.path().join("config.toml");
+        let mut cfg = AppConfig::default();
+        cfg.web.server = WebServer::Apache;
+        cfg.web.apache_version = "2.4".into();
+        cfg.php.version = "8.4".into();
+        cfg.database.engine = DatabaseEngine::Mariadb;
+        cfg.database.mariadb_version = "11.8".into();
+        let modern = Profile::capture(&cfg, "Modern");
+        assert!(modern.matches(&cfg));
+
+        let legacy = Profile {
+            name: "Legacy".into(),
+            php: "8.3".into(),
+            ..Profile::default()
+        };
+        legacy.apply(&mut cfg);
+        assert!(legacy.matches(&cfg) && !modern.matches(&cfg));
+        assert_eq!(
+            (cfg.web.server, cfg.php.version.as_str()),
+            (WebServer::Nginx, "8.3")
+        );
+        assert_eq!(
+            cfg.web.apache_version, "2.4",
+            "other servers' versions are kept"
+        );
+        assert_eq!(cfg.profiles.active, "Legacy");
+
+        cfg.profiles.list = vec![legacy.clone(), modern.clone()];
+        crate::save(&path, &cfg).expect("save");
+        let text = std::fs::read_to_string(&path).expect("read");
+        assert!(text.contains("[[profiles.list]]"), "{text}");
+        let loaded = load_or_create(&path).expect("load").config;
+        assert_eq!(loaded.profiles.list, vec![legacy, modern]);
+    }
+
+    #[test]
     fn default_template_matches_schema_defaults() {
         assert_eq!(parse(DEFAULT_TOML).expect("parse"), AppConfig::default());
     }

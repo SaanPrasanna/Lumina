@@ -267,13 +267,108 @@ impl Default for Tunnel {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Profiles {
+    /// Name of the profile last switched to.
     pub active: String,
+    /// Saved stacks, switched in one click.
+    pub list: Vec<Profile>,
+}
+
+/// A saved stack (`[[profiles.list]]`). Versions use the same rules as the
+/// sections they set: empty = newest installed, `"8.3"` = newest 8.3.x.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Profile {
+    pub name: String,
+    pub web: WebServer,
+    pub web_version: String,
+    pub php: String,
+    pub database: ProfileDatabase,
+    /// Run Redis with this stack.
+    pub redis: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ProfileDatabase {
+    pub engine: DatabaseEngine,
+    pub version: String,
+}
+
+impl Default for ProfileDatabase {
+    fn default() -> Self {
+        Self {
+            engine: DatabaseEngine::Mysql,
+            version: String::new(),
+        }
+    }
+}
+
+impl Default for Profile {
+    fn default() -> Self {
+        Self {
+            name: String::new(),
+            web: WebServer::Nginx,
+            web_version: String::new(),
+            php: String::new(),
+            database: ProfileDatabase::default(),
+            redis: false,
+        }
+    }
+}
+
+impl Profile {
+    /// The stack `cfg` describes now, named `name`.
+    pub fn capture(cfg: &AppConfig, name: &str) -> Self {
+        let engine = cfg.database.engine;
+        Self {
+            name: name.trim().to_owned(),
+            web: cfg.web.server,
+            web_version: match cfg.web.server {
+                WebServer::Nginx => cfg.web.nginx_version.clone(),
+                WebServer::Apache => cfg.web.apache_version.clone(),
+            },
+            php: cfg.php.version.clone(),
+            database: ProfileDatabase {
+                engine,
+                version: match engine {
+                    DatabaseEngine::Mysql => cfg.database.mysql_version.clone(),
+                    DatabaseEngine::Mariadb => cfg.database.mariadb_version.clone(),
+                },
+            },
+            redis: cfg.redis.enabled,
+        }
+    }
+
+    /// Sets the sections this profile covers; ports and everything else stay.
+    pub fn apply(&self, cfg: &mut AppConfig) {
+        cfg.web.server = self.web;
+        match self.web {
+            WebServer::Nginx => cfg.web.nginx_version = self.web_version.clone(),
+            WebServer::Apache => cfg.web.apache_version = self.web_version.clone(),
+        }
+        cfg.php.version = self.php.clone();
+        cfg.database.engine = self.database.engine;
+        match self.database.engine {
+            DatabaseEngine::Mysql => cfg.database.mysql_version = self.database.version.clone(),
+            DatabaseEngine::Mariadb => cfg.database.mariadb_version = self.database.version.clone(),
+        }
+        cfg.redis.enabled = self.redis;
+        cfg.profiles.active = self.name.clone();
+    }
+
+    /// Whether `cfg` runs exactly this stack.
+    pub fn matches(&self, cfg: &AppConfig) -> bool {
+        let mut now = Self::capture(cfg, &self.name);
+        now.name = self.name.clone();
+        now == *self
+    }
 }
 
 impl Default for Profiles {
     fn default() -> Self {
         Self {
             active: "default".to_owned(),
+            list: Vec::new(),
         }
     }
 }
