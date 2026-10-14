@@ -61,7 +61,13 @@
     "restart": "Restart",
     "openLog": "Open log",
     "save": "Save",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "reload": "Reload",
+    "startAll": "Start All",
+    "stopAll": "Stop All",
+    "openLocalhost": "Open localhost",
+    "openWww": "Open www folder",
+    "cancel": "Cancel"
   },
   "php": {
     "title": "PHP",
@@ -95,7 +101,19 @@
       "name": "Name",
       "command": "Command",
       "args": "Arguments (one per line; {path} is the folder or file)"
-    }
+    },
+    "general": {
+      "title": "General",
+      "autostart": "Start PHP and the web server when Lumina opens",
+      "closeToTray": "Keep running in the tray when the window is closed"
+    },
+    "web": {
+      "title": "Web server",
+      "httpPort": "HTTP port",
+      "httpsPort": "HTTPS port",
+      "portHint": "Sites are reachable only from this computer (127.0.0.1)."
+    },
+    "restartWebToApply": "Restart the web server to apply these changes."
   },
   "configWarnings": {
     "php_children_raised": "PHP_FCGI_CHILDREN={{from}} is too low; Lumina uses {{to}}.",
@@ -106,5 +124,24 @@
     "editor_reset": "No editor command was set; using VS Code.",
     "config_restored": "config.toml was damaged and has been restored from the backup. The damaged copy is {{file}}.",
     "config_reset": "config.toml was damaged and no backup was usable, so the defaults are used. The damaged copy is {{file}}."
+  },
+  "web": {
+    "title": "Web server",
+    "server": "Server",
+    "version": "Version",
+    "newest": "Newest installed ({{version}})",
+    "port": "HTTP port",
+    "phpPort": "PHP port",
+    "processes": "Processes",
+    "notInstalled": "{{server}} is not installed yet. Put it in {{path}}.",
+    "reloaded": "Configuration reloaded.",
+    "unchanged": "Nothing changed; no reload was needed.",
+    "restarted": "Restarted with the new configuration."
+  },
+  "portConflict": {
+    "title": "Port {{port}} is in use",
+    "body": "{{owner}} is already using port {{port}}, so the web server cannot start. Use port {{alternative}} instead? Your sites will then be at http://localhost:{{alternative}}.",
+    "unknownOwner": "Another program",
+    "use": "Use port {{alternative}}"
   }
 }

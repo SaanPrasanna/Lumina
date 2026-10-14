@@ -5,14 +5,16 @@ import { useTranslation } from "react-i18next";
 import { ConfigWarnings } from "@/components/ConfigWarnings";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { PHP_STATUS_KEY, phpStatus } from "@/features/services/api";
+import { SERVICES_KEY, servicesStatus } from "@/features/services/api";
 import {
   type EditorSettings,
+  type GeneralSettings,
   type PhpSettings,
   SETTINGS_KEY,
   type Settings,
   settingsGet,
   settingsUpdate,
+  type WebSettings,
 } from "@/features/settings/api";
 
 export function SettingsPage() {
@@ -28,6 +30,11 @@ export function SettingsPage() {
           <>
             <ConfigWarnings warnings={settings.data.warnings} />
             {/* key: reset the forms when the saved config changes elsewhere */}
+            <GeneralForm
+              key={JSON.stringify(settings.data.config.general)}
+              initial={settings.data.config.general}
+            />
+            <WebForm key={JSON.stringify(settings.data.config.web)} initial={settings.data.config.web} />
             <PhpForm key={JSON.stringify(settings.data.config.php)} initial={settings.data.config.php} />
             <EditorForm
               key={JSON.stringify(settings.data.config.editor)}
@@ -59,15 +66,15 @@ function PhpForm({ initial }: { initial: PhpSettings }) {
   const { t } = useTranslation();
   const [form, setForm] = useState(initial);
   const save = useSaveSection("php");
-  const php = useQuery({ queryKey: PHP_STATUS_KEY, queryFn: phpStatus });
-  const running = php.data?.runtime != null;
+  const stack = useQuery({ queryKey: SERVICES_KEY, queryFn: servicesStatus });
+  const running = stack.data?.php.runtime != null;
 
   const num = (key: keyof PhpSettings) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [key]: Number(e.target.value) });
 
   return (
     <Section title={t("php.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label={t("settings.php.port")} hint={t("settings.php.portHint")}>
           <NumberInput value={form.fcgi_port} onChange={num("fcgi_port")} min={1} max={65535} />
         </Field>
@@ -84,6 +91,56 @@ function PhpForm({ initial }: { initial: PhpSettings }) {
       {save.isSuccess && running && <p className="text-sm text-warn">{t("settings.restartToApply")}</p>}
       <ErrorBox error={save.error} />
     </Section>
+  );
+}
+
+function GeneralForm({ initial }: { initial: GeneralSettings }) {
+  const { t } = useTranslation();
+  const [form, setForm] = useState(initial);
+  const save = useSaveSection("general");
+  const toggle = (key: "autostart_services" | "close_to_tray") => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [key]: e.target.checked });
+
+  return (
+    <Section title={t("settings.general.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
+      <Checkbox label={t("settings.general.autostart")} checked={form.autostart_services} onChange={toggle("autostart_services")} />
+      <Checkbox label={t("settings.general.closeToTray")} checked={form.close_to_tray} onChange={toggle("close_to_tray")} />
+      <ErrorBox error={save.error} />
+    </Section>
+  );
+}
+
+function WebForm({ initial }: { initial: WebSettings }) {
+  const { t } = useTranslation();
+  const [form, setForm] = useState(initial);
+  const save = useSaveSection("web");
+  const stack = useQuery({ queryKey: SERVICES_KEY, queryFn: servicesStatus });
+  const running = stack.data?.web.runtime != null;
+  const num = (key: "http_port" | "https_port") => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [key]: Number(e.target.value) });
+
+  return (
+    <Section title={t("settings.web.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        <Field label={t("settings.web.httpPort")} hint={t("settings.web.portHint")}>
+          <NumberInput value={form.http_port} onChange={num("http_port")} min={1} max={65535} />
+        </Field>
+        <Field label={t("settings.web.httpsPort")}>
+          <NumberInput value={form.https_port} onChange={num("https_port")} min={1} max={65535} />
+        </Field>
+      </div>
+      {save.isSuccess && running && <p className="text-sm text-warn">{t("settings.restartWebToApply")}</p>}
+      <ErrorBox error={save.error} />
+    </Section>
+  );
+}
+
+function Checkbox(props: { label: string; checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+  return (
+    <label className="flex items-center gap-2.5 text-sm">
+      <input type="checkbox" checked={props.checked} onChange={props.onChange} className="size-4 accent-accent" />
+      {props.label}
+    </label>
   );
 }
 

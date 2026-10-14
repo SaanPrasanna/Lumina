@@ -3,6 +3,8 @@
 //! of the group survives. That verification is what prevents ghost processes.
 
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 use std::process::Stdio;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex as StdMutex, MutexGuard};
@@ -140,23 +142,52 @@ impl Supervisor {
     /// (SIGTERM on Unix); after that they are killed. An error means processes
     /// survived even the kill, which should never happen.
     pub async fn stop(&self, id: &str, limit: Duration) -> Result<()> {
+        self.stop_inner(id, limit, None).await
+    }
+
+    /// Like [`Self::stop`], but first runs `graceful` (e.g. `nginx -s quit`) and
+    /// gives the server half of `limit` to exit on its own before it is
+    /// terminated. The process is marked as stopping *before* `graceful` runs, so
+    /// its own exit is not mistaken for a crash and restarted.
+    pub async fn stop_gracefully<F>(&self, id: &str, limit: Duration, graceful: F) -> Result<()>
+    where
+        F: Future<Output = ()> + Send,
+    {
+        self.stop_inner(id, limit, Some(Box::pin(graceful))).await
+    }
+
+    async fn stop_inner(
+        &self,
+        id: &str,
+        limit: Duration,
+        graceful: Option<Pin<Box<dyn Future<Output = ()> + Send + '_>>>,
+    ) -> Result<()> {
         let Some(managed) = self.inner.procs.lock().await.get(id).cloned() else {
             return Ok(()); // not running
         };
         managed.stopping.store(true, Ordering::SeqCst);
         managed.stop_signal.notify_one();
-        let _ = managed.group().terminate();
 
-        let task = managed
+        let mut task = managed
             .monitor
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .take();
-        if let Some(mut task) = task {
-            if timeout(limit / 2, &mut task).await.is_err() {
-                // Re-read the group: a restart may have replaced it meanwhile.
-                let _ = managed.group().kill();
-                let _ = timeout(limit / 2, &mut task).await;
+        let mut exited = false;
+        if let Some(graceful) = graceful {
+            graceful.await;
+            if let Some(task) = task.as_mut() {
+                exited = timeout(limit / 2, task).await.is_ok();
+            }
+        }
+        if !exited {
+            let _ = managed.group().terminate();
+            if let Some(mut task) = task {
+                if timeout(limit / 2, &mut task).await.is_err() {
+                    // Re-read the group: a restart may have replaced it meanwhile.
+                    let _ = managed.group().kill();
+                    let _ = timeout(limit / 2, &mut task).await;
+                }
             }
         }
 

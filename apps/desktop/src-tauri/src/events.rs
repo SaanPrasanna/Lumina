@@ -45,6 +45,7 @@ pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
                 }
                 E::Failed { id, reason } => (id, "failed", Some(reason.clone())),
             };
+            crate::tray::refresh(app.clone());
             let _ = app.emit(
                 SERVICE_STATUS,
                 ServiceStatusEvent {

@@ -53,7 +53,7 @@ pub fn pick(preferred: u16, fallback: u16) -> Result<PortChoice> {
 
 /// "name (pid N)" of the process listening on `port`, if it can be determined.
 pub fn owner(port: u16) -> Option<String> {
-    let pid = lumina_platform::net::listening_pid(port)?;
+    let pid = lumina_platform::net::port_user_pid(port)?;
     let mut sys = System::new();
     let sys_pid = Pid::from_u32(pid);
     sys.refresh_processes_specifics(

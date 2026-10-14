@@ -52,6 +52,10 @@ pub struct General {
     pub auto_vhosts: bool,
     pub auto_ssl: bool,
     pub start_on_login: bool,
+    /// Start PHP and the web server when Lumina opens.
+    pub autostart_services: bool,
+    /// Closing the window hides Lumina in the tray instead of quitting.
+    pub close_to_tray: bool,
 }
 
 impl Default for General {
@@ -62,6 +66,8 @@ impl Default for General {
             auto_vhosts: true,
             auto_ssl: true,
             start_on_login: false,
+            autostart_services: false,
+            close_to_tray: true,
         }
     }
 }
@@ -102,6 +108,9 @@ pub enum WebServer {
 #[serde(default)]
 pub struct Web {
     pub server: WebServer,
+    /// Empty = newest installed; otherwise a version or prefix, as for PHP.
+    pub nginx_version: String,
+    pub apache_version: String,
     pub http_port: u16,
     pub https_port: u16,
 }
@@ -110,6 +119,8 @@ impl Default for Web {
     fn default() -> Self {
         Self {
             server: WebServer::Nginx,
+            nginx_version: String::new(),
+            apache_version: String::new(),
             http_port: 80,
             https_port: 443,
         }

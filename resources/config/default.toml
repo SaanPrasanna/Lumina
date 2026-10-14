@@ -10,6 +10,8 @@ tld = "test"
 auto_vhosts = true
 auto_ssl = true
 start_on_login = false
+autostart_services = false   # start PHP + web server when Lumina opens
+close_to_tray = true         # closing the window keeps Lumina running in the tray
 
 [php]
 # Empty = newest installed version. Otherwise "8.4" (newest 8.4.x) or "8.4.13".
@@ -21,6 +23,8 @@ fcgi_max_requests = 0        # PHP_FCGI_MAX_REQUESTS (0 = unlimited)
 
 [web]
 server = "nginx"             # "nginx" | "apache"
+nginx_version = ""           # empty = newest installed
+apache_version = ""
 http_port = 80
 https_port = 443
 

@@ -32,25 +32,32 @@ fn log_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .build()
 }
 
-/// How long services get to stop when the app exits.
-const EXIT_STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
-
 pub fn run() {
     let app = tauri::Builder::default()
         // Must be registered first so a second launch focuses the existing window.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            use tauri::Manager;
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.unminimize();
-                let _ = window.set_focus();
-            }
+            tray::show_main(app);
         }))
         .plugin(log_plugin())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .setup(setup::init)
+        .setup(|app| {
+            setup::init(app)?;
+            tray::create(app.handle())?;
+            setup::autostart(app.handle());
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            use tauri::Manager;
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if setup::close_to_tray(window.app_handle()) {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             commands::app::app_version,
             commands::app::bootstrap_status,
@@ -58,13 +65,19 @@ pub fn run() {
             commands::app::set_language,
             commands::settings::settings_get,
             commands::settings::settings_update,
-            commands::services::php_status,
+            commands::services::services_status,
+            commands::services::service_start,
+            commands::services::service_stop,
+            commands::services::service_restart,
+            commands::services::service_reload,
+            commands::services::services_start_all,
+            commands::services::services_stop_all,
             commands::services::php_versions,
-            commands::services::php_start,
-            commands::services::php_stop,
-            commands::services::php_restart,
+            commands::services::web_versions,
             commands::services::php_set_version,
-            commands::services::php_open_log,
+            commands::services::service_open_log,
+            commands::services::open_localhost,
+            commands::services::open_www,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Lumina");
@@ -76,9 +89,9 @@ pub fn run() {
     });
 }
 
-/// Stops every service before the process exits. Windows would kill them anyway
-/// (Job Objects), but a clean stop lets servers flush and keeps the PID ledger
-/// empty so the next start has nothing to sweep.
+/// Stops every service before the process exits (web servers first, nginx
+/// gracefully). Windows would kill them anyway (Job Objects), but a clean stop
+/// lets servers finish requests and keeps the PID ledger empty.
 fn stop_services(app: &tauri::AppHandle) {
     use tauri::Manager;
     let Some(state) = app.try_state::<state::AppState>() else {
@@ -88,8 +101,8 @@ fn stop_services(app: &tauri::AppHandle) {
         return;
     };
     log::info!("stopping services before exit");
-    let failures = tauri::async_runtime::block_on(runtime.supervisor.stop_all(EXIT_STOP_TIMEOUT));
-    for (id, err) in failures {
-        log::error!("could not stop `{id}` on exit: {err}");
+    let failures = tauri::async_runtime::block_on(runtime.stack.stop_all());
+    for (kind, err) in failures {
+        log::error!("could not stop {kind:?} on exit: {err}");
     }
 }

@@ -1,5 +1,12 @@
 import { call } from "@/lib/ipc";
-import type { ServiceStatus } from "@/types";
+import type { ServiceKind, ServiceStatus } from "@/types";
+
+/** Mirrors lumina_services::install::Install. */
+export interface Install {
+  version: string;
+  dir: string;
+  exe: string;
+}
 
 /** Mirrors lumina_services::php_fcgi::PhpRuntime. */
 export interface PhpRuntime {
@@ -22,20 +29,52 @@ export interface PhpStatus {
   logFile: string;
 }
 
-/** Mirrors lumina_services::php_fcgi::PhpInstall. */
-export interface PhpInstall {
+export type WebServer = "nginx" | "apache";
+
+/** Mirrors lumina_services::web::WebRuntime. */
+export interface WebRuntime {
+  server: WebServer;
   version: string;
-  dir: string;
-  cgi: string;
+  httpPort: number;
+  phpPort: number;
 }
 
-export const PHP_STATUS_KEY = ["php", "status"] as const;
-export const PHP_VERSIONS_KEY = ["php", "versions"] as const;
+/** Mirrors lumina_services::web::WebStatus. */
+export interface WebStatus {
+  server: WebServer;
+  status: ServiceStatus;
+  runtime: WebRuntime | null;
+  pid: number | null;
+  processes: number;
+  error: string | null;
+  logFile: string;
+}
 
-export const phpStatus = () => call<PhpStatus>("php_status");
-export const phpVersions = () => call<PhpInstall[]>("php_versions");
-export const phpStart = () => call<PhpRuntime>("php_start");
-export const phpStop = () => call<void>("php_stop");
-export const phpRestart = () => call<PhpRuntime>("php_restart");
-export const phpSetVersion = (version: string) => call<PhpStatus>("php_set_version", { version });
-export const phpOpenLog = () => call<void>("php_open_log");
+/** Mirrors lumina_services::orchestrator::StackStatus. */
+export interface StackStatus {
+  php: PhpStatus;
+  web: WebStatus;
+}
+
+/** Mirrors lumina_services::web::ReloadOutcome. */
+export type ReloadOutcome = { kind: "unchanged" } | { kind: "reloaded"; signals: number } | { kind: "restarted" };
+
+export const SERVICES_KEY = ["services"] as const;
+export const PHP_VERSIONS_KEY = ["php", "versions"] as const;
+export const webVersionsKey = (server: WebServer) => ["web", "versions", server] as const;
+
+export const webKind = (server: WebServer): ServiceKind => server;
+
+export const servicesStatus = () => call<StackStatus>("services_status");
+export const serviceStart = (kind: ServiceKind) => call<void>("service_start", { kind });
+export const serviceStop = (kind: ServiceKind) => call<void>("service_stop", { kind });
+export const serviceRestart = (kind: ServiceKind) => call<void>("service_restart", { kind });
+export const serviceReload = (kind: ServiceKind) => call<ReloadOutcome>("service_reload", { kind });
+export const servicesStartAll = () => call<void>("services_start_all");
+export const servicesStopAll = () => call<void>("services_stop_all");
+export const serviceOpenLog = (kind: ServiceKind) => call<void>("service_open_log", { kind });
+export const phpVersions = () => call<Install[]>("php_versions");
+export const webVersions = (server: WebServer) => call<Install[]>("web_versions", { server });
+export const phpSetVersion = (version: string) => call<void>("php_set_version", { version });
+export const openLocalhost = () => call<void>("open_localhost");
+export const openWww = () => call<void>("open_www");

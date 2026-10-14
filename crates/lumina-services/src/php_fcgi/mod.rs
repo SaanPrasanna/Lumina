@@ -17,16 +17,18 @@ use lumina_core::types::ServiceStatus;
 use lumina_core::{Error, Result};
 use lumina_process::{ProcessSpec, ProcessState, RestartPolicy, Supervisor, health, logs, ports};
 use serde::Serialize;
-use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
+
+use crate::template::Templates;
 
 pub use versions::PhpInstall;
 
 /// Supervisor ID of the PHP pool.
 pub const PROCESS_ID: &str = "php-fcgi";
 /// How long php-cgi gets to start listening.
-const READY_TIMEOUT: Duration = Duration::from_secs(10);
+/// Generous: the first start of freshly installed binaries is slowed by antivirus scans.
+const READY_TIMEOUT: Duration = Duration::from_secs(30);
 const STOP_TIMEOUT: Duration = Duration::from_secs(10);
 /// How often the watchdog counts php-cgi processes.
 const WATCHDOG_INTERVAL: Duration = Duration::from_secs(30);
@@ -68,8 +70,7 @@ pub struct PhpFcgi {
 struct Inner {
     supervisor: Supervisor,
     layout: Layout,
-    /// `resources/templates` (bundled with the app).
-    templates: PathBuf,
+    templates: Templates,
     state: Mutex<State>,
 }
 
@@ -82,7 +83,7 @@ struct State {
 }
 
 impl PhpFcgi {
-    pub fn new(supervisor: Supervisor, layout: Layout, templates: PathBuf) -> Self {
+    pub fn new(supervisor: Supervisor, layout: Layout, templates: Templates) -> Self {
         Self {
             inner: Arc::new(Inner {
                 supervisor,
@@ -141,7 +142,7 @@ impl PhpFcgi {
 
         let spec = ProcessSpec {
             id: PROCESS_ID.into(),
-            program: install.cgi.clone(),
+            program: install.exe.clone(),
             args: vec!["-b".into(), format!("127.0.0.1:{}", choice.port).into()],
             env: env::fcgi_env(install, &ini_dir, children, cfg.fcgi_max_requests),
             cwd: Some(install.dir.clone()),
@@ -217,13 +218,7 @@ impl PhpFcgi {
         let state = self.inner.state.lock().await;
         let info = self.inner.supervisor.info(PROCESS_ID).await;
         let processes = self.php_cgi_processes().await.len();
-        let status = match info.as_ref().map(|i| i.state) {
-            None if state.last_error.is_some() => ServiceStatus::Failed,
-            None => ServiceStatus::Stopped,
-            Some(ProcessState::Running) => ServiceStatus::Running,
-            Some(ProcessState::Restarting) => ServiceStatus::Starting,
-            Some(ProcessState::Failed) => ServiceStatus::Failed,
-        };
+        let status = crate::service_status(info.as_ref(), state.last_error.is_some());
         PhpStatus {
             status,
             runtime: info.as_ref().and(state.runtime.clone()),
@@ -238,27 +233,7 @@ impl PhpFcgi {
     /// php-cgi processes in the pool's group (ignores helpers such as conhost.exe).
     async fn php_cgi_processes(&self) -> Vec<u32> {
         let members = self.inner.supervisor.members(PROCESS_ID).await;
-        if members.is_empty() {
-            return members;
-        }
-        let pids: Vec<Pid> = members.iter().map(|&p| Pid::from_u32(p)).collect();
-        let mut sys = System::new();
-        sys.refresh_processes_specifics(
-            ProcessesToUpdate::Some(&pids),
-            true,
-            ProcessRefreshKind::nothing(),
-        );
-        let cgi = versions::cgi_file_name();
-        let stem = cgi.trim_end_matches(std::env::consts::EXE_SUFFIX);
-        pids.iter()
-            .filter(|pid| {
-                sys.process(**pid).is_some_and(|p| {
-                    let name = p.name().to_string_lossy();
-                    name.eq_ignore_ascii_case(&cgi) || name.eq_ignore_ascii_case(stem)
-                })
-            })
-            .map(|pid| pid.as_u32())
-            .collect()
+        crate::web::named(&members, "php-cgi")
     }
 }
 

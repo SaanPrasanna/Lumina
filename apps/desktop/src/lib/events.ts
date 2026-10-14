@@ -7,8 +7,8 @@ export type BackendEvent = "service-status" | "config-changed";
 
 /** Query keys refetched when each backend event arrives. */
 const INVALIDATES: Record<BackendEvent, readonly (readonly string[])[]> = {
-  "service-status": [["php"]],
-  "config-changed": [["settings"], ["php"]],
+  "service-status": [["services"]],
+  "config-changed": [["settings"], ["services"]],
 };
 
 /** Keeps React Query data fresh by listening to backend events. Mount once. */

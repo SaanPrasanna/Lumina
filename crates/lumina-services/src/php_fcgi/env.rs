@@ -3,11 +3,12 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use lumina_core::Result;
 use lumina_core::constants::MIN_PHP_FCGI_CHILDREN;
 use lumina_core::paths::Layout;
-use lumina_core::{Error, Result};
 
-use super::versions::PhpInstall;
+use super::versions::{PhpInstall, ext_dir};
+use crate::template::{Templates, forward_slashes};
 
 /// Extensions enabled in a generated php.ini, when the build ships them.
 const EXTENSIONS: &[&str] = &[
@@ -75,20 +76,14 @@ pub fn ini_dir(layout: &Layout, install: &PhpInstall) -> PathBuf {
 
 /// Writes `etc/php/<version>/php.ini` from the template if it does not exist yet.
 /// An existing file is never touched, so the user's edits survive.
-pub fn ensure_ini(layout: &Layout, templates: &Path, install: &PhpInstall) -> Result<PathBuf> {
+pub fn ensure_ini(layout: &Layout, templates: &Templates, install: &PhpInstall) -> Result<PathBuf> {
     let dir = ini_dir(layout, install);
     let ini = dir.join("php.ini");
     if ini.exists() {
         return Ok(ini);
     }
 
-    let template_path = templates.join("php").join("php.ini.tera");
-    let template = std::fs::read_to_string(&template_path).map_err(|source| Error::Io {
-        path: template_path.clone(),
-        source,
-    })?;
-
-    let ext_dir = install.ext_dir();
+    let ext_dir = ext_dir(install);
     let available = |name: &str| {
         let file = if cfg!(windows) {
             format!("php_{name}.dll")
@@ -116,24 +111,18 @@ pub fn ensure_ini(layout: &Layout, templates: &Path, install: &PhpInstall) -> Re
         &forward_slashes(&layout.logs().join("php_errors.log")),
     );
 
-    let text = tera::Tera::one_off(&template, &ctx, false)
-        .map_err(|e| Error::Config(format!("{}: {e}", template_path.display())))?;
+    let text = templates.render("php/php.ini.tera", &ctx)?;
     lumina_core::fs::write_atomic(&ini, text.as_bytes())?;
     tracing::info!("wrote {}", ini.display());
     Ok(ini)
-}
-
-/// php.ini accepts forward slashes on every OS and needs no escaping then.
-fn forward_slashes(path: &Path) -> String {
-    path.to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn template_dir() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/templates")
+    fn templates() -> Templates {
+        Templates::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/templates"))
     }
 
     #[test]
@@ -147,7 +136,7 @@ mod tests {
         let install = PhpInstall {
             version: "8.4.26".into(),
             dir: PathBuf::from("php"),
-            cgi: PathBuf::from("php/php-cgi"),
+            exe: PathBuf::from("php/php-cgi"),
         };
         let env = fcgi_env(&install, Path::new("ini"), 1, 500);
         let get = |k: &str| env.iter().find(|(key, _)| key == k).map(|(_, v)| v.clone());
@@ -175,10 +164,10 @@ mod tests {
         let install = PhpInstall {
             version: "8.4.26".into(),
             dir: php.clone(),
-            cgi: php.join("php-cgi"),
+            exe: php.join("php-cgi"),
         };
 
-        let ini = ensure_ini(&layout, &template_dir(), &install).expect("render");
+        let ini = ensure_ini(&layout, &templates(), &install).expect("render");
         let text = std::fs::read_to_string(&ini).expect("read");
 
         assert!(text.contains("extension=mbstring"), "{text}");
@@ -188,7 +177,7 @@ mod tests {
 
         // User edits survive: a second call leaves the file alone.
         std::fs::write(&ini, "; mine").expect("edit");
-        ensure_ini(&layout, &template_dir(), &install).expect("again");
+        ensure_ini(&layout, &templates(), &install).expect("again");
         assert_eq!(std::fs::read_to_string(&ini).expect("read"), "; mine");
     }
 }

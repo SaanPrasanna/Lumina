@@ -56,9 +56,40 @@ pub fn start_runtime(app: &AppHandle, layout: Layout) {
     }
 }
 
+/// Starts PHP and the web server if `general.autostart_services` is on.
+pub fn autostart(app: &AppHandle) {
+    let Ok(runtime) = app.state::<AppState>().runtime() else {
+        return;
+    };
+    let cfg = runtime.config();
+    if !cfg.general.autostart_services {
+        return;
+    }
+    tauri::async_runtime::spawn(async move {
+        log::info!("auto-starting services");
+        if let Err(err) = runtime.stack.start_all(&cfg).await {
+            log::error!("auto-start failed: {err}");
+        }
+    });
+}
+
+/// Whether closing the window should hide Lumina in the tray. Before the
+/// first-run wizard completes, closing quits.
+pub fn close_to_tray(app: &AppHandle) -> bool {
+    app.state::<AppState>()
+        .runtime()
+        .is_ok_and(|rt| rt.config().general.close_to_tray)
+}
+
 /// `resources/templates`, bundled next to the app. In debug builds without
 /// bundled resources, the repository copy is used.
 fn templates_dir(app: &AppHandle) -> PathBuf {
+    // Debug builds read the repository copy directly, so template edits apply
+    // without a rebuild (the bundled copy is only refreshed by the build script).
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../resources/templates");
+    if cfg!(debug_assertions) && repo.is_dir() {
+        return repo;
+    }
     let bundled = app
         .path()
         .resource_dir()

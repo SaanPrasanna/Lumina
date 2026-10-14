@@ -274,3 +274,38 @@ async fn logs_capture_server_output() {
     assert!(text.contains("Lumina:"), "{text}");
     assert!(text.contains("with 1 workers"), "{text}");
 }
+
+#[tokio::test]
+async fn graceful_stop_is_not_mistaken_for_a_crash() {
+    let fx = fixture("graceful");
+    let sup = Supervisor::new(Ledger::disabled());
+    let mut events = sup.subscribe();
+    let mut spec = fx.spec("nginx", &[("FAKE_CHILDREN", "2")]);
+    spec.restart = RestartPolicy::OnFailure {
+        max_restarts: 3,
+        backoff: Duration::from_millis(10),
+    };
+    sup.start(spec).await.expect("start");
+    let leader = wait_members(&sup, "nginx", &fx.exe, 3).await;
+
+    // Stands in for `nginx -s quit`: the server exits by itself.
+    let exe = fx.exe.clone();
+    sup.stop_gracefully("nginx", STOP_LIMIT, async move {
+        for pid in alive_with_exe(&exe) {
+            let _ = lumina_platform::process_group::kill_orphaned_group(pid);
+        }
+    })
+    .await
+    .expect("graceful stop");
+
+    assert_none_alive(&fx.exe).await;
+    while let Ok(event) = events.try_recv() {
+        assert!(
+            !matches!(
+                event,
+                ProcessEvent::Restarting { .. } | ProcessEvent::Failed { .. }
+            ),
+            "graceful exit treated as a crash: {event:?} (leader {leader:?})"
+        );
+    }
+}

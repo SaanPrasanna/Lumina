@@ -12,7 +12,8 @@ use lumina_core::paths::Layout;
 use lumina_core::{Error, Result};
 use lumina_process::Supervisor;
 use lumina_process::ledger::Ledger;
-use lumina_services::php_fcgi::PhpFcgi;
+use lumina_services::orchestrator::Orchestrator;
+use lumina_services::template::Templates;
 
 pub struct AppState {
     /// `<app-config-dir>/bootstrap.toml`.
@@ -42,7 +43,8 @@ pub struct Runtime {
     pub warnings: RwLock<Vec<Warning>>,
     pub config_source: ConfigSource,
     pub supervisor: Supervisor,
-    pub php: PhpFcgi,
+    /// PHP + web server as one stack.
+    pub stack: Orchestrator,
 }
 
 impl Runtime {
@@ -62,14 +64,18 @@ impl Runtime {
         }
 
         let supervisor = Supervisor::new(ledger);
-        let php = PhpFcgi::new(supervisor.clone(), layout.clone(), templates);
+        let stack = Orchestrator::new(
+            supervisor.clone(),
+            layout.clone(),
+            Templates::new(templates),
+        );
         Ok(Self {
             layout,
             config: RwLock::new(loaded.config),
             warnings: RwLock::new(loaded.warnings),
             config_source: loaded.source,
             supervisor,
-            php,
+            stack,
         })
     }
 

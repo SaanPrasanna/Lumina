@@ -19,6 +19,7 @@ use lumina_core::types::ServiceStatus;
 use lumina_process::Supervisor;
 use lumina_process::ledger::Ledger;
 use lumina_services::php_fcgi::PhpFcgi;
+use lumina_services::template::Templates;
 use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 use tempfile::TempDir;
 
@@ -42,7 +43,7 @@ fn setup() -> Option<Env> {
     let php = PhpFcgi::new(
         Supervisor::new(Ledger::disabled()),
         layout.clone(),
-        templates,
+        Templates::new(templates),
     );
     Some(Env {
         _tmp: tmp,
