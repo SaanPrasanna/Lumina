@@ -109,6 +109,11 @@ pub fn run() {
             commands::env_path::terminal_open,
             commands::editor::editor_presets,
             commands::editor::editor_open,
+            commands::quickapp::quickapp_overview,
+            commands::quickapp::quickapp_create,
+            commands::quickapp::quickapp_cancel,
+            commands::quickapp::quickapp_dismiss,
+            commands::quickapp::quickapp_delete_partial,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Lumina");

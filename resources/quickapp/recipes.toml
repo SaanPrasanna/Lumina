@@ -1,16 +1,382 @@
-# QuickApp recipes. Each recipe is a list of steps run by lumina-quickapp.
+# QuickApp recipes: one-click projects. Data only; lumina-quickapp runs them.
+#
+# Placeholders the app provides for every project:
+#   {name} {dir} {www} {domain} {url}            folder, its path, projects folder, name.test, https://name.test
+#   {db} {db_driver} {db_host} {db_port} {db_user} {db_password} {db_server_version}
+#   {composer_home}                              Lumina's own global Composer folder
+# plus {option} / {option.var} for the chosen options and {random:N}.
+#
+# Step types: run (php, composer, node, npm, npx, mysql), download, extract,
+# create_database, patch_env, template_file. Paths in extract / patch_env /
+# template_file are inside the project folder ("." = the folder itself).
+# `when = "option == value"` / `!=`; `optional = true`; `fallback = [steps]`.
+
+# --- Laravel ----------------------------------------------------------------
 
 [[recipe]]
 id = "laravel"
 name = "Laravel"
-steps = [
-  { run = "composer", args = ["create-project", "laravel/laravel", "{name}"] },
+description = "The PHP framework for web artisans, created with the official Laravel installer."
+homepage = "https://laravel.com"
+category = "framework"
+needs = ["php", "composer", "database"]
+
+# Every artisan command run by the installer or Composer (migrations, starter
+# kit hooks) uses Lumina's database, whatever .env says at that moment:
+# Laravel never overrides variables that are already set.
+[recipe.env]
+DB_CONNECTION = "{db_driver}"
+DB_HOST = "{db_host}"
+DB_PORT = "{db_port}"
+DB_DATABASE = "{db}"
+DB_USERNAME = "{db_user}"
+DB_PASSWORD = "{db_password}"
+
+[[recipe.option]]
+id = "kit"
+label = "Starter kit"
+default = "none"
+choices = [
+  { value = "none", label = "None", vars = { flag = "--no-node", package = "laravel/laravel" } },
+  { value = "react", label = "React", needs = ["node"], vars = { flag = "--react", node = "--npm", package = "laravel/react-starter-kit" } },
+  { value = "vue", label = "Vue", needs = ["node"], vars = { flag = "--vue", node = "--npm", package = "laravel/vue-starter-kit" } },
+  { value = "svelte", label = "Svelte", needs = ["node"], vars = { flag = "--svelte", node = "--npm", package = "laravel/svelte-starter-kit" } },
+  { value = "livewire", label = "Livewire", needs = ["node"], vars = { flag = "--livewire", node = "--npm", package = "laravel/livewire-starter-kit" } },
 ]
+
+[[recipe.option]]
+id = "testing"
+label = "Testing framework"
+default = "pest"
+choices = [
+  { value = "pest", label = "Pest", vars = { flag = "--pest" } },
+  { value = "phpunit", label = "PHPUnit", vars = { flag = "--phpunit" } },
+]
+
+[[recipe.step]]
+label = "Create the database"
+type = "create_database"
+name = "{db}"
+
+[[recipe.step]]
+label = "Get the newest Laravel installer"
+type = "run"
+program = "composer"
+args = ["global", "require", "laravel/installer", "--no-interaction", "--no-ansi"]
+optional = true
+
+[[recipe.step]]
+label = "Create the Laravel application"
+type = "run"
+program = "php"
+cwd = "{www}"
+args = [
+  "{composer_home}/vendor/laravel/installer/bin/laravel", "new", "{name}",
+  "--no-interaction", "--no-ansi", "--database={db_driver}",
+  "{kit.flag}", "{kit.node}", "{testing.flag}", "--no-boost",
+]
+
+  # Without the installer (offline Packagist mirror, an installer bug):
+  # Composer's create-project, which runs the same post-install scripts.
+  [[recipe.step.fallback]]
+  label = "Create the application with Composer"
+  type = "run"
+  program = "composer"
+  cwd = "{www}"
+  args = ["create-project", "{kit.package}", "{name}", "--prefer-dist", "--no-interaction", "--no-ansi"]
+
+  [[recipe.step.fallback]]
+  label = "Install the front-end packages"
+  when = "kit != none"
+  type = "run"
+  program = "npm"
+  args = ["install", "--no-audit", "--no-fund"]
+
+  [[recipe.step.fallback]]
+  label = "Build the front end"
+  when = "kit != none"
+  type = "run"
+  program = "npm"
+  args = ["run", "build"]
+
+[[recipe.step]]
+label = "Configure .env"
+type = "patch_env"
+file = ".env"
+copy_from = ".env.example"
+[recipe.step.set]
+APP_URL = "{url}"
+DB_CONNECTION = "{db_driver}"
+DB_HOST = "{db_host}"
+DB_PORT = "{db_port}"
+DB_DATABASE = "{db}"
+DB_USERNAME = "{db_user}"
+DB_PASSWORD = "{db_password}"
+
+[[recipe.step]]
+label = "Run the database migrations"
+type = "run"
+program = "php"
+args = ["artisan", "migrate", "--force", "--no-interaction", "--no-ansi"]
+
+# --- WordPress --------------------------------------------------------------
 
 [[recipe]]
 id = "wordpress"
 name = "WordPress"
-steps = [
-  { download = "https://wordpress.org/latest.zip", extract_to = "{name}", strip = 1 },
-  { create_database = "{name}" },
+description = "The newest WordPress with its database and a wp-config.php with fresh security keys."
+homepage = "https://wordpress.org"
+category = "cms"
+needs = ["php", "database"]
+
+[[recipe.step]]
+label = "Download WordPress"
+type = "download"
+url = "https://wordpress.org/latest.zip"
+save_as = "wordpress.zip"
+
+[[recipe.step]]
+label = "Extract WordPress"
+type = "extract"
+from = "wordpress.zip"
+to = "."
+strip = 1
+
+[[recipe.step]]
+label = "Create the database"
+type = "create_database"
+name = "{db}"
+
+[[recipe.step]]
+label = "Write wp-config.php"
+type = "template_file"
+template = "wordpress/wp-config.php"
+to = "wp-config.php"
+
+# --- Symfony ----------------------------------------------------------------
+
+[[recipe]]
+id = "symfony"
+name = "Symfony"
+description = "A Symfony application: the full web app, or the minimal skeleton for APIs and console tools."
+homepage = "https://symfony.com"
+category = "framework"
+needs = ["php", "composer", "database"]
+
+[[recipe.option]]
+id = "kind"
+label = "Project type"
+default = "webapp"
+choices = [
+  { value = "webapp", label = "Web application" },
+  { value = "skeleton", label = "Minimal skeleton" },
 ]
+
+[[recipe.step]]
+label = "Create the database"
+type = "create_database"
+name = "{db}"
+
+[[recipe.step]]
+label = "Create the Symfony skeleton"
+type = "run"
+program = "composer"
+cwd = "{www}"
+args = ["create-project", "symfony/skeleton", "{name}", "--no-interaction", "--no-ansi"]
+
+[[recipe.step]]
+label = "Skip the Docker files"
+when = "kind == webapp"
+type = "run"
+program = "composer"
+args = ["config", "--json", "extra.symfony.docker", "false"]
+
+[[recipe.step]]
+label = "Add the web application packages"
+when = "kind == webapp"
+type = "run"
+program = "composer"
+args = ["require", "webapp", "--no-interaction", "--no-ansi"]
+
+[[recipe.step]]
+label = "Configure .env.local"
+type = "patch_env"
+file = ".env.local"
+[recipe.step.set]
+DATABASE_URL = "\"mysql://{db_user}:{db_password}@{db_host}:{db_port}/{db}?serverVersion={db_server_version}&charset=utf8mb4\""
+
+# --- CodeIgniter ------------------------------------------------------------
+
+[[recipe]]
+id = "codeigniter"
+name = "CodeIgniter"
+description = "CodeIgniter 4 app starter, set up for development with its database."
+homepage = "https://codeigniter.com"
+category = "framework"
+needs = ["php", "composer", "database"]
+
+[[recipe.step]]
+label = "Create the database"
+type = "create_database"
+name = "{db}"
+
+[[recipe.step]]
+label = "Create the CodeIgniter application"
+type = "run"
+program = "composer"
+cwd = "{www}"
+args = ["create-project", "codeigniter4/appstarter", "{name}", "--no-interaction", "--no-ansi"]
+
+[[recipe.step]]
+label = "Configure .env"
+type = "patch_env"
+file = ".env"
+copy_from = "env"
+[recipe.step.set]
+CI_ENVIRONMENT = "development"
+"app.baseURL" = "'{url}/'"
+"database.default.hostname" = "{db_host}"
+"database.default.database" = "{db}"
+"database.default.username" = "{db_user}"
+"database.default.password" = "{db_password}"
+"database.default.DBDriver" = "MySQLi"
+"database.default.port" = "{db_port}"
+
+# --- Drupal -----------------------------------------------------------------
+
+[[recipe]]
+id = "drupal"
+name = "Drupal"
+description = "Drupal's recommended Composer project. Finish in the browser installer with the database shown here."
+homepage = "https://www.drupal.org"
+category = "cms"
+needs = ["php", "composer", "database"]
+
+[[recipe.step]]
+label = "Create the database"
+type = "create_database"
+name = "{db}"
+
+[[recipe.step]]
+label = "Create the Drupal project"
+type = "run"
+program = "composer"
+cwd = "{www}"
+args = ["create-project", "drupal/recommended-project", "{name}", "--no-interaction", "--no-ansi"]
+
+# --- Joomla -----------------------------------------------------------------
+
+[[recipe]]
+id = "joomla"
+name = "Joomla"
+description = "The newest Joomla release. Finish in the browser installer with the database shown here."
+homepage = "https://www.joomla.org"
+category = "cms"
+needs = ["php", "database"]
+
+[[recipe.step]]
+label = "Download Joomla"
+type = "download"
+github = "joomla/joomla-cms"
+asset = "Joomla_*-Stable-Full_Package.zip"
+save_as = "joomla.zip"
+
+[[recipe.step]]
+label = "Extract Joomla"
+type = "extract"
+from = "joomla.zip"
+to = "."
+
+[[recipe.step]]
+label = "Create the database"
+type = "create_database"
+name = "{db}"
+
+# --- Statamic ---------------------------------------------------------------
+
+[[recipe]]
+id = "statamic"
+name = "Statamic"
+description = "The flat-file CMS built on Laravel."
+homepage = "https://statamic.com"
+category = "cms"
+needs = ["php", "composer"]
+
+[[recipe.step]]
+label = "Create the Statamic site"
+type = "run"
+program = "composer"
+cwd = "{www}"
+args = ["create-project", "statamic/statamic", "{name}", "--prefer-dist", "--no-interaction", "--no-ansi"]
+
+[[recipe.step]]
+label = "Configure .env"
+type = "patch_env"
+file = ".env"
+copy_from = ".env.example"
+[recipe.step.set]
+APP_URL = "{url}"
+
+# --- Plain PHP --------------------------------------------------------------
+
+[[recipe]]
+id = "php"
+name = "Plain PHP"
+description = "An empty folder with an index.php, for your own code."
+category = "starter"
+needs = ["php"]
+
+[[recipe.step]]
+label = "Write index.php"
+type = "template_file"
+template = "php/index.php"
+to = "index.php"
+
+# --- Node.js (Vite) ---------------------------------------------------------
+
+[[recipe]]
+id = "vite"
+name = "Vite"
+description = "A Vite front-end project, built once so the site shows it; run `npm run dev` while you work."
+homepage = "https://vite.dev"
+category = "starter"
+needs = ["node"]
+docroot = "dist"
+
+[recipe.env]
+# `npm create` would otherwise ask before installing create-vite.
+npm_config_yes = "true"
+
+[[recipe.option]]
+id = "template"
+label = "Template"
+default = "vanilla-ts"
+choices = [
+  { value = "vanilla-ts", label = "Vanilla (TypeScript)" },
+  { value = "react-ts", label = "React (TypeScript)" },
+  { value = "vue-ts", label = "Vue (TypeScript)" },
+  { value = "svelte-ts", label = "Svelte (TypeScript)" },
+  { value = "preact-ts", label = "Preact (TypeScript)" },
+  { value = "solid-ts", label = "Solid (TypeScript)" },
+  { value = "lit-ts", label = "Lit (TypeScript)" },
+  { value = "vanilla", label = "Vanilla (JavaScript)" },
+]
+
+[[recipe.step]]
+label = "Create the Vite project"
+type = "run"
+program = "npm"
+cwd = "{www}"
+args = ["create", "vite@latest", "{name}", "--", "--template", "{template}", "--no-interactive", "--no-immediate"]
+
+[[recipe.step]]
+label = "Install the packages"
+type = "run"
+program = "npm"
+args = ["install", "--no-audit", "--no-fund"]
+
+[[recipe.step]]
+label = "Build the site"
+type = "run"
+program = "npm"
+args = ["run", "build"]

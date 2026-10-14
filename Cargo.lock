@@ -2444,6 +2444,18 @@ name = "lumina-quickapp"
 version = "0.1.0"
 dependencies = [
  "lumina-core",
+ "lumina-packages",
+ "lumina-platform",
+ "lumina-ssl",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "toml 1.1.8+spec-1.1.0",
+ "tracing",
 ]
 
 [[package]]

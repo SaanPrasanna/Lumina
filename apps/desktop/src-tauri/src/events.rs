@@ -19,6 +19,10 @@ pub const PACKAGE_PROGRESS: &str = "package-progress";
 pub const PROFILE_SWITCH_FAILED: &str = "profile-switch-failed";
 /// Installed versions or install jobs changed; the UI refetches Quick Add.
 pub const PACKAGES_CHANGED: &str = "packages-changed";
+/// A QuickApp job started, finished or was dismissed; the UI refetches it.
+pub const QUICKAPP_CHANGED: &str = "quickapp-changed";
+/// New QuickApp output: `{ jobId, lines, step, download }`.
+pub const QUICKAPP_OUTPUT: &str = "quickapp-output";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]

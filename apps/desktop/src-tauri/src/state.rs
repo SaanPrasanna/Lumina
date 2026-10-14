@@ -55,6 +55,10 @@ pub struct Runtime {
     pub shim_exe: PathBuf,
     /// Quick Add: catalog, downloads, installed versions.
     pub packages: lumina_packages::PackageManager,
+    /// The bundled `resources` folder.
+    pub resources: PathBuf,
+    /// QuickApp recipes (`resources/quickapp/recipes.toml`).
+    pub recipes: lumina_quickapp::RecipeFile,
     /// Watches the projects folder (and which folder it watches).
     pub watcher: Mutex<Option<(PathBuf, Watcher)>>,
 }
@@ -114,6 +118,12 @@ impl Runtime {
                 packages: Vec::new(),
             }
         });
+        let recipes = lumina_quickapp::bundled(&resources).unwrap_or_else(|err| {
+            log::error!("the QuickApp recipes cannot be read: {err}");
+            lumina_quickapp::RecipeFile {
+                recipes: Vec::new(),
+            }
+        });
         let proxy = loaded.config.packages.proxy.clone();
         let packages = lumina_packages::PackageManager::new(
             layout.bin(),
@@ -132,6 +142,8 @@ impl Runtime {
             helper,
             shim_exe: sibling("lumina-shim"),
             packages,
+            resources,
+            recipes,
             watcher: Mutex::new(None),
             layout,
             config: RwLock::new(loaded.config),

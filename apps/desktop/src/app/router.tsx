@@ -6,6 +6,7 @@ import { DashboardPage } from "@/features/dashboard";
 import { EnvPathPage } from "@/features/env-path";
 import { PackagesPage } from "@/features/packages";
 import { ProfilesPage } from "@/features/profiles";
+import { QuickAppPage } from "@/features/quickapp";
 import { ServicesPage } from "@/features/services";
 import { SettingsPage } from "@/features/settings";
 import { SitesPage } from "@/features/sites";
@@ -16,6 +17,7 @@ const PAGES: Record<string, React.ReactNode> = {
   "/sites": <SitesPage />,
   "/packages": <PackagesPage />,
   "/profiles": <ProfilesPage />,
+  "/quickapp": <QuickAppPage />,
   "/env-path": <EnvPathPage />,
   "/settings": <SettingsPage />,
 };

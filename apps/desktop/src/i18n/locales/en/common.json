@@ -316,5 +316,70 @@
     "choosePreset": "Choose an editor…",
     "argsLine": "Arguments to open a file at a line ({line})",
     "openConfigToml": "Open config.toml in the editor"
+  },
+  "quickapp": {
+    "intro": "Create a new project in one click. Lumina installs what it needs, creates the database and sets up its site with HTTPS.",
+    "recipes": "Project types",
+    "newProject": "New {{recipe}} project",
+    "name": "Project name",
+    "nameHint": "Used for the folder, the site address and the database.",
+    "nameRule": "Use lowercase letters, digits and dashes (not at the start or end).",
+    "nameTaken": "A folder with this name already exists.",
+    "folder": "Folder",
+    "site": "Site",
+    "database": "Database",
+    "dbLogin": "Database login",
+    "noPassword": "no password",
+    "willInstall": "Not installed yet, so Lumina installs it first: {{list}}.",
+    "need": {
+      "php": "PHP",
+      "composer": "Composer",
+      "node": "Node.js",
+      "database": "the database server"
+    },
+    "create": "Create project",
+    "busy": "Another project is being created.",
+    "state": {
+      "running": "Creating {{name}} ({{recipe}})",
+      "succeeded": "{{name}} is ready",
+      "failed": "{{name}} could not be created",
+      "cancelled": "Creating {{name}} was cancelled"
+    },
+    "step": "Step {{index}} of {{total}}: {{label}}",
+    "openSite": "Open site",
+    "openEditor": "Open in editor",
+    "openFolder": "Open folder",
+    "deletePartial": "Delete partial project",
+    "deleteConfirm": "Delete {{dir}} and everything in it?",
+    "deleteConfirmDb": "Delete {{dir}} and everything in it, and the database {{db}}?",
+    "deleteYes": "Delete",
+    "dismiss": "Dismiss",
+    "downloaded": "{{done}} of {{total}}",
+    "output": "Output",
+    "waiting": "Starting...",
+    "logFile": "Full log: {{path}}",
+    "option": {
+      "kit": "Starter kit",
+      "testing": "Testing framework",
+      "kind": "Project type",
+      "template": "Template"
+    },
+    "choice": {
+      "none": "None",
+      "webapp": "Web application",
+      "skeleton": "Minimal skeleton"
+    },
+    "recipe": {
+      "laravel": "The PHP framework for web artisans, created with the official Laravel installer.",
+      "wordpress": "The newest WordPress with its database and a wp-config.php with fresh security keys.",
+      "symfony": "A Symfony application: the full web app, or the minimal skeleton for APIs and console tools.",
+      "codeigniter": "CodeIgniter 4 app starter, set up for development with its database.",
+      "drupal": "Drupal's recommended Composer project. Finish in the browser installer with the database shown here.",
+      "joomla": "The newest Joomla release. Finish in the browser installer with the database shown here.",
+      "statamic": "The flat-file CMS built on Laravel.",
+      "php": "An empty folder with an index.php, for your own code.",
+      "vite": "A Vite front-end project, built once so the site shows it; run `npm run dev` while you work."
+    },
+    "warning": "The project is ready, but its site cannot be opened yet:"
   }
 }
