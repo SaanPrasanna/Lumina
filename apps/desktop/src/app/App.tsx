@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { AppRouter } from "@/app/router";
 import { useApplyTheme } from "@/app/theme";
@@ -19,18 +19,15 @@ export function App() {
   // first paint left components that were mid-mount (React StrictMode mounts
   // twice) showing the old language.
   const savedLanguage = status.data?.language;
-  const [appliedLanguage, setAppliedLanguage] = useState<string | null>(null);
+  const target = savedLanguage ? (isLanguage(savedLanguage) ? savedLanguage : "en") : null;
   useEffect(() => {
-    if (!savedLanguage) return;
-    const target = isLanguage(savedLanguage) ? savedLanguage : "en";
-    if (i18n.language === target) {
-      setAppliedLanguage(target);
-      return;
-    }
-    void i18n.changeLanguage(target).then(() => setAppliedLanguage(target));
-  }, [savedLanguage, i18n]);
+    if (target && i18n.language !== target) void i18n.changeLanguage(target);
+  }, [target, i18n]);
+  // Derived, not stored: `useTranslation` re-renders App when the language
+  // changes, so the UI appears exactly once the saved language is active.
+  const languageReady = target !== null && i18n.language === target;
 
-  if (status.isPending || (status.isSuccess && appliedLanguage === null)) {
+  if (status.isPending || (status.isSuccess && !languageReady)) {
     return <div className="h-full bg-surface" aria-busy="true" />;
   }
   if (status.isError) {

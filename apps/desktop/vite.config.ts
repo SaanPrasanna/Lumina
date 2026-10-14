@@ -20,8 +20,12 @@ export default defineConfig({
   },
   envPrefix: ["VITE_", "TAURI_ENV_*"],
   build: {
-    target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari13",
-    minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
+    // WebView2 on Windows; WebKit elsewhere. Safari 14 matches the oldest macOS
+    // Lumina supports (11) and avoids downlevelling destructuring, which Vite 8's
+    // pipeline cannot do for Safari 13.
+    target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari14",
+    // Vite's default minifier; disabled for debug builds.
+    minify: !process.env.TAURI_ENV_DEBUG,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
   test: {

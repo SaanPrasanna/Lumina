@@ -28,7 +28,7 @@ anyhow       = "1"
 thiserror    = "2"
 serde        = { version = "1", features = ["derive"] }
 serde_json   = "1"
-toml         = "0.9"
+toml         = "1"
 tokio        = { version = "1", features = ["full"] }
 tracing      = { version = "0.1", features = ["log"] }  # "log" forwards events to tauri-plugin-log
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -53,6 +53,15 @@ rust_2018_idioms = { level = "warn", priority = -1 }
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
 unwrap_used = "warn"
+
+# Dev builds: file:line backtraces for our code, no debug info for dependencies.
+# Full debug info for ~500 crates made target/ grow past 20 GB and hit MSVC's
+# PDB limits (LNK1318/LNK1140).
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
 
 [profile.release]
 codegen-units = 1

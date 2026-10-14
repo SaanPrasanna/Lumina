@@ -9,8 +9,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  # Keep file:line in backtraces but drop full debug info: faster builds, smaller caches.
-  CARGO_PROFILE_DEV_DEBUG: line-tables-only
 
 # A newer push to a PR cancels its older run. Runs on master/dev always finish, so
 # every state of a long-lived branch gets a complete result.
@@ -27,7 +25,7 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Linux system dependencies (Tauri)
         if: runner.os == 'Linux'
@@ -67,9 +65,9 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -81,5 +79,5 @@ jobs:
   deny:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: EmbarkStudios/cargo-deny-action@v2

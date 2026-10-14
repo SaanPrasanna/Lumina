@@ -43,7 +43,6 @@ void i18n.use(initReactI18next).init({
   supportedLngs: SUPPORTED_LANGUAGES,
   defaultNS: "common",
   interpolation: { escapeValue: false },
-  showSupportNotice: false,
 });
 
 export default i18n;
