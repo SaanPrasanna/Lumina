@@ -19,7 +19,7 @@
     "@tauri-apps/plugin-log": "^2.7.0",
     "@tauri-apps/plugin-opener": "^2.5.0",
     "@tauri-apps/plugin-updater": "^2.9.0",
-    "i18next": "^25.0.0",
+    "i18next": "^26.4.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^15.6.0",
