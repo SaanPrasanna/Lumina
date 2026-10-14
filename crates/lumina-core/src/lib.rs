@@ -4,6 +4,7 @@
 pub mod constants;
 pub mod error;
 pub mod events;
+pub mod fs;
 pub mod paths;
 pub mod types;
 

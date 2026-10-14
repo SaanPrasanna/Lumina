@@ -12,3 +12,9 @@ pub const MIN_PHP_FCGI_CHILDREN: u32 = 4;
 pub const DEFAULT_PHP_FCGI_MAX_REQUESTS: u32 = 0;
 /// Default top-level domain for auto virtual hosts.
 pub const DEFAULT_TLD: &str = "test";
+
+/// UI languages shipped with the app (BCP 47 codes). Must match
+/// apps/desktop/src/i18n/index.ts. More languages are added after 1.0.
+pub const SUPPORTED_LANGUAGES: [&str; 2] = ["en", "si"];
+/// Language used when none is chosen.
+pub const DEFAULT_LANGUAGE: &str = "en";

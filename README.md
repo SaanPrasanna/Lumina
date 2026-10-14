@@ -29,7 +29,8 @@ docs/                  Architecture, ADRs, guides
 ## Quick start
 
 ```bash
-corepack enable          # provides pnpm
+corepack enable          # provides pnpm (Windows: needs an admin shell, or prefix
+                         # every pnpm command with `corepack`, e.g. `corepack pnpm dev`)
 pnpm install
 pnpm dev                 # runs the Tauri app with hot reload
 cargo test --workspace   # Rust tests

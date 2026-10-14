@@ -11,6 +11,10 @@ publish = false
 [dependencies]
 thiserror = { workspace = true }
 serde = { workspace = true }
+directories = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

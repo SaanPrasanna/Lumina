@@ -1,5 +1,6 @@
 //! `config.toml` (the `laragon.ini` equivalent): schema, defaults, load/save, migrations.
 
+pub mod bootstrap;
 pub mod defaults;
 pub mod loader;
 pub mod migrate;

@@ -1,3 +1,48 @@
 {
-  "app": { "title": "Lumina" }
+  "app": {
+    "title": "Lumina",
+    "tagline": "Local development environment"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "services": "Services",
+    "sites": "Sites",
+    "packages": "Quick Add",
+    "profiles": "Profiles",
+    "quickapp": "QuickApp",
+    "tunnel": "Sharing",
+    "envPath": "PATH",
+    "logs": "Logs",
+    "settings": "Settings"
+  },
+  "page": {
+    "comingSoon": "This section is coming in a later release."
+  },
+  "dashboard": {
+    "empty": "Your local stack will appear here once services are added.",
+    "dataRoot": "Data folder"
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "firstRun": {
+    "title": "Welcome to Lumina",
+    "subtitle": "Choose where Lumina keeps your projects, databases and tools.",
+    "dataRoot": "Data folder",
+    "dataRootHint": "Projects go in the www folder inside it. You can use another drive.",
+    "browse": "Browse…",
+    "continue": "Get started",
+    "saving": "Setting up…"
+  },
+  "errors": {
+    "io": "A file or folder could not be accessed.",
+    "config": "The settings are invalid.",
+    "unknown": "Something went wrong."
+  }
 }

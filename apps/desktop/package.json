@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "eslint .",
-    "typecheck": "tsc -b --noEmit",
+    "typecheck": "tsc -b",
     "test": "vitest run"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "@tauri-apps/plugin-opener": "^2.5.0",
     "@tauri-apps/plugin-updater": "^2.9.0",
     "i18next": "^25.0.0",
+    "lucide-react": "^1.56.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^15.6.0",
@@ -30,7 +31,10 @@
     "@eslint/js": "^9.33.0",
     "@tailwindcss/vite": "^4.1.0",
     "@tauri-apps/cli": "^2.8.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.0.0",

@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
@@ -25,6 +25,7 @@ export default defineConfig({
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
   test: {
+    globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
   },

@@ -37,6 +37,7 @@ tauri-plugin-log = "2"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
+log = { workspace = true }
 
 [lints]
 workspace = true
