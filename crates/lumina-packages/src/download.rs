@@ -129,11 +129,18 @@ impl Downloader {
                 file.flush().await.ok();
                 return Err(Error::Cancelled);
             }
-            let chunk = resp.chunk().await.map_err(|e| {
-                Error::Download(format!(
-                    "{url}: connection lost after {received} bytes ({e})"
-                ))
-            })?;
+            let chunk = match resp.chunk().await {
+                Ok(chunk) => chunk,
+                Err(e) => {
+                    // tokio writes files in the background: flush, so the
+                    // .part file holds every byte received before a resume
+                    // reads its length.
+                    file.flush().await.ok();
+                    return Err(Error::Download(format!(
+                        "{url}: connection lost after {received} bytes ({e})"
+                    )));
+                }
+            };
             let Some(chunk) = chunk else { break };
             file.write_all(&chunk).await.map_err(|source| Error::Io {
                 path: part.clone(),
