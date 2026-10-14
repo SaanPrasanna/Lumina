@@ -8,4 +8,5 @@ pub mod launcher;
 pub mod net;
 pub mod path_env;
 pub mod process_group;
+pub mod secure_file;
 pub mod trust_store;

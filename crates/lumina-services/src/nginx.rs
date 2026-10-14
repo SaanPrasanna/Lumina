@@ -126,6 +126,7 @@ impl Nginx {
         c.insert("php_port", &ctx.php_port);
         c.insert("http_port", &ctx.http_port);
         c.insert("www_root", &forward_slashes(&ctx.www_root));
+        web::insert_tls(&mut c, ctx);
         t.render_into(
             &mut changes,
             "nginx/fastcgi.conf.tera",
@@ -199,7 +200,7 @@ impl Nginx {
             })?
             .clone();
 
-        web::check_port(ctx.http_port)?;
+        web::check_ports(ctx, None)?;
         self.ensure_landing_page(ctx)?;
         let changes = self.prepare(ctx)?;
         if let Err(err) = self.config_test(&install).await {
@@ -243,6 +244,7 @@ impl Nginx {
             server: WebServer::Nginx,
             version: install.version.clone(),
             http_port: ctx.http_port,
+            https_port: ctx.https_port(),
             php_port: ctx.php_port,
         };
         tracing::info!(
@@ -281,9 +283,7 @@ impl Nginx {
         let (Some(runtime), Some(install)) = (state.runtime.clone(), state.install.clone()) else {
             return Err(Error::Service(PROCESS_ID.into(), "not running".into()));
         };
-        if ctx.http_port != runtime.http_port {
-            web::check_port(ctx.http_port)?;
-        }
+        web::check_ports(ctx, Some(&runtime))?;
 
         let changes = self.prepare(ctx)?;
         if !changes.changed() {
@@ -324,6 +324,7 @@ impl Nginx {
         tracing::info!("nginx reloaded ({signals} signal(s))");
         state.runtime = Some(WebRuntime {
             http_port: ctx.http_port,
+            https_port: ctx.https_port(),
             php_port: ctx.php_port,
             ..runtime
         });
@@ -412,6 +413,70 @@ mod tests {
     }
 
     #[test]
+    fn renders_https_and_the_force_https_redirect() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let layout = Layout::new(tmp.path().join("Lumina"));
+        std::fs::create_dir_all(layout.www().join("blog")).expect("mkdir");
+        let templates = Templates::new(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/templates"),
+        );
+        let nginx = Nginx::new(
+            Supervisor::new(lumina_process::ledger::Ledger::disabled()),
+            layout.clone(),
+            templates,
+        );
+        let ssl = lumina_ssl::Ssl::new(layout.ssl());
+        let (ca, _) = ssl.ensure_ca("PC", "test").expect("ca");
+        let (localhost, certs) = ssl.ensure_all(&ca, &["blog.test".into()]).expect("certs");
+        let cfg = lumina_config::AppConfig::default();
+        let mut ctx = WebContext {
+            http_port: 80,
+            php_port: 10987,
+            www_root: layout.www(),
+            sites: lumina_vhost::scan(&layout.www(), &cfg).sites,
+            tls: Some(lumina_ssl::Tls {
+                https_port: 8443,
+                force_https: false,
+                localhost,
+                sites: certs,
+            }),
+        };
+        nginx.prepare(&ctx).expect("prepare");
+
+        let site =
+            std::fs::read_to_string(nginx.sites_dir().join("auto.blog.test.conf")).expect("site");
+        assert!(site.contains("listen       127.0.0.1:8443 ssl;"), "{site}");
+        assert!(site.contains("blog.test.crt\""), "{site}");
+        assert!(!site.contains("return  301"), "{site}");
+        let local = std::fs::read_to_string(nginx.sites_dir().join("00-localhost.conf"))
+            .expect("localhost");
+        assert!(
+            local.contains("listen       127.0.0.1:8443 ssl default_server;"),
+            "{local}"
+        );
+        let conf = std::fs::read_to_string(nginx.conf()).expect("nginx.conf");
+        assert!(conf.contains("ssl_protocols"), "{conf}");
+
+        if let Some(tls) = ctx.tls.as_mut() {
+            tls.force_https = true;
+        }
+        assert!(nginx.prepare(&ctx).expect("force").changed());
+        let site =
+            std::fs::read_to_string(nginx.sites_dir().join("auto.blog.test.conf")).expect("site");
+        assert!(
+            site.contains("return  301 https://$host:8443$request_uri;"),
+            "{site}"
+        );
+
+        // HTTPS off → plain HTTP only.
+        ctx.tls = None;
+        nginx.prepare(&ctx).expect("off");
+        let site =
+            std::fs::read_to_string(nginx.sites_dir().join("auto.blog.test.conf")).expect("site");
+        assert!(!site.contains("ssl"), "{site}");
+    }
+
+    #[test]
     fn renders_config_with_ports_and_php_pool() {
         let tmp = tempfile::tempdir().expect("tempdir");
         let layout = Layout::new(tmp.path().join("Lumina"));
@@ -431,6 +496,7 @@ mod tests {
             php_port: 20987,
             www_root: layout.www(),
             sites: lumina_vhost::scan(&layout.www(), &cfg).sites,
+            tls: None,
         };
 
         let changes = nginx.prepare(&ctx).expect("prepare");

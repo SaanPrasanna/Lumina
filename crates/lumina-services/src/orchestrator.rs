@@ -27,7 +27,13 @@ use crate::php_fcgi::{PhpFcgi, PhpStatus};
 use crate::redis::{Redis, RedisStatus};
 use crate::template::Templates;
 use crate::web::{ReloadOutcome, WebContext, WebStatus};
+use lumina_ssl::{Ssl, Tls};
 use lumina_vhost::Scan;
+
+/// This computer's name, for the CA's name ("Lumina Local CA - DEV-PC").
+pub fn host_name() -> String {
+    sysinfo::System::host_name().unwrap_or_default()
+}
 
 /// Everything the Services page shows.
 #[derive(Debug, Clone, Serialize)]
@@ -54,6 +60,10 @@ struct Inner {
     mysql: Database,
     mariadb: Database,
     redis: Redis,
+    /// The local CA and site certificates (`<data-root>/ssl`).
+    ssl: Ssl,
+    /// Why HTTPS could not be set up last time, for the UI.
+    tls_error: std::sync::Mutex<Option<String>>,
     /// Serialises start/stop/reload so the stack never sees two at once.
     lock: Mutex<()>,
 }
@@ -78,6 +88,8 @@ impl Orchestrator {
                     templates.clone(),
                 ),
                 redis: Redis::new(supervisor, layout.clone(), templates),
+                ssl: Ssl::new(layout.ssl()),
+                tls_error: std::sync::Mutex::new(None),
                 layout,
                 lock: Mutex::new(()),
             }),
@@ -140,11 +152,70 @@ impl Orchestrator {
             .runtime
             .map_or(cfg.php.fcgi_port, |rt| rt.port);
         let www_root = self.www_root(cfg);
+        let sites = lumina_vhost::scan(&www_root, cfg).sites;
+        let tls = self.tls(cfg, &sites);
         WebContext {
             http_port: cfg.web.http_port,
             php_port,
-            sites: lumina_vhost::scan(&www_root, cfg).sites,
+            sites,
             www_root,
+            tls,
+        }
+    }
+
+    /// The local CA and certificates.
+    pub fn ssl(&self) -> &Ssl {
+        &self.inner.ssl
+    }
+
+    /// Why HTTPS is not served although it is on, if it failed.
+    pub fn tls_error(&self) -> Option<String> {
+        self.inner
+            .tls_error
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    /// Certificates for localhost and every site, creating the CA on first use
+    /// and renewing what is close to expiry. HTTPS is left out (and the reason
+    /// kept for the UI) if that fails, so plain HTTP keeps working.
+    fn tls(&self, cfg: &AppConfig, sites: &[lumina_vhost::Site]) -> Option<Tls> {
+        let result = (|| -> lumina_ssl::Result<Option<Tls>> {
+            if !cfg.general.auto_ssl {
+                return Ok(None);
+            }
+            let (ca, created) = self.inner.ssl.ensure_ca(&host_name(), &cfg.general.tld)?;
+            if created {
+                tracing::info!(
+                    "created the local certificate authority {}",
+                    ca.info.subject
+                );
+            }
+            let domains: Vec<String> = sites.iter().map(|s| s.domain.clone()).collect();
+            let (localhost, certs) = self.inner.ssl.ensure_all(&ca, &domains)?;
+            Ok(Some(Tls {
+                https_port: cfg.web.https_port,
+                force_https: cfg.general.force_https,
+                localhost,
+                sites: certs,
+            }))
+        })();
+        let mut error = self
+            .inner
+            .tls_error
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        match result {
+            Ok(tls) => {
+                *error = None;
+                tls
+            }
+            Err(err) => {
+                tracing::error!("HTTPS is unavailable: {err}");
+                *error = Some(err.to_string());
+                None
+            }
         }
     }
 

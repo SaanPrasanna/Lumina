@@ -34,6 +34,8 @@ pub struct SitesOverview {
     /// The web server serving the sites, if one runs.
     pub web_running: bool,
     pub http_port: u16,
+    /// Set when HTTPS is on.
+    pub https_port: Option<u16>,
     pub hosts: HostsReport,
 }
 
@@ -47,6 +49,7 @@ fn overview(rt: &Runtime, web_running: bool) -> SitesOverview {
         auto_vhosts: cfg.general.auto_vhosts,
         web_running,
         http_port: cfg.web.http_port,
+        https_port: cfg.general.auto_ssl.then_some(cfg.web.https_port),
         hosts,
         scan,
     }
@@ -72,9 +75,16 @@ pub fn site_open(app: AppHandle, state: State<'_, AppState>, domain: String) -> 
     let rt = state.runtime()?;
     let cfg = rt.config();
     let site = find(&rt, |s| s.domain == domain)?;
-    let url = match cfg.web.http_port {
-        80 => format!("http://{}/", site.domain),
-        port => format!("http://{}:{port}/", site.domain),
+    let url = if cfg.general.auto_ssl && rt.stack.tls_error().is_none() {
+        match cfg.web.https_port {
+            443 => format!("https://{}/", site.domain),
+            port => format!("https://{}:{port}/", site.domain),
+        }
+    } else {
+        match cfg.web.http_port {
+            80 => format!("http://{}/", site.domain),
+            port => format!("http://{}:{port}/", site.domain),
+        }
     };
     app.opener()
         .open_url(url, None::<&str>)

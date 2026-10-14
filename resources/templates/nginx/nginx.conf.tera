@@ -25,6 +25,12 @@ http {
     keepalive_timeout     65;
     client_max_body_size  256m;
     server_names_hash_bucket_size  128;
+{%- if ssl %}
+
+    # HTTPS for localhost and every site (certificates from Lumina's local CA).
+    ssl_protocols              TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers  off;
+{%- endif %}
 
     # Temporary files stay inside Lumina's etc/nginx/temp.
     client_body_temp_path  temp/client_body;

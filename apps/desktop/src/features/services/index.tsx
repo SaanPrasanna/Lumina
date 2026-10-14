@@ -51,7 +51,7 @@ export function ServicesPage() {
       onError: (err) => {
         if (!config) return;
         // Whichever service hit a busy port gets the "use another port" offer.
-        const web = portConflictOf(err, config.web.http_port);
+        const web = portConflictOf(err, config.web.http_port) ?? portConflictOf(err, config.web.https_port);
         const db = portConflictOf(err, config.database.port);
         const redis = portConflictOf(err, config.redis.port);
         if (web) setConflict(webConflictRequest(web, config.web));

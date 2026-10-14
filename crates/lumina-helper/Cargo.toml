@@ -12,8 +12,10 @@ publish = false
 lumina-platform = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+x509-parser = "0.18"
 
 [dev-dependencies]
+lumina-ssl = { workspace = true }
 tempfile = { workspace = true }
 
 [lints]

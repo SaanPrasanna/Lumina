@@ -47,6 +47,8 @@ const MODULES: &[&str] = &[
     "setenvif",
     "proxy",
     "proxy_fcgi",
+    "socache_shmcb",
+    "ssl",
 ];
 
 #[derive(Clone)]
@@ -126,6 +128,15 @@ impl Apache {
             .copied()
             .filter(|m| modules_dir.join(format!("mod_{m}.so")).is_file())
             .collect();
+        if ctx.tls.is_some() && !modules.contains(&"ssl") {
+            return Err(Error::Service(
+                PROCESS_ID.into(),
+                format!(
+                    "this Apache build has no mod_ssl ({}), so HTTPS cannot be served; turn HTTPS off or use nginx",
+                    modules_dir.join("mod_ssl.so").display()
+                ),
+            ));
+        }
 
         let mut c = tera::Context::new();
         c.insert("windows", &cfg!(windows));
@@ -140,6 +151,7 @@ impl Apache {
         c.insert("php_port", &ctx.php_port);
         c.insert("http_port", &ctx.http_port);
         c.insert("www_root", &forward_slashes(&ctx.www_root));
+        web::insert_tls(&mut c, ctx);
 
         let t = &self.inner.templates;
         let mut changes = ChangeSet::default();
@@ -211,7 +223,7 @@ impl Apache {
             })?
             .clone();
 
-        web::check_port(ctx.http_port)?;
+        web::check_ports(ctx, None)?;
         let page = self.inner.templates.dir().join("../www/index.html");
         web::ensure_landing_page(&ctx.www_root, &page)?;
         let changes = self.prepare(&install, ctx)?;
@@ -258,6 +270,7 @@ impl Apache {
             server: WebServer::Apache,
             version: install.version.clone(),
             http_port: ctx.http_port,
+            https_port: ctx.https_port(),
             php_port: ctx.php_port,
         };
         tracing::info!(
@@ -293,7 +306,12 @@ impl Apache {
             return Err(err);
         }
 
-        if cfg!(windows) || ctx.http_port != runtime.http_port {
+        let ports_changed =
+            ctx.http_port != runtime.http_port || ctx.https_port() != runtime.https_port;
+        if ports_changed {
+            web::check_ports(ctx, Some(&runtime))?;
+        }
+        if cfg!(windows) || ports_changed {
             self.inner.supervisor.stop(PROCESS_ID, STOP_TIMEOUT).await?;
             state.runtime = None;
             let result = self.start_locked(&mut state, cfg, ctx).await;
@@ -384,6 +402,7 @@ mod tests {
             php_port: 10987,
             www_root: layout.www(),
             sites: lumina_vhost::scan(&layout.www(), &lumina_config::AppConfig::default()).sites,
+            tls: None,
         };
 
         apache.prepare(&install, &ctx).expect("prepare");

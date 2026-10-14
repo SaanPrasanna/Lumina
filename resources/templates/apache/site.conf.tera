@@ -3,11 +3,20 @@
 # To customise this site, copy this file to {{ user_file }} in this folder and
 # edit the copy: Lumina then stops writing {{ auto_file }} and never touches yours.
 # PHP is handled for every site in httpd.conf.
+{%- if ssl %}
+# Certificate serial {{ serial }}, valid until {{ cert_expires }}.
+{%- endif %}
 
 <VirtualHost 127.0.0.1:{{ http_port }}>
     ServerName {{ domain }}
     ServerAlias *.{{ domain }}
     DocumentRoot "{{ root }}"
+{%- if ssl and force_https %}
+
+    # "Force HTTPS" is on: plain HTTP is redirected.
+    RewriteEngine On
+    RewriteRule ^ https://%{SERVER_NAME}{{ https_suffix }}%{REQUEST_URI} [R=301,L]
+{%- endif %}
 
     <Directory "{{ root }}">
         Options Indexes FollowSymLinks
@@ -18,3 +27,21 @@
         FallbackResource /index.php
     </Directory>
 </VirtualHost>
+{%- if ssl %}
+
+<VirtualHost 127.0.0.1:{{ https_port }}>
+    ServerName {{ domain }}
+    ServerAlias *.{{ domain }}
+    DocumentRoot "{{ root }}"
+    SSLEngine on
+    SSLCertificateFile "{{ cert }}"
+    SSLCertificateKeyFile "{{ key }}"
+
+    <Directory "{{ root }}">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+        FallbackResource /index.php
+    </Directory>
+</VirtualHost>
+{%- endif %}

@@ -13,6 +13,19 @@ vi.mock("@/features/sites/api", async (orig) => ({
   siteOpen: vi.fn(),
   siteOpenFolder: vi.fn(),
 }));
+vi.mock("@/features/sites/ssl", async (orig) => ({
+  ...(await orig<typeof import("@/features/sites/ssl")>()),
+  sslStatus: vi.fn().mockResolvedValue({
+    enabled: false,
+    forceHttps: false,
+    httpsPort: 443,
+    tld: "test",
+    ca: null,
+    sites: [],
+    error: null,
+    sslDir: "x",
+  }),
+}));
 vi.mock("@/features/settings/api", async (orig) => ({
   ...(await orig<typeof settingsApi>()),
   settingsGet: vi.fn(),
@@ -46,6 +59,7 @@ const overview: api.SitesOverview = {
   autoVhosts: true,
   webRunning: true,
   httpPort: 80,
+  httpsPort: null,
   hosts,
 };
 

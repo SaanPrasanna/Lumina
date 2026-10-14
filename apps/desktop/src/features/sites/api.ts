@@ -52,6 +52,8 @@ export interface SitesOverview {
   autoVhosts: boolean;
   webRunning: boolean;
   httpPort: number;
+  /** Set when HTTPS is on. */
+  httpsPort: number | null;
   hosts: HostsReport;
 }
 

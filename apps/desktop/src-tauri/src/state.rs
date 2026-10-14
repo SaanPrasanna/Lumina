@@ -49,6 +49,8 @@ pub struct Runtime {
     pub stack: Orchestrator,
     /// The hosts file's Lumina block, changed through `lumina-helper`.
     pub hosts: HostsSync,
+    /// `lumina-helper`, for privileged changes (hosts file; CA on Linux).
+    pub helper: PathBuf,
     /// Watches the projects folder (and which folder it watches).
     pub watcher: Mutex<Option<(PathBuf, Watcher)>>,
 }
@@ -92,12 +94,13 @@ impl Runtime {
             );
         }
         let hosts = HostsSync::new(
-            helper,
+            helper.clone(),
             lumina_platform::hosts::system_hosts_path(),
             layout.tmp(),
         );
         Ok(Self {
             hosts,
+            helper,
             watcher: Mutex::new(None),
             layout,
             config: RwLock::new(loaded.config),

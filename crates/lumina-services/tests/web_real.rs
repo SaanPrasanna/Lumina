@@ -90,6 +90,8 @@ fn setup(server: WebServer) -> Option<Env> {
     let mut cfg = AppConfig::default();
     cfg.web.server = server;
     cfg.web.http_port = free_port();
+    // HTTPS is on by default; keep it off 443 so tests never collide.
+    cfg.web.https_port = free_port();
     cfg.php.fcgi_port = free_port();
     cfg.php.fcgi_fallback_port = free_port();
     cfg.php.fcgi_children = 4;
@@ -295,6 +297,106 @@ async fn auto_vhosts_follow_the_projects_folder(server: WebServer) {
 
     let failures = env.stack.stop_all().await;
     assert!(failures.is_empty(), "{failures:?}");
+}
+
+/// A client that trusts only Lumina's CA and resolves `hosts` to 127.0.0.1,
+/// like a browser after the CA is trusted and the hosts file is updated.
+/// rustls/webpki also enforces the CA's name constraints.
+fn tls_client(env: &Env, hosts: &[&str]) -> reqwest::Client {
+    let ca = std::fs::read(env.layout.ssl().join("ca.crt")).expect("ca.crt");
+    let mut builder = reqwest::Client::builder()
+        .add_root_certificate(reqwest::Certificate::from_pem(&ca).expect("pem"))
+        .redirect(reqwest::redirect::Policy::none());
+    for host in hosts {
+        for port in [env.cfg.web.http_port, env.cfg.web.https_port] {
+            builder = builder.resolve(host, std::net::SocketAddr::from(([127, 0, 0, 1], port)));
+        }
+    }
+    builder.build().expect("client")
+}
+
+/// https://blog.test and https://localhost are served with certificates from
+/// the local CA; "Force HTTPS" redirects plain HTTP; turning HTTPS off goes
+/// back to HTTP only.
+async fn https_with_the_local_ca(server: WebServer) {
+    let Some(mut env) = setup(server) else { return };
+    let www = env.layout.www();
+    std::fs::create_dir_all(www.join("blog").join("public")).expect("mkdir");
+    std::fs::write(
+        www.join("blog").join("public").join("index.php"),
+        r#"<?php echo "secure:" . (($_SERVER['HTTPS'] ?? '') === 'on' ? 'yes' : 'no');"#,
+    )
+    .expect("write");
+    env.start_web().await.expect("start");
+
+    let https = env.cfg.web.https_port;
+    let client = tls_client(&env, &["blog.test", "localhost"]);
+    let get = |url: String| {
+        let client = client.clone();
+        async move {
+            let resp = client
+                .get(&url)
+                .send()
+                .await
+                .unwrap_or_else(|e| panic!("{url}: {e:?}"));
+            let status = resp.status().as_u16();
+            let location = resp
+                .headers()
+                .get("location")
+                .map(|v| v.to_str().unwrap_or_default().to_owned());
+            (status, location, resp.text().await.unwrap_or_default())
+        }
+    };
+
+    let (status, _, body) = get(format!("https://blog.test:{https}/")).await;
+    assert_eq!(
+        (status, body.as_str()),
+        (200, "secure:yes"),
+        "{}",
+        env.logs()
+    );
+    let (status, _, body) = get(format!("https://localhost:{https}/")).await;
+    assert_eq!(status, 200);
+    assert!(body.contains("Lumina is running"));
+    // Plain HTTP still works while "Force HTTPS" is off.
+    let (_, _, body) = get(format!("http://blog.test:{}/", env.cfg.web.http_port)).await;
+    assert_eq!(body, "secure:no");
+
+    env.cfg.general.force_https = true;
+    env.stack.sync_sites(&env.cfg).await.expect("force https");
+    let (status, location, _) = get(format!(
+        "http://blog.test:{}/posts?x=1",
+        env.cfg.web.http_port
+    ))
+    .await;
+    assert_eq!(status, 301);
+    assert_eq!(
+        location.as_deref(),
+        Some(format!("https://blog.test:{https}/posts?x=1").as_str())
+    );
+
+    env.cfg.general.auto_ssl = false;
+    env.stack.sync_sites(&env.cfg).await.expect("https off");
+    let refused = client
+        .get(format!("https://blog.test:{https}/"))
+        .send()
+        .await;
+    assert!(refused.is_err(), "HTTPS should be off");
+    let (status, _, body) = get(format!("http://blog.test:{}/", env.cfg.web.http_port)).await;
+    assert_eq!((status, body.as_str()), (200, "secure:no"));
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[tokio::test]
+async fn nginx_serves_https_with_the_local_ca() {
+    https_with_the_local_ca(WebServer::Nginx).await;
+}
+
+#[tokio::test]
+async fn apache_serves_https_with_the_local_ca() {
+    https_with_the_local_ca(WebServer::Apache).await;
 }
 
 #[tokio::test]

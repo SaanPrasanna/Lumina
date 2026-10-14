@@ -6,6 +6,8 @@ import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
 import { openWww } from "@/features/services/api";
+import { HttpsCard } from "@/features/sites/HttpsCard";
+import { formatDate, SSL_KEY, sslStatus } from "@/features/sites/ssl";
 import { type AppConfig, SETTINGS_KEY, settingsGet, settingsUpdate } from "@/features/settings/api";
 import {
   type HostsReport,
@@ -48,6 +50,7 @@ export function SitesPage() {
         {data && config && (
           <>
             <AutoSettings key={`${data.tld}:${data.autoVhosts}`} data={data} config={config} />
+            <HttpsCard />
             <HostsStatus hosts={data.hosts} webRunning={data.webRunning} onRetry={() => action.mutate(sitesSync)} busy={action.isPending} />
             {data.autoVhosts && <SiteList data={data} config={config} />}
           </>
@@ -224,7 +227,9 @@ function docrootLabel(t: (k: string) => string, site: Site): string {
 }
 
 function SiteRow({ site, config, webRunning }: { site: Site; config: AppConfig; webRunning: boolean }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const ssl = useQuery({ queryKey: SSL_KEY, queryFn: sslStatus });
+  const cert = ssl.data?.enabled ? ssl.data.sites.find((c) => c.domain === site.domain) : undefined;
   const [editing, setEditing] = useState(false);
   const action = useSitesAction();
   const current = config.sites[site.name] ?? { enabled: true, docroot: "" };
@@ -249,6 +254,11 @@ function SiteRow({ site, config, webRunning }: { site: Site; config: AppConfig; 
           <p className="mt-0.5 truncate text-xs text-muted">
             {t("sites.row", { folder: site.name, docroot: docrootLabel(t, site), interpolation: { escapeValue: false } })}
           </p>
+          {cert && (
+            <p className="mt-0.5 text-xs text-muted">
+              {t("ssl.siteCert", { date: formatDate(cert.notAfter, i18n.language) })}
+            </p>
+          )}
           {!site.docrootExists && <p className="mt-0.5 text-xs text-warn">{t("sites.docrootMissing")}</p>}
         </div>
         <div className="flex flex-wrap gap-2">

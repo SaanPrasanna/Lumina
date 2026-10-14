@@ -11,6 +11,16 @@ publish = false
 [dependencies]
 lumina-core = { workspace = true }
 lumina-platform = { workspace = true }
+rcgen = { workspace = true }
+ring = "0.17"
+serde = { workspace = true }
+thiserror = { workspace = true }
+time = "0.3"
+tracing = { workspace = true }
+x509-parser = "0.18"
+
+[dev-dependencies]
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

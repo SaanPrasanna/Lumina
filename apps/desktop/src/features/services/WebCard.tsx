@@ -48,7 +48,7 @@ export function WebCard(props: {
     setReloadOutcome(null);
     action.mutate(fn, {
       onError: (err) => {
-        const conflict = portConflictOf(err, config?.http_port);
+        const conflict = portConflictOf(err, config?.http_port) ?? portConflictOf(err, config?.https_port);
         if (conflict && config) props.onPortConflict(webConflictRequest(conflict, config));
       },
     });
@@ -168,18 +168,23 @@ export function WebCard(props: {
   );
 }
 
-/** Moves the web server to `alternative` (and HTTPS from 443 to 8443), then starts it. */
+/**
+ * Moves the busy port to `alternative`, then starts the server. For the HTTP
+ * port, HTTPS also moves from 443 to 8443; for the HTTPS port only HTTPS moves.
+ */
 export function webConflictRequest(conflict: PortConflict, web: WebSettings): PortConflictRequest {
+  const https = conflict.port === web.https_port && conflict.port !== web.http_port;
   return {
     conflict,
     service: web.server === "nginx" ? "nginx" : "Apache",
-    isWeb: true,
+    isWeb: !https,
     apply: async (alternative) => {
-      await settingsUpdate("web", {
-        ...web,
-        http_port: alternative,
-        https_port: web.https_port === 443 ? 8443 : web.https_port,
-      });
+      await settingsUpdate(
+        "web",
+        https
+          ? { ...web, https_port: alternative }
+          : { ...web, http_port: alternative, https_port: web.https_port === 443 ? 8443 : web.https_port },
+      );
       await serviceStart(webKind(web.server));
     },
   };

@@ -56,7 +56,10 @@ pub struct General {
     pub tld: String,
     /// Every folder in the projects folder gets a virtual host and a hosts entry.
     pub auto_vhosts: bool,
+    /// HTTPS for localhost and every site, with certificates from Lumina's local CA.
     pub auto_ssl: bool,
+    /// Sites answer plain HTTP with a redirect to HTTPS (needs `auto_ssl`).
+    pub force_https: bool,
     pub start_on_login: bool,
     /// Start PHP and the web server when Lumina opens.
     pub autostart_services: bool,
@@ -71,6 +74,7 @@ impl Default for General {
             tld: defaults::TLD.to_owned(),
             auto_vhosts: true,
             auto_ssl: true,
+            force_https: false,
             start_on_login: false,
             autostart_services: false,
             close_to_tray: true,

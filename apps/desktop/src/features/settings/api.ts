@@ -8,6 +8,7 @@ export interface GeneralSettings {
   tld: string;
   auto_vhosts: boolean;
   auto_ssl: boolean;
+  force_https: boolean;
   start_on_login: boolean;
   autostart_services: boolean;
   close_to_tray: boolean;

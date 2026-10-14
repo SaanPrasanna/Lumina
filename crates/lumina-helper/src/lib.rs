@@ -160,6 +160,77 @@ pub fn apply_hosts(hosts_file: &Path, entries: &[Entry]) -> Result<Applied, Help
     Ok(Applied::Written)
 }
 
+/// Common-name prefix of every Lumina CA (see `lumina_ssl::ca`).
+pub const CA_NAME_PREFIX: &str = "Lumina Local CA";
+
+/// Checks that `pem` is exactly one Lumina CA certificate that can only sign
+/// for local names: CA:TRUE, a "Lumina Local CA" common name, and critical
+/// name constraints whose DNS subtrees are all single labels (`test`,
+/// `local`, `localhost`, ...) and whose IP subtrees are loopback only. A CA
+/// for real domains such as `example.com` is refused.
+pub fn validate_ca_pem(pem: &[u8]) -> Result<(), HelperError> {
+    use x509_parser::extensions::GeneralName;
+    let invalid = |m: &str| HelperError::Invalid(format!("not a Lumina CA certificate: {m}"));
+
+    let text = std::str::from_utf8(pem).map_err(|_| invalid("not text"))?;
+    if text.matches("-----BEGIN").count() != 1 || !text.contains("-----BEGIN CERTIFICATE-----") {
+        return Err(invalid("expected exactly one PEM certificate"));
+    }
+    let (_, parsed) = x509_parser::pem::parse_x509_pem(pem).map_err(|_| invalid("bad PEM"))?;
+    let (rest, cert) =
+        x509_parser::parse_x509_certificate(&parsed.contents).map_err(|_| invalid("bad DER"))?;
+    if !rest.is_empty() {
+        return Err(invalid("trailing data"));
+    }
+    if !cert.is_ca() {
+        return Err(invalid("not a CA"));
+    }
+    let cn = cert
+        .subject()
+        .iter_common_name()
+        .next()
+        .and_then(|c| c.as_str().ok())
+        .unwrap_or_default();
+    if !cn.starts_with(CA_NAME_PREFIX) {
+        return Err(invalid("wrong name"));
+    }
+    let nc = cert
+        .name_constraints()
+        .map_err(|_| invalid("bad name constraints"))?
+        .ok_or_else(|| invalid("no name constraints"))?;
+    if !nc.critical {
+        return Err(invalid("name constraints not critical"));
+    }
+    let permitted = nc.value.permitted_subtrees.as_deref().unwrap_or_default();
+    let mut dns = 0;
+    for subtree in permitted {
+        match &subtree.base {
+            GeneralName::DNSName(name) => {
+                let name = name.trim_start_matches('.');
+                if name.is_empty() || name.contains('.') || !hosts::is_valid_host(name) {
+                    return Err(invalid("a name constraint covers more than a local suffix"));
+                }
+                dns += 1;
+            }
+            GeneralName::IPAddress(bytes) => {
+                let loopback = match bytes.len() {
+                    8 => bytes[0] == 127 && bytes[4] == 255,
+                    32 => bytes[..16] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    _ => false,
+                };
+                if !loopback {
+                    return Err(invalid("an IP constraint is not loopback"));
+                }
+            }
+            _ => return Err(invalid("unexpected name constraint")),
+        }
+    }
+    if dns == 0 {
+        return Err(invalid("no DNS name constraints"));
+    }
+    Ok(())
+}
+
 /// Runs one command line (without the program name) against `hosts_file`.
 pub fn run(args: &[String], hosts_file: &Path) -> Result<(), HelperError> {
     match args {
@@ -170,9 +241,30 @@ pub fn run(args: &[String], hosts_file: &Path) -> Result<(), HelperError> {
             }
             Ok(())
         }
-        // Later phases: ca-install, ca-remove, path-system-add, bind-cap.
+        // Only Linux needs root for the trust store (Windows and macOS trust
+        // the CA per user, without the helper).
+        [cmd, pem] if cmd == "ca-install" => {
+            let pem = read_request(Path::new(pem))?;
+            validate_ca_pem(pem.as_bytes())?;
+            if !cfg!(target_os = "linux") {
+                return Err(HelperError::Usage(
+                    "ca-install is only used on Linux".into(),
+                ));
+            }
+            lumina_platform::trust_store::linux_system_install(pem.as_bytes())
+                .map(|_| ())
+                .map_err(HelperError::Io)
+        }
+        [cmd] if cmd == "ca-remove" => {
+            if !cfg!(target_os = "linux") {
+                return Err(HelperError::Usage("ca-remove is only used on Linux".into()));
+            }
+            lumina_platform::trust_store::linux_system_remove().map_err(HelperError::Io)
+        }
+        // Later phases: path-system-add, bind-cap.
         _ => Err(HelperError::Usage(
-            "usage: lumina-helper hosts-apply <request.json>".into(),
+            "usage: lumina-helper hosts-apply <request.json> | ca-install <ca.crt> | ca-remove"
+                .into(),
         )),
     }
 }
@@ -399,6 +491,57 @@ mod tests {
             Err(HelperError::Usage(_))
         ));
         assert!(matches!(run(&[], &hosts_file), Err(HelperError::Usage(_))));
+    }
+
+    #[test]
+    fn only_constrained_lumina_cas_pass() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let ssl = lumina_ssl::Ssl::new(tmp.path());
+        let (ca, _) = ssl.ensure_ca("PC", "test").expect("ca");
+        let pem = std::fs::read(ssl.ca_cert_path()).expect("read");
+        validate_ca_pem(&pem).expect("a Lumina CA is accepted");
+
+        // A leaf certificate is not a CA.
+        let (localhost, _) = ssl.ensure_all(&ca, &[]).expect("leaf");
+        let leaf = std::fs::read(localhost.cert).expect("leaf pem");
+        assert!(matches!(
+            validate_ca_pem(&leaf),
+            Err(HelperError::Invalid(_))
+        ));
+
+        // Two certificates, garbage, empty.
+        let mut two = pem.clone();
+        two.extend_from_slice(&pem);
+        for bad in [two, b"garbage".to_vec(), Vec::new()] {
+            assert!(matches!(
+                validate_ca_pem(&bad),
+                Err(HelperError::Invalid(_))
+            ));
+        }
+    }
+
+    #[test]
+    fn unconstrained_or_foreign_cas_are_refused() {
+        use rcgen_test::*;
+        for (name, constraints) in [
+            ("Lumina Local CA", None),
+            ("Some Other CA", Some(vec!["test"])),
+            ("Lumina Local CA", Some(vec!["example.com"])),
+        ] {
+            let pem = ca_pem(name, constraints);
+            assert!(
+                matches!(
+                    validate_ca_pem(pem.as_bytes()),
+                    Err(HelperError::Invalid(_))
+                ),
+                "{name} {pem}"
+            );
+        }
+    }
+
+    /// Hand-built CAs that a real Lumina never produces.
+    mod rcgen_test {
+        pub use lumina_ssl::rcgen_for_tests::ca_pem;
     }
 
     #[test]

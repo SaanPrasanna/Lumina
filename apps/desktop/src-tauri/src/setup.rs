@@ -51,10 +51,23 @@ pub fn start_runtime(app: &AppHandle, layout: Layout) {
             let runtime = Arc::new(runtime);
             events::bridge_supervisor(app.clone(), &runtime);
             crate::commands::sites::watch(app, &runtime);
+            renew_certificates_periodically(app.clone());
             *state.runtime.write().unwrap_or_else(|e| e.into_inner()) = Some(runtime);
         }
         Err(err) => log::error!("cannot initialise data root: {err}"),
     }
+}
+
+/// Site certificates are renewed whenever the web server's config is rendered
+/// (they are replaced 30 days before they expire). For an app left running for
+/// weeks, re-render twice a day; an unchanged config costs no reload.
+fn renew_certificates_periodically(app: AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(12 * 60 * 60)).await;
+            crate::commands::sites::resync_later(&app);
+        }
+    });
 }
 
 /// Starts PHP and the web server if `general.autostart_services` is on.

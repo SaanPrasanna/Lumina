@@ -207,5 +207,25 @@
       "unsafePath": "the name contains a character web servers cannot use (\" $ ; { } \\)",
       "duplicate": "{{domain}} is already used by the folder {{other}}"
     }
+  },
+  "ssl": {
+    "title": "HTTPS",
+    "description": "Every site and localhost also answer at https://, with certificates from a certificate authority that exists only on this computer.",
+    "on": "On",
+    "off": "Off",
+    "noCa": "The certificate authority is created the next time the web server starts.",
+    "trusted": "Trusted by this computer: browsers show a padlock for every site.",
+    "untrusted": "Not trusted yet, so browsers warn about these sites. Trust it once and every site gets a padlock.",
+    "wrongTld": "This certificate authority cannot sign for .{{tld}}. Regenerate it to cover the new domain suffix.",
+    "caLine": "{{name}} · valid until {{date}}",
+    "trust": "Trust certificate",
+    "declined": "The confirmation was declined, so nothing changed.",
+    "forceHttps": "Force HTTPS: redirect http:// to https:// on every site",
+    "port": "HTTPS port {{port}}.",
+    "firefox": "Once the certificate authority is trusted, Firefox is set to use this computer's certificates too.",
+    "regenerate": "Regenerate",
+    "remove": "Remove certificate authority",
+    "removeConfirm": "Remove and turn HTTPS off",
+    "siteCert": "HTTPS certificate valid until {{date}}"
   }
 }

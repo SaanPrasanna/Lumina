@@ -84,6 +84,12 @@ pub fn run() {
             commands::sites::sites_sync,
             commands::sites::site_open,
             commands::sites::site_open_folder,
+            commands::ssl::ssl_status,
+            commands::ssl::ssl_set_enabled,
+            commands::ssl::ssl_set_force_https,
+            commands::ssl::ssl_trust,
+            commands::ssl::ssl_regenerate,
+            commands::ssl::ssl_remove_ca,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Lumina");

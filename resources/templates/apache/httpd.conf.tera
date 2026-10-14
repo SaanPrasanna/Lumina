@@ -5,12 +5,23 @@
 Define SRVROOT "{{ server_root }}"
 ServerRoot "${SRVROOT}"
 Listen 127.0.0.1:{{ http_port }}
+{%- if ssl %}
+Listen 127.0.0.1:{{ https_port }}
+{%- endif %}
 ServerName localhost:{{ http_port }}
 PidFile "{{ pid_file }}"
 
 {% for module in modules -%}
 LoadModule {{ module }}_module modules/mod_{{ module }}.so
 {% endfor %}
+{%- if ssl %}
+# HTTPS for localhost and every site (certificates from Lumina's local CA).
+SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+SSLHonorCipherOrder off
+{%- if "socache_shmcb" in modules %}
+SSLSessionCache "shmcb:{{ logs_dir }}/apache_ssl_scache(512000)"
+{%- endif %}
+{% endif %}
 <IfModule unixd_module>
     User daemon
     Group daemon
