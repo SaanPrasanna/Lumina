@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Play, RotateCw, Square } from "lucide-react";
+import { Database, FileText, Play, RotateCw, Square } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -17,6 +17,7 @@ import {
 } from "@/features/services/api";
 import type { PortConflictRequest } from "@/features/services/PortConflictDialog";
 import { useServiceAction } from "@/features/services/useServiceAction";
+import { dbUiOpen } from "@/features/packages/api";
 import { type DatabaseSettings, settingsUpdate } from "@/features/settings/api";
 import { isCommandError, type PortConflict, portConflictOf } from "@/lib/ipc";
 
@@ -90,6 +91,9 @@ export function DatabaseCard(props: {
               {t("actions.start")}
             </Button>
           )}
+          <Button onClick={() => run(dbUiOpen)} disabled={busy} icon={<Database />}>
+            {t("db.openUi")}
+          </Button>
           <Button onClick={() => run(() => serviceOpenLog(kind))} disabled={busy} icon={<FileText />}>
             {t("actions.openLog")}
           </Button>

@@ -127,6 +127,7 @@ impl Nginx {
         c.insert("http_port", &ctx.http_port);
         c.insert("www_root", &forward_slashes(&ctx.www_root));
         web::insert_tls(&mut c, ctx);
+        web::render_db_ui(t, &mut changes, &mut c, ctx)?;
         t.render_into(
             &mut changes,
             "nginx/fastcgi.conf.tera",
@@ -440,6 +441,7 @@ mod tests {
                 localhost,
                 sites: certs,
             }),
+            db_ui: None,
         };
         nginx.prepare(&ctx).expect("prepare");
 
@@ -497,6 +499,7 @@ mod tests {
             www_root: layout.www(),
             sites: lumina_vhost::scan(&layout.www(), &cfg).sites,
             tls: None,
+            db_ui: None,
         };
 
         let changes = nginx.prepare(&ctx).expect("prepare");

@@ -399,6 +399,82 @@ async fn apache_serves_https_with_the_local_ca() {
     https_with_the_local_ca(WebServer::Apache).await;
 }
 
+/// A stand-in phpMyAdmin: `index.php` prints its name and the PHP version;
+/// `.lumina-package.json` carries the PHP requirement, as Quick Add writes it.
+fn fake_db_ui(env: &Env, version: &str, requires_php: &str) {
+    let dir = env.layout.bin().join("phpmyadmin").join(version);
+    std::fs::create_dir_all(&dir).expect("mkdir");
+    std::fs::write(
+        dir.join("index.php"),
+        format!(r#"<?php echo "pma {version} on " . PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;"#),
+    )
+    .expect("index");
+    std::fs::write(
+        dir.join(".lumina-package.json"),
+        format!(
+            r#"{{"package":"phpmyadmin","version":"{version}","url":"https://x","sha256":"00","installedAt":0,"requires":{{"php":"{requires_php}"}}}}"#
+        ),
+    )
+    .expect("meta");
+}
+
+/// With PHP 8.3 active the PHP-8.3-capable phpMyAdmin is served at
+/// /phpmyadmin/, with PHP 8.4 the one that needs 8.4 (blueprint §5).
+async fn db_ui_follows_the_active_php(server: WebServer) {
+    let Some(mut env) = setup(server) else { return };
+    let phps = std::env::var("LUMINA_TEST_PHP_DIRS").unwrap_or_default();
+    if !(phps.contains("8.3") && phps.contains("8.4")) {
+        eprintln!("needs PHP 8.3 and 8.4 in LUMINA_TEST_PHP_DIRS");
+        return;
+    }
+    fake_db_ui(&env, "6.0.0", ">=8.4");
+    fake_db_ui(&env, "5.2.3", ">=7.2.5, <8.4");
+
+    env.cfg.php.version = "8.3".into();
+    env.start_web().await.expect("start");
+    let (status, body) = get(&env.url("/phpmyadmin/")).await;
+    assert_eq!(
+        (status, body.as_str()),
+        (200, "pma 5.2.3 on 8.3"),
+        "{}",
+        env.logs()
+    );
+    let (status, _) = get(&env.url("/phpmyadmin")).await;
+    assert_eq!(status, 200, "/phpmyadmin redirects to /phpmyadmin/");
+    let config = std::fs::read_to_string(env.layout.bin().join("phpmyadmin/5.2.3/config.inc.php"))
+        .expect("config");
+    assert!(
+        config.contains(&format!("['port'] = '{}'", env.cfg.database.port)),
+        "{config}"
+    );
+
+    env.cfg.php.version = "8.4".into();
+    env.stack
+        .restart(ServiceKind::PhpFcgi, &env.cfg)
+        .await
+        .expect("switch PHP");
+    let (status, body) = get(&env.url("/phpmyadmin/")).await;
+    assert_eq!(
+        (status, body.as_str()),
+        (200, "pma 6.0.0 on 8.4"),
+        "{}",
+        env.logs()
+    );
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[tokio::test]
+async fn nginx_db_ui_follows_the_active_php() {
+    db_ui_follows_the_active_php(WebServer::Nginx).await;
+}
+
+#[tokio::test]
+async fn apache_db_ui_follows_the_active_php() {
+    db_ui_follows_the_active_php(WebServer::Apache).await;
+}
+
 #[tokio::test]
 async fn nginx_auto_vhosts_follow_the_projects_folder() {
     auto_vhosts_follow_the_projects_folder(WebServer::Nginx).await;

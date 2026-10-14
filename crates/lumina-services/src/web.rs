@@ -25,6 +25,58 @@ pub struct WebContext {
     pub sites: Vec<Site>,
     /// HTTPS, when `general.auto_ssl` is on.
     pub tls: Option<Tls>,
+    /// phpMyAdmin at /phpmyadmin/ on localhost, if one is installed that runs
+    /// on the active PHP.
+    pub db_ui: Option<DbUi>,
+}
+
+/// The phpMyAdmin install served at http://localhost/phpmyadmin/.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DbUi {
+    pub version: String,
+    pub dir: PathBuf,
+    /// The PHP version it was chosen for.
+    pub php_version: String,
+    #[serde(skip)]
+    pub secret: String,
+    #[serde(skip)]
+    pub db_port: u16,
+    #[serde(skip)]
+    pub tmp_dir: PathBuf,
+}
+
+/// Template values for the localhost site (`db_ui*`) and phpMyAdmin's own
+/// `config.inc.php`, written through `changes`.
+pub fn render_db_ui(
+    templates: &Templates,
+    changes: &mut ChangeSet,
+    c: &mut tera::Context,
+    ctx: &WebContext,
+) -> Result<()> {
+    c.insert("db_ui", &ctx.db_ui.is_some());
+    let Some(ui) = &ctx.db_ui else {
+        return Ok(());
+    };
+    c.insert("db_ui_version", &ui.version);
+    c.insert("db_ui_dir", &forward_slashes(&ui.dir));
+    c.insert("db_ui_php", &ui.php_version);
+    std::fs::create_dir_all(&ui.tmp_dir).map_err(|source| Error::Io {
+        path: ui.tmp_dir.clone(),
+        source,
+    })?;
+    let mut pc = tera::Context::new();
+    pc.insert("version", &ui.version);
+    pc.insert("secret", &ui.secret);
+    pc.insert("port", &ui.db_port);
+    pc.insert("tmp_dir", &forward_slashes(&ui.tmp_dir));
+    templates.render_into(
+        changes,
+        "phpmyadmin/config.inc.php.tera",
+        &pc,
+        &ui.dir.join("config.inc.php"),
+    )?;
+    Ok(())
 }
 
 impl WebContext {

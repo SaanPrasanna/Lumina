@@ -44,6 +44,25 @@ impl From<Error> for lumina_core::Error {
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+/// `len` random letters and digits from the system's secure RNG.
+pub fn random_token(len: usize) -> String {
+    use ring::rand::SecureRandom;
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let rng = ring::rand::SystemRandom::new();
+    let mut out = String::with_capacity(len);
+    let mut byte = [0u8; 1];
+    while out.len() < len {
+        if rng.fill(&mut byte).is_err() {
+            continue;
+        }
+        // Rejection sampling: 248 = 4 * 62, so every character is equally likely.
+        if byte[0] < 248 {
+            out.push(CHARS[(byte[0] % 62) as usize] as char);
+        }
+    }
+    out
+}
+
 /// HTTPS settings handed to the web servers.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -155,7 +155,8 @@
     "dataDir": "Data folder",
     "login": "Log in as root with no password, at 127.0.0.1. Only this computer can connect.",
     "firstStart": "The first start creates a new, empty database folder; this takes a few seconds.",
-    "notInstalled": "{{engine}} is not installed yet. Put it in {{path}}."
+    "notInstalled": "{{engine}} is not installed yet. Put it in {{path}}.",
+    "openUi": "Open DB UI"
   },
   "redis": {
     "title": "Redis",
@@ -227,5 +228,44 @@
     "remove": "Remove certificate authority",
     "removeConfirm": "Remove and turn HTTPS off",
     "siteCert": "HTTPS certificate valid until {{date}}"
+  },
+  "packages": {
+    "intro": "Download and switch versions of every tool. Each download is checked against its published SHA-256 before it is unpacked.",
+    "catalogDate": "Catalog of {{date}}.",
+    "active": "In use: {{version}}",
+    "activeRunning": "Running: {{version}}",
+    "noneActive": "Not installed yet.",
+    "autoNewest": "the newest installed version is used",
+    "autoDbUi": "the newest version that runs on the active PHP is used",
+    "dbUiServed": "phpMyAdmin {{version}} is served at /phpmyadmin/ for PHP {{php}}.",
+    "dbUiNone": "None of the installed versions runs on PHP {{php}}. Install a compatible one below.",
+    "dbUiInstall": "Install phpMyAdmin to manage your databases at http://localhost/phpmyadmin/.",
+    "installed": "Installed",
+    "available": "Available",
+    "noneForPlatform": "No downloads for this operating system yet.",
+    "running": "Running",
+    "inUse": "In use",
+    "pinned": "Selected",
+    "manual": "Added by hand",
+    "use": "Use",
+    "useNewest": "Always use the newest installed version",
+    "useAutoDbUi": "Pick automatically for the active PHP",
+    "remove": "Remove",
+    "inUseReason": {
+      "running": "Running; stop it first.",
+      "selected": "Selected; choose another version first."
+    },
+    "install": "Install",
+    "resume": "Resume",
+    "isInstalled": "Installed",
+    "incompatible": "Not for the active PHP",
+    "downloading": "Downloading {{done}} of {{total}}",
+    "stage": {
+      "verifying": "Checking the SHA-256…",
+      "extracting": "Unpacking…"
+    },
+    "cancelled": "Cancelled. Install again to resume the download.",
+    "failed": "Not installed: {{error}}",
+    "dismiss": "Dismiss"
   }
 }

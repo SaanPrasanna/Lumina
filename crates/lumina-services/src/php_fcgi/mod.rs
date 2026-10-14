@@ -107,6 +107,33 @@ impl PhpFcgi {
         versions::discover(&self.php_root()).await
     }
 
+    /// The PHP command-line binary and php.ini for `cfg.version` (creating the
+    /// ini if needed), for tools such as Composer. `None` without PHP.
+    pub async fn cli(&self, cfg: &PhpConfig) -> Option<(PathBuf, PathBuf, String)> {
+        let installs = self.versions().await;
+        let install = versions::select(&installs, &cfg.version)?;
+        let exe = ["php", "bin/php"]
+            .iter()
+            .map(|rel| {
+                install
+                    .dir
+                    .join(format!("{rel}{}", std::env::consts::EXE_SUFFIX))
+            })
+            .find(|p| p.is_file())?;
+        let ini = env::ensure_ini(&self.inner.layout, &self.inner.templates, install).ok()?;
+        Some((exe, ini, install.version.clone()))
+    }
+
+    /// The PHP version that serves requests: the running one, else the one
+    /// `cfg` selects.
+    pub async fn active_version(&self, cfg: &PhpConfig) -> Option<String> {
+        if let Some(rt) = self.status().await.runtime {
+            return Some(rt.version);
+        }
+        let installs = self.versions().await;
+        versions::select(&installs, &cfg.version).map(|i| i.version.clone())
+    }
+
     /// Starts the pool with `cfg`. Fails if it is already running.
     pub async fn start(&self, cfg: &PhpConfig) -> Result<PhpRuntime> {
         let mut state = self.inner.state.lock().await;

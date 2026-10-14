@@ -52,6 +52,16 @@ provider = "ngrok"           # the auth token is stored in the OS keychain, not 
 [profiles]
 active = "default"
 
+[tools]
+# Versions of tools that are not services; empty = newest installed.
+node = ""
+python = ""
+composer = ""
+phpmyadmin = ""              # empty = newest that runs on the active PHP
+
+[packages]
+proxy = ""                   # e.g. "http://proxy:8080" for Quick Add downloads; empty = system settings
+
 # Per-site settings, keyed by folder name (the section is optional):
 # [sites.blog]
 # enabled = true             # false = no blog.test

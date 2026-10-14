@@ -51,6 +51,8 @@ pub struct Runtime {
     pub hosts: HostsSync,
     /// `lumina-helper`, for privileged changes (hosts file; CA on Linux).
     pub helper: PathBuf,
+    /// Quick Add: catalog, downloads, installed versions.
+    pub packages: lumina_packages::PackageManager,
     /// Watches the projects folder (and which folder it watches).
     pub watcher: Mutex<Option<(PathBuf, Watcher)>>,
 }
@@ -84,7 +86,7 @@ impl Runtime {
         let stack = Orchestrator::new(
             supervisor.clone(),
             layout.clone(),
-            Templates::new(templates),
+            Templates::new(templates.clone()),
         );
         let helper = helper_path();
         if !helper.is_file() {
@@ -93,6 +95,27 @@ impl Runtime {
                 helper.display()
             );
         }
+        // `resources/templates` → `resources/catalog/packages.json`.
+        let resources = templates
+            .parent()
+            .map(PathBuf::from)
+            .unwrap_or_else(|| templates.clone());
+        let catalog = lumina_packages::bundled_catalog(&resources).unwrap_or_else(|err| {
+            log::error!("the package catalog cannot be read: {err}");
+            lumina_packages::Catalog {
+                schema_version: lumina_packages::catalog::SCHEMA_VERSION,
+                updated: String::new(),
+                packages: Vec::new(),
+            }
+        });
+        let proxy = loaded.config.packages.proxy.clone();
+        let packages = lumina_packages::PackageManager::new(
+            layout.bin(),
+            layout.tmp().join("downloads"),
+            catalog,
+            Some(proxy.as_str()),
+        )
+        .map_err(lumina_core::Error::from)?;
         let hosts = HostsSync::new(
             helper.clone(),
             lumina_platform::hosts::system_hosts_path(),
@@ -101,6 +124,7 @@ impl Runtime {
         Ok(Self {
             hosts,
             helper,
+            packages,
             watcher: Mutex::new(None),
             layout,
             config: RwLock::new(loaded.config),

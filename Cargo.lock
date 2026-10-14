@@ -827,6 +827,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "deflate64"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac6b926516df9c60bfa16e107b21086399f8285a44ca9711344b9e553c5146e2"
+
+[[package]]
 name = "der-parser"
 version = "10.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2391,7 +2397,20 @@ dependencies = [
 name = "lumina-packages"
 version = "0.1.0"
 dependencies = [
+ "flate2",
  "lumina-core",
+ "lumina-platform",
+ "reqwest 0.12.28",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "zip",
 ]
 
 [[package]]
@@ -2432,6 +2451,7 @@ version = "0.1.0"
 dependencies = [
  "lumina-config",
  "lumina-core",
+ "lumina-packages",
  "lumina-platform",
  "lumina-process",
  "lumina-ssl",
@@ -6521,6 +6541,8 @@ checksum = "caa8cd6af31c3b31c6631b8f483848b91589021b28fffe50adada48d4f4d2ed1"
 dependencies = [
  "arbitrary",
  "crc32fast",
+ "deflate64",
+ "flate2",
  "indexmap 2.14.2",
  "memchr",
 ]

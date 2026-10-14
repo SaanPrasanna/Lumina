@@ -10,6 +10,7 @@ pub mod php_fcgi;
 pub mod profiles;
 pub mod redis;
 pub mod template;
+pub mod tools;
 pub mod web;
 
 use lumina_core::types::ServiceStatus;

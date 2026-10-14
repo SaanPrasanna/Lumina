@@ -5,6 +5,7 @@ pub mod command;
 pub mod elevation;
 pub mod hosts;
 pub mod launcher;
+pub mod long_path;
 pub mod net;
 pub mod path_env;
 pub mod process_group;

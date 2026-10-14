@@ -1,4 +1,535 @@
 {
   "schema_version": 1,
-  "packages": []
+  "updated": "2026-10-14",
+  "packages": [
+    {
+      "id": "php",
+      "name": "PHP",
+      "kind": "service",
+      "homepage": "https://windows.php.net/",
+      "description": "PHP (non-thread-safe x64 builds), run as Lumina's FastCGI pool.",
+      "versions": [
+        {
+          "version": "8.5.11",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.php.net/~windows/releases/php-8.5.11-nts-Win32-vs17-x64.zip",
+          "mirrors": [
+            "https://downloads.php.net/~windows/releases/archives/php-8.5.11-nts-Win32-vs17-x64.zip"
+          ],
+          "sha256": "0ea96e0d2b9b737a6036f05cf4e95c49313faa6d0f27bd97edb2742503f0c043",
+          "archive": "zip",
+          "checksum_source": "windows.php.net releases.json"
+        },
+        {
+          "version": "8.4.26",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.php.net/~windows/releases/php-8.4.26-nts-Win32-vs17-x64.zip",
+          "mirrors": [
+            "https://downloads.php.net/~windows/releases/archives/php-8.4.26-nts-Win32-vs17-x64.zip"
+          ],
+          "sha256": "da68394f9193b7f6b89d0c76861a4034ae10efee7fd55a7255d8118c2acf70d7",
+          "archive": "zip",
+          "checksum_source": "windows.php.net releases.json"
+        },
+        {
+          "version": "8.3.35",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.php.net/~windows/releases/php-8.3.35-nts-Win32-vs16-x64.zip",
+          "mirrors": [
+            "https://downloads.php.net/~windows/releases/archives/php-8.3.35-nts-Win32-vs16-x64.zip"
+          ],
+          "sha256": "25a8e2ac9ff30f1d768d1447c09a600617fa6e6082729f6e95f008b59c91fe45",
+          "archive": "zip",
+          "checksum_source": "windows.php.net releases.json"
+        },
+        {
+          "version": "8.2.34",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.php.net/~windows/releases/php-8.2.34-nts-Win32-vs16-x64.zip",
+          "mirrors": [
+            "https://downloads.php.net/~windows/releases/archives/php-8.2.34-nts-Win32-vs16-x64.zip"
+          ],
+          "sha256": "03249b5c9414c6dbe30276f4a7598bd9d2a7417ee81f709b06b99e9c4a2aff4f",
+          "archive": "zip",
+          "channel": "security fixes",
+          "checksum_source": "windows.php.net releases.json"
+        },
+        {
+          "version": "8.1.34",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.php.net/~windows/releases/php-8.1.34-nts-Win32-vs16-x64.zip",
+          "mirrors": [
+            "https://downloads.php.net/~windows/releases/archives/php-8.1.34-nts-Win32-vs16-x64.zip"
+          ],
+          "sha256": "9cfe246cb144076c16f5913a3ef88a474c3dd7e60f0f0c8bb95faf68674016cc",
+          "archive": "zip",
+          "channel": "end of life",
+          "checksum_source": "windows.php.net releases.json"
+        }
+      ]
+    },
+    {
+      "id": "nginx",
+      "name": "nginx",
+      "kind": "service",
+      "homepage": "https://nginx.org/",
+      "description": "Fast web server and reverse proxy.",
+      "versions": [
+        {
+          "version": "1.31.6",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://nginx.org/download/nginx-1.31.6.zip",
+          "sha256": "bb65edcfc22a2214a4afaac59f038f560c02b98d4b49c5dca1206d3cc5d631c9",
+          "size": 2797070,
+          "archive": "zip",
+          "strip": 1,
+          "channel": "mainline",
+          "checksum_source": "computed from the PGP-verified archive"
+        },
+        {
+          "version": "1.30.5",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://nginx.org/download/nginx-1.30.5.zip",
+          "sha256": "e5afe28b6a50bec92c478bfe1a4d3758206b80fb77159277bc5c4e88955c2a35",
+          "size": 2776622,
+          "archive": "zip",
+          "strip": 1,
+          "channel": "stable",
+          "checksum_source": "computed from the PGP-verified archive"
+        },
+        {
+          "version": "1.28.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://nginx.org/download/nginx-1.28.3.zip",
+          "sha256": "aad7bf75d669ece7671688bfdf35f1093d6a30d2e62469405f4d55d8d82d5fd3",
+          "size": 2743427,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "computed from the PGP-verified archive"
+        }
+      ]
+    },
+    {
+      "id": "apache",
+      "name": "Apache httpd",
+      "kind": "service",
+      "homepage": "https://www.apachelounge.com/",
+      "description": "Apache HTTP Server 2.4 (Apache Lounge VS18 build; needs the Visual C++ 2015-2026 runtime).",
+      "versions": [
+        {
+          "version": "2.4.69",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://www.apachelounge.com/download/VS18/binaries/httpd-2.4.69-261002-Win64-VS18.zip",
+          "sha256": "ca272e0b75abad78b1e4029a0753b20ff2232d2d857e8eebeea5d469c5776977",
+          "archive": "zip",
+          "subdir": "Apache24",
+          "checksum_source": "apachelounge.com .txt checksum file"
+        }
+      ]
+    },
+    {
+      "id": "mysql",
+      "name": "MySQL",
+      "kind": "service",
+      "homepage": "https://dev.mysql.com/downloads/mysql/",
+      "description": "MySQL Community Server.",
+      "versions": [
+        {
+          "version": "9.7.2",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://cdn.mysql.com/Downloads/MySQL-9.7/mysql-9.7.2-winx64.zip",
+          "sha256": "5592ea38e53edd67f5baa68303e7fcf2f0a40fc08978fdb4a7b0c38d12baea17",
+          "size": 342737674,
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "computed from the HTTPS download"
+        },
+        {
+          "version": "8.4.11",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.11-winx64.zip",
+          "sha256": "a492371d687d2bab088b0062581144a0044b8964baefdf4faa579292b423d25c",
+          "size": 281191914,
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "computed from the GPG-verified archive"
+        }
+      ]
+    },
+    {
+      "id": "mariadb",
+      "name": "MariaDB",
+      "kind": "service",
+      "homepage": "https://mariadb.org/download/",
+      "description": "MariaDB Server, a drop-in MySQL alternative.",
+      "versions": [
+        {
+          "version": "12.3.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.mariadb.org/rest-api/mariadb/12.3.3/mariadb-12.3.3-winx64.zip",
+          "mirrors": [
+            "https://archive.mariadb.org/mariadb-12.3.3/winx64-packages/mariadb-12.3.3-winx64.zip"
+          ],
+          "sha256": "4b5706b47148b47c8f36963c8352d1ddee37a1287b4690428f631a74b09b85a0",
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "mariadb.org REST API"
+        },
+        {
+          "version": "11.8.9",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.mariadb.org/rest-api/mariadb/11.8.9/mariadb-11.8.9-winx64.zip",
+          "mirrors": [
+            "https://archive.mariadb.org/mariadb-11.8.9/winx64-packages/mariadb-11.8.9-winx64.zip"
+          ],
+          "sha256": "830c46727d9278eae212ae3eca44eeb9e71b2a68704e95f344a64fba7b1963f5",
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "mariadb.org REST API"
+        },
+        {
+          "version": "11.4.13",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.mariadb.org/rest-api/mariadb/11.4.13/mariadb-11.4.13-winx64.zip",
+          "mirrors": [
+            "https://archive.mariadb.org/mariadb-11.4.13/winx64-packages/mariadb-11.4.13-winx64.zip"
+          ],
+          "sha256": "d62986d433eeebfde218560b276103831604a61e929e87f1a17f5aebd80257e2",
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "mariadb.org REST API"
+        },
+        {
+          "version": "10.11.19",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://downloads.mariadb.org/rest-api/mariadb/10.11.19/mariadb-10.11.19-winx64.zip",
+          "mirrors": [
+            "https://archive.mariadb.org/mariadb-10.11.19/winx64-packages/mariadb-10.11.19-winx64.zip"
+          ],
+          "sha256": "398ea30e5036010bbebe01d2b1804280424dcc2626e36d8e95155c04d25a0490",
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "mariadb.org REST API"
+        }
+      ]
+    },
+    {
+      "id": "redis",
+      "name": "Redis",
+      "kind": "service",
+      "homepage": "https://github.com/redis-windows/redis-windows",
+      "description": "Redis for Windows (redis-windows MSYS2 build).",
+      "versions": [
+        {
+          "version": "8.10.2",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/redis-windows/redis-windows/releases/download/8.10.2/Redis-8.10.2-Windows-x64-msys2.zip",
+          "sha256": "7c8cebd50347eaa1d9e784da842ed47a4f33394637835531d6614777b950ee85",
+          "size": 13938657,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "8.8.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/redis-windows/redis-windows/releases/download/8.8.3/Redis-8.8.3-Windows-x64-msys2.zip",
+          "sha256": "c2ebc76c007a12c96d7dd64e252a194d9e6a06fe801dfb834ca071314fd662e7",
+          "size": 13619667,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "8.6.7",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/redis-windows/redis-windows/releases/download/8.6.7/Redis-8.6.7-Windows-x64-msys2.zip",
+          "sha256": "08286eb017217fb18af0e70454099133ae24e3a90d9d837f67d93286f7f441d0",
+          "size": 13085450,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "phpmyadmin",
+      "name": "phpMyAdmin",
+      "kind": "webapp",
+      "homepage": "https://www.phpmyadmin.net/",
+      "description": "Database admin in the browser, served at http://localhost/phpmyadmin/.",
+      "versions": [
+        {
+          "version": "5.2.3",
+          "os": "any",
+          "arch": "any",
+          "url": "https://files.phpmyadmin.net/phpMyAdmin/5.2.3/phpMyAdmin-5.2.3-all-languages.zip",
+          "sha256": "2d2e13c735366d318425c78e4ee2cc8fc648d77faba3ddea2cd516e43885733f",
+          "archive": "zip",
+          "strip": 1,
+          "requires": {
+            "php": ">=7.2.5"
+          },
+          "checksum_source": "phpmyadmin.net .sha256 file"
+        }
+      ]
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "kind": "runtime",
+      "homepage": "https://nodejs.org/",
+      "description": "JavaScript runtime with npm, for front-end builds (Vite, Laravel Mix).",
+      "versions": [
+        {
+          "version": "26.11.1",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-win-x64.zip",
+          "sha256": "97f36a8a9684ff0d3e35758b4610fef5b628a5880e96f2ccc11240e5daf9934e",
+          "archive": "zip",
+          "strip": 1,
+          "channel": "current",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "26.11.1",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-darwin-arm64.tar.gz",
+          "sha256": "d916511b55965e91be7a88e17f88d895b6793ceaba3e6c9b194aefe51c2c65ac",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "current",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "26.11.1",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-darwin-x64.tar.gz",
+          "sha256": "9a8129bd9ab08039793dd1143a7aedee6b5d60ac06592ad938d8bddf36142f3a",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "current",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "26.11.1",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-linux-x64.tar.gz",
+          "sha256": "15fc043a51a5783f2f4b634561091658f5a7f0e3db03f997dca3a8033a33e45b",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "current",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "26.11.1",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-linux-arm64.tar.gz",
+          "sha256": "170454fb022f5e9b5f6cc76c25fa32ef5100895be44eb04e92f9780591491bbf",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "current",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "24.21.0",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-win-x64.zip",
+          "sha256": "158f7685b44de51f6c0df1d153526cbcd3e1bc739a8dfc607721cef75de9e541",
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "24.21.0",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-darwin-arm64.tar.gz",
+          "sha256": "bed7eea5325e1108f32ce5228ddd6a5f0f08a499ee42aa7442aea583702f6057",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "24.21.0",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-darwin-x64.tar.gz",
+          "sha256": "1462cb3b3046b815cf8ea436d3da450ec1a9f11dac7e5a46b0ada5305d7e8097",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "24.21.0",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.gz",
+          "sha256": "6e1db87ef58b8819e5d5402eff1536491b18edd8eb7bee5ef7897876e88dc5ff",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "24.21.0",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-arm64.tar.gz",
+          "sha256": "724282c3b43aec998aa9527380465b45d229e021b58035f5f4f63095eabfe5d5",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "22.23.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-win-x64.zip",
+          "sha256": "2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71",
+          "archive": "zip",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "22.23.3",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-darwin-arm64.tar.gz",
+          "sha256": "23b25245dcfb9af7262f8ff142e9e2e0af025368117329e7a7458a51e5922f53",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "22.23.3",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-darwin-x64.tar.gz",
+          "sha256": "8a677b0219178efd6eb0e475457c4afb452b521a92f6e67845a73bd85727f2a8",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "22.23.3",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-x64.tar.gz",
+          "sha256": "1084aa36196bba4c3a5e69a1ee388a6e4ff729dad09445fbcd434b28fe3c24af",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        },
+        {
+          "version": "22.23.3",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-arm64.tar.gz",
+          "sha256": "5ced2d48d1d7198739b7f86804de0171aefb6823b684b12341d3321afc3cb0b2",
+          "archive": "tar.gz",
+          "strip": 1,
+          "channel": "LTS",
+          "checksum_source": "nodejs.org SHASUMS256.txt"
+        }
+      ]
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "kind": "runtime",
+      "homepage": "https://www.python.org/",
+      "description": "Python (Windows embeddable package: no installer, no pip by default).",
+      "versions": [
+        {
+          "version": "3.14.8",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip",
+          "sha256": "a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310",
+          "size": 12601679,
+          "archive": "zip",
+          "checksum_source": "python.org release file API"
+        },
+        {
+          "version": "3.13.16",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://www.python.org/ftp/python/3.13.16/python-3.13.16-embed-amd64.zip",
+          "sha256": "97dae5274cc54867065e8d5a3226e48c35017ed332a0fdb0e27d5b5821961297",
+          "size": 11439094,
+          "archive": "zip",
+          "checksum_source": "python.org release file API"
+        }
+      ]
+    },
+    {
+      "id": "composer",
+      "name": "Composer",
+      "kind": "tool",
+      "homepage": "https://getcomposer.org/",
+      "description": "PHP dependency manager; runs with Lumina's active PHP.",
+      "versions": [
+        {
+          "version": "2.10.3",
+          "os": "any",
+          "arch": "any",
+          "url": "https://getcomposer.org/download/2.10.3/composer.phar",
+          "sha256": "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6",
+          "archive": "file",
+          "file_name": "composer.phar",
+          "checksum_source": "getcomposer.org .sha256sum"
+        },
+        {
+          "version": "2.2.30",
+          "os": "any",
+          "arch": "any",
+          "url": "https://getcomposer.org/download/2.2.30/composer.phar",
+          "sha256": "8c2b4478b64f8f7cdf1574838fdb0033b29049ca821dad452db7a3dcfcdbffc2",
+          "archive": "file",
+          "file_name": "composer.phar",
+          "channel": "LTS",
+          "checksum_source": "getcomposer.org .sha256sum"
+        }
+      ]
+    }
+  ]
 }

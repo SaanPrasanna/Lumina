@@ -26,7 +26,7 @@ use crate::nginx::Nginx;
 use crate::php_fcgi::{PhpFcgi, PhpStatus};
 use crate::redis::{Redis, RedisStatus};
 use crate::template::Templates;
-use crate::web::{ReloadOutcome, WebContext, WebStatus};
+use crate::web::{DbUi, ReloadOutcome, WebContext, WebStatus};
 use lumina_ssl::{Ssl, Tls};
 use lumina_vhost::Scan;
 
@@ -154,13 +154,80 @@ impl Orchestrator {
         let www_root = self.www_root(cfg);
         let sites = lumina_vhost::scan(&www_root, cfg).sites;
         let tls = self.tls(cfg, &sites);
+        let db_ui = self.db_ui(cfg).await;
         WebContext {
             http_port: cfg.web.http_port,
             php_port,
             sites,
             www_root,
             tls,
+            db_ui,
         }
+    }
+
+    /// The phpMyAdmin to serve: `tools.phpmyadmin` if set and installed, else
+    /// the newest installed one whose PHP requirement the active PHP meets.
+    pub async fn db_ui(&self, cfg: &AppConfig) -> Option<DbUi> {
+        let php = self.inner.php.active_version(&cfg.php).await?;
+        let installs =
+            lumina_packages::installed::list(&self.inner.layout.bin().join("phpmyadmin"));
+        let pinned = cfg.tools.phpmyadmin.trim();
+        let chosen = if pinned.is_empty() {
+            lumina_packages::compat::newest_for_php(&installs, &php)
+        } else {
+            installs
+                .iter()
+                .find(|i| i.version == pinned || i.version.starts_with(&format!("{pinned}.")))
+        }?;
+        Some(DbUi {
+            version: chosen.version.clone(),
+            dir: chosen.dir.clone(),
+            php_version: php,
+            secret: self.db_ui_secret(),
+            db_port: cfg.database.port,
+            tmp_dir: self.inner.layout.tmp().join("phpmyadmin"),
+        })
+    }
+
+    /// phpMyAdmin's cookie-encryption secret, created once and kept in
+    /// `etc/phpmyadmin/blowfish_secret` so sessions survive restarts.
+    fn db_ui_secret(&self) -> String {
+        let path = self
+            .inner
+            .layout
+            .etc()
+            .join("phpmyadmin")
+            .join("blowfish_secret");
+        if let Ok(secret) = std::fs::read_to_string(&path)
+            && secret.trim().len() == 32
+        {
+            return secret.trim().to_owned();
+        }
+        let secret = lumina_ssl::random_token(32);
+        if let Err(err) = lumina_platform::secure_file::write_private(&path, secret.as_bytes()) {
+            tracing::warn!("could not save the phpMyAdmin secret: {err}");
+        }
+        secret
+    }
+
+    /// Rewrites the `composer` / `composer.bat` launchers of every installed
+    /// Composer so they run with the active PHP and its php.ini. Called after
+    /// Composer is installed and whenever the PHP version changes.
+    pub async fn refresh_composer_shims(&self, cfg: &AppConfig) -> Result<()> {
+        let installs = lumina_packages::installed::list(&self.inner.layout.bin().join("composer"));
+        if installs.is_empty() {
+            return Ok(());
+        }
+        let Some((php, ini, version)) = self.inner.php.cli(&cfg.php).await else {
+            tracing::info!(
+                "no PHP installed yet; Composer launchers are written once there is one"
+            );
+            return Ok(());
+        };
+        for install in installs {
+            crate::tools::write_composer_shims(&install.dir, &php, &ini, &version)?;
+        }
+        Ok(())
     }
 
     /// The local CA and certificates.

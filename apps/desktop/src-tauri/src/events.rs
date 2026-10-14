@@ -13,6 +13,10 @@ pub const SERVICE_STATUS: &str = "service-status";
 pub const CONFIG_CHANGED: &str = "config-changed";
 /// Sites or the hosts file state changed; the UI refetches the Sites page.
 pub const SITES_CHANGED: &str = "sites-changed";
+/// An install advanced: `{ id, version, stage, received, total }`.
+pub const PACKAGE_PROGRESS: &str = "package-progress";
+/// Installed versions or install jobs changed; the UI refetches Quick Add.
+pub const PACKAGES_CHANGED: &str = "packages-changed";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -22,6 +26,18 @@ pub struct ServiceStatusEvent {
     /// started | exited | crashed | restarting | failed
     pub kind: &'static str,
     pub detail: Option<String>,
+}
+
+fn refresh_composer_shims(app: AppHandle) {
+    use tauri::Manager;
+    tauri::async_runtime::spawn(async move {
+        let Ok(rt) = app.state::<crate::state::AppState>().runtime() else {
+            return;
+        };
+        if let Err(err) = rt.stack.refresh_composer_shims(&rt.config()).await {
+            log::warn!("could not write the Composer launchers: {err}");
+        }
+    });
 }
 
 /// Forwards supervisor lifecycle events to the UI for as long as the app runs.
@@ -55,6 +71,12 @@ pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
                     || id == lumina_services::apache::PROCESS_ID)
             {
                 crate::commands::sites::resync_later(&app);
+            }
+            // PHP (re)started, possibly on another version: Composer follows.
+            if let E::Started { id, .. } = &event
+                && id == lumina_services::php_fcgi::PROCESS_ID
+            {
+                refresh_composer_shims(app.clone());
             }
             let _ = app.emit(
                 SERVICE_STATUS,

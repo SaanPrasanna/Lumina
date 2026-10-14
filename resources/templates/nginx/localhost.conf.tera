@@ -24,4 +24,29 @@ server {
         try_files  $uri =404;
         include    fastcgi.conf;
     }
+{%- if db_ui %}
+
+    # phpMyAdmin {{ db_ui_version }}: the newest installed one that runs on PHP {{ db_ui_php }}.
+    location = /phpmyadmin {
+        return  301 /phpmyadmin/;
+    }
+    location ^~ /phpmyadmin/ {
+        alias  "{{ db_ui_dir }}/";
+        index  index.php;
+
+        location ~ ^/phpmyadmin/(libraries|setup/lib|templates|tmp|vendor)/ {
+            deny  all;
+        }
+        location ~ \.php$ {
+            if (!-f $request_filename) {
+                return  404;
+            }
+            include        fastcgi_params;
+            fastcgi_param  SCRIPT_FILENAME  $request_filename;
+            fastcgi_param  REDIRECT_STATUS  200;
+            fastcgi_pass   php_upstream;
+            fastcgi_read_timeout  300s;
+        }
+    }
+{%- endif %}
 }

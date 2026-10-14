@@ -155,6 +155,7 @@ impl Apache {
 
         let t = &self.inner.templates;
         let mut changes = ChangeSet::default();
+        web::render_db_ui(t, &mut changes, &mut c, ctx)?;
         t.render_into(&mut changes, "apache/httpd.conf.tera", &c, &self.conf())?;
         t.render_into(
             &mut changes,
@@ -403,6 +404,7 @@ mod tests {
             www_root: layout.www(),
             sites: lumina_vhost::scan(&layout.www(), &lumina_config::AppConfig::default()).sites,
             tls: None,
+            db_ui: None,
         };
 
         apache.prepare(&install, &ctx).expect("prepare");

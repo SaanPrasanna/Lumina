@@ -25,6 +25,7 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    app.manage(crate::commands::packages::Jobs::default());
     app.manage(AppState {
         bootstrap_path,
         bootstrap: RwLock::new(bootstrap.clone()),

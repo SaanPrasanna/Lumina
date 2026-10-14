@@ -25,6 +25,8 @@ pub struct AppConfig {
     pub editor: Editor,
     pub tunnel: Tunnel,
     pub profiles: Profiles,
+    pub tools: Tools,
+    pub packages: Packages,
     /// Per-site settings, keyed by the project's folder name.
     pub sites: BTreeMap<String, SiteOverride>,
 }
@@ -41,6 +43,8 @@ impl Default for AppConfig {
             editor: Editor::default(),
             tunnel: Tunnel::default(),
             profiles: Profiles::default(),
+            tools: Tools::default(),
+            packages: Packages::default(),
             sites: BTreeMap::new(),
         }
     }
@@ -183,6 +187,25 @@ impl Default for Redis {
             port: 6379,
         }
     }
+}
+
+/// Versions of tools that are not services. Empty = newest installed; for
+/// phpMyAdmin, empty = the newest one that runs on the active PHP.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Tools {
+    pub node: String,
+    pub python: String,
+    pub composer: String,
+    pub phpmyadmin: String,
+}
+
+/// Quick Add (downloads).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Packages {
+    /// `http://host:port` for downloads; empty = the system's proxy settings.
+    pub proxy: String,
 }
 
 /// Settings for one automatic site (`[sites.<folder>]`).
