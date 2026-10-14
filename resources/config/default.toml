@@ -45,6 +45,8 @@ name = "VS Code"
 command = "code"
 # {path} is replaced with the folder or file to open.
 args = ["{path}"]
+# Used to open a file at a line ({line}); empty = args.
+args_line = ["--goto", "{path}:{line}"]
 
 [tunnel]
 provider = "ngrok"           # the auth token is stored in the OS keychain, not here

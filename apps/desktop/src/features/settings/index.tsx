@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ConfigWarnings } from "@/components/ConfigWarnings";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { editorOpen, editorPresets } from "@/features/env-path/api";
 import { SERVICES_KEY, servicesStatus } from "@/features/services/api";
 import {
   type EditorSettings,
@@ -149,20 +150,44 @@ function EditorForm({ initial }: { initial: EditorSettings }) {
   const [name, setName] = useState(initial.name);
   const [command, setCommand] = useState(initial.command);
   const [args, setArgs] = useState(initial.args.join("\n"));
+  const [argsLine, setArgsLine] = useState(initial.args_line.join("\n"));
   const save = useSaveSection("editor");
+  const presets = useQuery({ queryKey: ["editor", "presets"], queryFn: editorPresets });
+  const open = useMutation({ mutationFn: () => editorOpen({ kind: "config", file: "lumina" }) });
+  const lines = (text: string) =>
+    text
+      .split("\n")
+      .map((a) => a.trim())
+      .filter(Boolean);
 
-  const submit = () =>
-    save.mutate({
-      name,
-      command,
-      args: args
-        .split("\n")
-        .map((a) => a.trim())
-        .filter(Boolean),
-    });
+  const submit = () => save.mutate({ name, command, args: lines(args), args_line: lines(argsLine) });
+  const applyPreset = (id: string) => {
+    const preset = presets.data?.find((p) => p.id === id);
+    if (!preset) return;
+    setName(preset.name);
+    setCommand(preset.command);
+    setArgs(preset.args.join("\n"));
+    setArgsLine(preset.argsLine.join("\n"));
+  };
+  const area = "w-full rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
   return (
     <Section title={t("settings.editor.title")} onSubmit={submit} saving={save.isPending} saved={save.isSuccess}>
+      <Field label={t("editor.preset")} hint={presets.data?.length === 0 ? t("editor.noPresets") : t("editor.presetHint")}>
+        <select
+          className="w-full rounded-md border border-line bg-surface px-3 py-2"
+          value=""
+          onChange={(e) => applyPreset(e.target.value)}
+          disabled={!presets.data?.length}
+        >
+          <option value="">{t("editor.choosePreset")}</option>
+          {presets.data?.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t("settings.editor.name")}>
           <TextInput value={name} onChange={(e) => setName(e.target.value)} />
@@ -171,17 +196,18 @@ function EditorForm({ initial }: { initial: EditorSettings }) {
           <TextInput value={command} onChange={(e) => setCommand(e.target.value)} dir="ltr" className="font-mono" />
         </Field>
       </div>
-      <Field label={t("settings.editor.args")}>
-        <textarea
-          value={args}
-          onChange={(e) => setArgs(e.target.value)}
-          rows={3}
-          dir="ltr"
-          spellCheck={false}
-          className="w-full rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        />
-      </Field>
-      <ErrorBox error={save.error} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t("settings.editor.args")}>
+          <textarea value={args} onChange={(e) => setArgs(e.target.value)} rows={3} dir="ltr" spellCheck={false} className={area} />
+        </Field>
+        <Field label={t("editor.argsLine")}>
+          <textarea value={argsLine} onChange={(e) => setArgsLine(e.target.value)} rows={3} dir="ltr" spellCheck={false} className={area} />
+        </Field>
+      </div>
+      <button type="button" className="text-sm text-accent hover:underline" onClick={() => open.mutate()}>
+        {t("editor.openConfigToml")}
+      </button>
+      <ErrorBox error={save.error ?? open.error} />
     </Section>
   );
 }

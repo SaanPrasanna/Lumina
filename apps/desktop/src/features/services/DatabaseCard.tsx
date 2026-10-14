@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Database, FileText, Play, RotateCw, Square } from "lucide-react";
+import { Database, FileCog, FileText, Play, RotateCw, Square } from "lucide-react";
+import { editorOpen } from "@/features/env-path/api";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -93,6 +94,9 @@ export function DatabaseCard(props: {
           )}
           <Button onClick={() => run(dbUiOpen)} disabled={busy} icon={<Database />}>
             {t("db.openUi")}
+          </Button>
+          <Button onClick={() => run(() => editorOpen({ kind: "config", file: "database" }))} disabled={busy} icon={<FileCog />}>
+            {t("editor.editConfig")}
           </Button>
           <Button onClick={() => run(() => serviceOpenLog(kind))} disabled={busy} icon={<FileText />}>
             {t("actions.openLog")}

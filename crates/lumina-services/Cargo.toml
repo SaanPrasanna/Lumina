@@ -16,6 +16,7 @@ lumina-process = { workspace = true }
 lumina-vhost = { workspace = true }
 lumina-ssl = { workspace = true }
 lumina-packages = { workspace = true }
+lumina-shim = { workspace = true }
 serde = { workspace = true }
 sysinfo = { workspace = true }
 tera = { workspace = true }

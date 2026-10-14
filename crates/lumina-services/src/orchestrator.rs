@@ -210,6 +210,132 @@ impl Orchestrator {
         secret
     }
 
+    /// `bin/.shims`, the one folder Lumina puts on the user's PATH.
+    pub fn shim_dir(&self) -> PathBuf {
+        self.inner.layout.bin().join(".shims")
+    }
+
+    /// What each command in the shim folder runs now: the active PHP (with its
+    /// php.ini), Composer on that PHP, the selected Node.js (node, npm, npx),
+    /// Python, and the database client already pointed at Lumina's server.
+    pub async fn shims(&self, cfg: &AppConfig) -> Vec<crate::tools::Shim> {
+        use crate::tools::Shim;
+        let bin = self.inner.layout.bin();
+        let exe = std::env::consts::EXE_SUFFIX;
+        let pick = |tool: &str, wanted: &str| {
+            let installs = lumina_packages::installed::list(&bin.join(tool));
+            let wanted = wanted.trim();
+            installs.into_iter().find(|i| {
+                wanted.is_empty()
+                    || i.version == wanted
+                    || i.version.starts_with(&format!("{wanted}."))
+            })
+        };
+        let mut out = Vec::new();
+
+        let php = self.inner.php.cli(&cfg.php).await;
+        if let Some((php_exe, ini, version)) = &php {
+            out.push(Shim {
+                name: "php".into(),
+                program: php_exe.clone(),
+                args: vec!["-c".into(), ini.to_string_lossy().into_owned()],
+                describes: format!("PHP {version}"),
+            });
+            if let Some(composer) = pick("composer", &cfg.tools.composer) {
+                let phar = composer.dir.join("composer.phar");
+                if phar.is_file() {
+                    out.push(Shim {
+                        name: "composer".into(),
+                        program: php_exe.clone(),
+                        args: vec![
+                            "-c".into(),
+                            ini.to_string_lossy().into_owned(),
+                            phar.to_string_lossy().into_owned(),
+                        ],
+                        describes: format!("Composer {} on PHP {version}", composer.version),
+                    });
+                }
+            }
+        }
+
+        if let Some(node) = pick("node", &cfg.tools.node) {
+            let (bin_dir, script) = if cfg!(windows) {
+                (node.dir.clone(), ".cmd")
+            } else {
+                (node.dir.join("bin"), "")
+            };
+            for (name, file) in [
+                ("node", format!("node{exe}")),
+                ("npm", format!("npm{script}")),
+                ("npx", format!("npx{script}")),
+            ] {
+                let program = bin_dir.join(file);
+                if program.is_file() {
+                    out.push(Shim {
+                        name: name.into(),
+                        program,
+                        args: Vec::new(),
+                        describes: format!("Node.js {}", node.version),
+                    });
+                }
+            }
+        }
+
+        if let Some(python) = pick("python", &cfg.tools.python) {
+            let program = [
+                python.dir.join(format!("python{exe}")),
+                python.dir.join("bin").join(format!("python3{exe}")),
+            ]
+            .into_iter()
+            .find(|p| p.is_file());
+            if let Some(program) = program {
+                out.push(Shim {
+                    name: "python".into(),
+                    program,
+                    args: Vec::new(),
+                    describes: format!("Python {}", python.version),
+                });
+            }
+        }
+
+        let (db_tool, db_wanted) = match cfg.database.engine {
+            DatabaseEngine::Mysql => ("mysql", &cfg.database.mysql_version),
+            DatabaseEngine::Mariadb => ("mariadb", &cfg.database.mariadb_version),
+        };
+        if let Some(db) = pick(db_tool, db_wanted) {
+            let client = ["mysql", "mariadb"]
+                .iter()
+                .map(|f| db.dir.join("bin").join(format!("{f}{exe}")))
+                .find(|p| p.is_file());
+            if let Some(program) = client {
+                out.push(Shim {
+                    name: "mysql".into(),
+                    program,
+                    // Defaults for Lumina's server; options given by the user come later and win.
+                    args: vec![
+                        "--host=127.0.0.1".into(),
+                        format!("--port={}", cfg.database.port),
+                        "--user=root".into(),
+                    ],
+                    describes: format!("{db_tool} {} client", db.version),
+                });
+            }
+        }
+        out
+    }
+
+    /// Rewrites the shim folder for `cfg` (see [`Self::shims`]).
+    pub async fn refresh_shims(
+        &self,
+        cfg: &AppConfig,
+        shim_exe: Option<&std::path::Path>,
+    ) -> Result<Vec<crate::tools::Shim>> {
+        let shims = self.shims(cfg).await;
+        crate::tools::write_shims(&self.shim_dir(), shim_exe, &shims)?;
+        self.refresh_composer_shims(cfg).await?;
+        Ok(shims)
+    }
+
     /// Rewrites the `composer` / `composer.bat` launchers of every installed
     /// Composer so they run with the active PHP and its php.ini. Called after
     /// Composer is installed and whenever the PHP version changes.

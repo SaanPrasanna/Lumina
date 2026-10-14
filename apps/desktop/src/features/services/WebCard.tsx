@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Play, RefreshCw, RotateCw, Square } from "lucide-react";
+import { FileCog, FileText, Play, RefreshCw, RotateCw, Square } from "lucide-react";
+import { editorOpen } from "@/features/env-path/api";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
@@ -102,6 +103,9 @@ export function WebCard(props: {
               {t("actions.start")}
             </Button>
           )}
+          <Button onClick={() => run(() => editorOpen({ kind: "config", file: "webSites" }))} disabled={busy} icon={<FileCog />}>
+            {t("editor.editSites")}
+          </Button>
           <Button onClick={() => run(() => serviceOpenLog(kind))} disabled={busy} icon={<FileText />}>
             {t("actions.openLog")}
           </Button>

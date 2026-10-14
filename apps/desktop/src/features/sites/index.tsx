@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, FolderOpen, Pencil, RefreshCw, ShieldCheck } from "lucide-react";
+import { Code, ExternalLink, FolderOpen, Pencil, RefreshCw, ShieldCheck, SquareTerminal } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
+import { editorOpen, terminalOpen } from "@/features/env-path/api";
 import { openWww } from "@/features/services/api";
 import { HttpsCard } from "@/features/sites/HttpsCard";
 import { formatDate, SSL_KEY, sslStatus } from "@/features/sites/ssl";
@@ -265,6 +266,10 @@ function SiteRow({ site, config, webRunning }: { site: Site; config: AppConfig; 
           <Button onClick={() => action.mutate(() => siteOpen(site.domain))} disabled={!webRunning} icon={<ExternalLink />}>
             {t("sites.open")}
           </Button>
+          <Button onClick={() => action.mutate(() => editorOpen({ kind: "site", name: site.name }))} icon={<Code />}>
+            {t("editor.open")}
+          </Button>
+          <Button onClick={() => action.mutate(() => terminalOpen(site.path))} icon={<SquareTerminal />} aria-label={t("path.openTerminal")} title={t("path.openTerminal")} />
           <Button onClick={() => action.mutate(() => siteOpenFolder(site.name))} icon={<FolderOpen />}>
             {t("sites.folder")}
           </Button>

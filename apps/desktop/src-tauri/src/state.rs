@@ -51,19 +51,25 @@ pub struct Runtime {
     pub hosts: HostsSync,
     /// `lumina-helper`, for privileged changes (hosts file; CA on Linux).
     pub helper: PathBuf,
+    /// `lumina-shim`, copied into the PATH shim folder once per command.
+    pub shim_exe: PathBuf,
     /// Quick Add: catalog, downloads, installed versions.
     pub packages: lumina_packages::PackageManager,
     /// Watches the projects folder (and which folder it watches).
     pub watcher: Mutex<Option<(PathBuf, Watcher)>>,
 }
 
-/// `lumina-helper` sits next to the app executable, in development
-/// (`target/debug`) and in installed builds alike.
-fn helper_path() -> PathBuf {
-    let name = format!("lumina-helper{}", std::env::consts::EXE_SUFFIX);
+/// `lumina-helper` and `lumina-shim` sit next to the app executable, in
+/// development (`target/debug`) and in installed builds alike.
+fn sibling(binary: &str) -> PathBuf {
+    let name = format!("{binary}{}", std::env::consts::EXE_SUFFIX);
     std::env::current_exe()
         .map(|exe| exe.with_file_name(&name))
         .unwrap_or_else(|_| PathBuf::from(name))
+}
+
+fn helper_path() -> PathBuf {
+    sibling("lumina-helper")
 }
 
 impl Runtime {
@@ -124,6 +130,7 @@ impl Runtime {
         Ok(Self {
             hosts,
             helper,
+            shim_exe: sibling("lumina-shim"),
             packages,
             watcher: Mutex::new(None),
             layout,

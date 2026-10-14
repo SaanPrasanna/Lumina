@@ -30,18 +30,6 @@ pub struct ServiceStatusEvent {
     pub detail: Option<String>,
 }
 
-fn refresh_composer_shims(app: AppHandle) {
-    use tauri::Manager;
-    tauri::async_runtime::spawn(async move {
-        let Ok(rt) = app.state::<crate::state::AppState>().runtime() else {
-            return;
-        };
-        if let Err(err) = rt.stack.refresh_composer_shims(&rt.config()).await {
-            log::warn!("could not write the Composer launchers: {err}");
-        }
-    });
-}
-
 /// Forwards supervisor lifecycle events to the UI for as long as the app runs.
 pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
     let mut rx = runtime.supervisor.subscribe();
@@ -74,11 +62,12 @@ pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
             {
                 crate::commands::sites::resync_later(&app);
             }
-            // PHP (re)started, possibly on another version: Composer follows.
+            // PHP (re)started, possibly on another version: the PATH shims
+            // (php, composer) follow.
             if let E::Started { id, .. } = &event
                 && id == lumina_services::php_fcgi::PROCESS_ID
             {
-                refresh_composer_shims(app.clone());
+                crate::commands::env_path::refresh_shims_later(&app);
             }
             let _ = app.emit(
                 SERVICE_STATUS,

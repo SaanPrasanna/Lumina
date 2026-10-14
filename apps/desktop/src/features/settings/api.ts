@@ -54,6 +54,7 @@ export interface EditorSettings {
   name: string;
   command: string;
   args: string[];
+  args_line: string[];
 }
 
 export interface AppConfig {

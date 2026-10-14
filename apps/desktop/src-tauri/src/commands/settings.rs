@@ -66,6 +66,9 @@ pub fn settings_update(
     *runtime.config.write().unwrap_or_else(|e| e.into_inner()) = config;
     *runtime.warnings.write().unwrap_or_else(|e| e.into_inner()) = warnings;
     let _ = app.emit(events::CONFIG_CHANGED, &section);
+    if matches!(section.as_str(), "php" | "database" | "tools") {
+        crate::commands::env_path::refresh_shims_later(&app);
+    }
     if section == "general" || section == "sites" {
         // The projects folder, suffix or a site's settings may have changed.
         crate::commands::sites::watch(&app, &runtime);

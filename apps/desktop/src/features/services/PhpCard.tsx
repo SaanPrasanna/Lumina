@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Play, RotateCw, Square } from "lucide-react";
+import { FileCog, FileText, Play, RotateCw, Square } from "lucide-react";
+import { editorOpen } from "@/features/env-path/api";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -57,6 +58,9 @@ export function PhpCard({ status, config }: { status: PhpStatus; config: PhpSett
               {t("actions.start")}
             </Button>
           )}
+          <Button onClick={() => action.mutate(() => editorOpen({ kind: "config", file: "phpIni" }))} disabled={busy} icon={<FileCog />}>
+            {t("editor.editPhpIni")}
+          </Button>
           <Button onClick={() => action.mutate(() => serviceOpenLog("php-fcgi"))} disabled={busy} icon={<FileText />}>
             {t("actions.openLog")}
           </Button>

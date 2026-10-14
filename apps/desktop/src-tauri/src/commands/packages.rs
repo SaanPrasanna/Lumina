@@ -493,15 +493,9 @@ pub async fn package_set_active(
 
 /// Follow-up work after a version of `id` appeared, disappeared or was chosen.
 async fn after_change(app: &AppHandle, rt: &Arc<Runtime>, id: &str) {
-    let cfg = rt.config();
-    match id {
-        "composer" | "php" => {
-            if let Err(err) = rt.stack.refresh_composer_shims(&cfg).await {
-                log::warn!("could not write the Composer launchers: {err}");
-            }
-        }
-        _ => {}
-    }
+    // Any version change can change what `php`, `node`, `mysql`... run.
+    let _ = rt;
+    crate::commands::env_path::refresh_shims_later(app);
     if id == "phpmyadmin" || id == "php" {
         // /phpmyadmin/ follows the installed versions and the active PHP.
         sites::resync_later(app);

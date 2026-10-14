@@ -215,6 +215,7 @@ pub async fn switch(app: &AppHandle, rt: &Runtime, name: &str) -> lumina_core::R
         lumina_config::save(&rt.layout.config_file(), &new)?;
         *rt.config.write().unwrap_or_else(|e| e.into_inner()) = new;
         log::info!("switched to profile \"{name}\"");
+        crate::commands::env_path::refresh_shims_later(app);
     }
     let _ = app.emit(events::CONFIG_CHANGED, "profiles");
     let _ = app.emit(events::SERVICE_STATUS, ());

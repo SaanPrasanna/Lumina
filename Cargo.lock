@@ -2419,6 +2419,7 @@ version = "0.1.0"
 dependencies = [
  "lumina-core",
  "nix",
+ "serde",
  "tempfile",
  "tracing",
  "windows-sys 0.61.2",
@@ -2454,6 +2455,7 @@ dependencies = [
  "lumina-packages",
  "lumina-platform",
  "lumina-process",
+ "lumina-shim",
  "lumina-ssl",
  "lumina-vhost",
  "reqwest 0.12.28",
@@ -2463,6 +2465,14 @@ dependencies = [
  "tera",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "lumina-shim"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

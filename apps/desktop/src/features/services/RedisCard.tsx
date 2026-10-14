@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Play, Square } from "lucide-react";
+import { FileCog, FileText, Play, Square } from "lucide-react";
+import { editorOpen } from "@/features/env-path/api";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -71,6 +72,9 @@ export function RedisCard(props: {
               {t("actions.start")}
             </Button>
           )}
+          <Button onClick={() => run(() => editorOpen({ kind: "config", file: "redis" }))} disabled={busy} icon={<FileCog />}>
+            {t("editor.editConfig")}
+          </Button>
           <Button onClick={() => run(() => serviceOpenLog("redis"))} disabled={busy} icon={<FileText />}>
             {t("actions.openLog")}
           </Button>

@@ -261,9 +261,25 @@ pub fn run(args: &[String], hosts_file: &Path) -> Result<(), HelperError> {
             }
             lumina_platform::trust_store::linux_system_remove().map_err(HelperError::Io)
         }
-        // Later phases: path-system-add, bind-cap.
+        // The machine-wide PATH (Windows): only Lumina's own `bin\.shims`.
+        [cmd, dir] if cmd == "path-system-add" || cmd == "path-system-remove" => {
+            let dir = Path::new(dir);
+            if !lumina_platform::path_env::is_shim_dir(dir) {
+                return Err(HelperError::Invalid(format!("{} is not Lumina's shim folder", dir.display())));
+            }
+            let result = if cmd == "path-system-add" {
+                if !dir.is_dir() {
+                    return Err(HelperError::Invalid(format!("{} does not exist", dir.display())));
+                }
+                lumina_platform::path_env::add_system(dir)
+            } else {
+                lumina_platform::path_env::remove_system(dir)
+            };
+            result.map(|_| ()).map_err(|e| HelperError::Io(e.to_string()))
+        }
+        // Later phases: bind-cap.
         _ => Err(HelperError::Usage(
-            "usage: lumina-helper hosts-apply <request.json> | ca-install <ca.crt> | ca-remove"
+            "usage: lumina-helper hosts-apply <request.json> | ca-install <ca.crt> | ca-remove | path-system-add <dir> | path-system-remove <dir>"
                 .into(),
         )),
     }
@@ -542,6 +558,19 @@ mod tests {
     /// Hand-built CAs that a real Lumina never produces.
     mod rcgen_test {
         pub use lumina_ssl::rcgen_for_tests::ca_pem;
+    }
+
+    #[test]
+    fn machine_path_accepts_only_the_shim_folder() {
+        for bad in [
+            r"C:\Windows",
+            "relative/bin/.shims",
+            r"C:\x;C:\y\bin\.shims",
+        ] {
+            let err =
+                run(&["path-system-add".into(), bad.into()], Path::new("hosts")).expect_err(bad);
+            assert!(matches!(err, HelperError::Invalid(_)), "{bad}: {err}");
+        }
     }
 
     #[test]

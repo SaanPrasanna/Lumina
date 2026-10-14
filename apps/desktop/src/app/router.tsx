@@ -3,6 +3,7 @@ import { NAV_ITEMS } from "@/app/nav";
 import { AppShell } from "@/components/layout/AppShell";
 import { ComingSoonPage } from "@/components/layout/ComingSoonPage";
 import { DashboardPage } from "@/features/dashboard";
+import { EnvPathPage } from "@/features/env-path";
 import { PackagesPage } from "@/features/packages";
 import { ProfilesPage } from "@/features/profiles";
 import { ServicesPage } from "@/features/services";
@@ -15,6 +16,7 @@ const PAGES: Record<string, React.ReactNode> = {
   "/sites": <SitesPage />,
   "/packages": <PackagesPage />,
   "/profiles": <ProfilesPage />,
+  "/env-path": <EnvPathPage />,
   "/settings": <SettingsPage />,
 };
 

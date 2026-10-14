@@ -238,6 +238,8 @@ pub struct Editor {
     pub command: String,
     /// Arguments; `{path}` is replaced with the folder or file to open.
     pub args: Vec<String>,
+    /// Arguments to open a file at a line (`{path}`, `{line}`); empty = `args`.
+    pub args_line: Vec<String>,
 }
 
 impl Default for Editor {
@@ -246,6 +248,7 @@ impl Default for Editor {
             name: "VS Code".to_owned(),
             command: "code".to_owned(),
             args: vec!["{path}".to_owned()],
+            args_line: vec!["--goto".to_owned(), "{path}:{line}".to_owned()],
         }
     }
 }

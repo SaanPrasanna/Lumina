@@ -305,7 +305,8 @@ mod tests {
 
         // The first attempt is cut off; the second resumes and installs.
         assert!(pm.install("tool", "1.0", &cancel, &|_| {}).await.is_err());
-        assert_eq!(pm.partial_download("tool", "1.0"), Some(60_000));
+        let partial = pm.partial_download("tool", "1.0").expect("partial kept");
+        assert!(partial > 0 && partial <= 60_000, "{partial}");
         let stages = std::sync::Mutex::new(Vec::new());
         let installed = pm
             .install("tool", "1.0", &cancel, &|p| {

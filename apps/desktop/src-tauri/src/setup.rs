@@ -53,6 +53,7 @@ pub fn start_runtime(app: &AppHandle, layout: Layout) {
             events::bridge_supervisor(app.clone(), &runtime);
             crate::commands::sites::watch(app, &runtime);
             renew_certificates_periodically(app.clone());
+            crate::commands::env_path::refresh_shims_later(app);
             *state.runtime.write().unwrap_or_else(|e| e.into_inner()) = Some(runtime);
         }
         Err(err) => log::error!("cannot initialise data root: {err}"),

@@ -287,5 +287,34 @@
     "editTitle": "Edit profile",
     "switcher": "Profile",
     "custom": "Custom stack"
+  },
+  "path": {
+    "intro": "Put Lumina's php, composer, node, npm, python and mysql on your terminal's PATH. Lumina adds one folder once; switching versions here changes what those commands run, without touching PATH again.",
+    "added": "Lumina is on your PATH",
+    "notAdded": "Lumina is not on your PATH",
+    "add": "Add Lumina to PATH",
+    "remove": "Remove from PATH",
+    "files": "Changed: {{files}}",
+    "restartHint": "Open a new terminal (and restart VS Code) to see the change; terminals that are already open keep their old PATH.",
+    "shadowed": "A new terminal finds `{{command}}` at {{found}} first, before Lumina's. Remove that folder from the system PATH (or move it after Lumina's) to use Lumina's.",
+    "commands": "Commands",
+    "noCommands": "Nothing to put on PATH yet. Install PHP, Composer or Node.js in Quick Add.",
+    "cmdShims": "Development build without lumina-shim: commands use .cmd launchers (build it with cargo build -p lumina-shim).",
+    "openTerminal": "Open terminal",
+    "systemHint": "Windows searches the machine-wide PATH before yours, so a PHP, Composer or Node.js installed for all users wins. Put Lumina first there too (one administrator prompt).",
+    "addSystem": "Put Lumina first for all users",
+    "addedSystem": "Also first on the machine-wide PATH. \"Remove from PATH\" takes it off both (one administrator prompt)."
+  },
+  "editor": {
+    "open": "Code",
+    "editPhpIni": "Edit php.ini",
+    "editSites": "Edit site configs",
+    "editConfig": "Edit config",
+    "preset": "Detected editors",
+    "presetHint": "Pick one to fill in the fields below, then save.",
+    "noPresets": "No known editor was found; enter a command below.",
+    "choosePreset": "Choose an editor…",
+    "argsLine": "Arguments to open a file at a line ({line})",
+    "openConfigToml": "Open config.toml in the editor"
   }
 }
