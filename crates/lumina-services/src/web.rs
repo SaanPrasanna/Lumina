@@ -7,7 +7,7 @@ use lumina_core::types::ServiceStatus;
 use lumina_core::{Error, Result};
 use lumina_process::ports;
 use serde::Serialize;
-use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
 /// What a web server config is rendered from.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -91,7 +91,9 @@ pub fn ensure_landing_page(www_root: &Path, bundled_page: &Path) -> Result<()> {
 
 /// The PIDs among `pids` whose executable name is `stem` (with or without
 /// `.exe`). Process groups also contain helpers such as `conhost.exe` on
-/// Windows, which must not be counted as server processes.
+/// Windows, which must not be counted as server processes. The executable's
+/// file name is preferred over the process name, which Linux truncates to 15
+/// characters.
 pub fn named(pids: &[u32], stem: &str) -> Vec<u32> {
     if pids.is_empty() {
         return Vec::new();
@@ -101,16 +103,19 @@ pub fn named(pids: &[u32], stem: &str) -> Vec<u32> {
     sys.refresh_processes_specifics(
         ProcessesToUpdate::Some(&sys_pids),
         true,
-        ProcessRefreshKind::nothing(),
+        ProcessRefreshKind::nothing().with_exe(UpdateKind::OnlyIfNotSet),
     );
     let with_suffix = format!("{stem}{}", std::env::consts::EXE_SUFFIX);
+    let matches =
+        |name: &str| name.eq_ignore_ascii_case(stem) || name.eq_ignore_ascii_case(&with_suffix);
     sys_pids
         .iter()
         .filter(|pid| {
-            sys.process(**pid).is_some_and(|p| {
-                let name = p.name().to_string_lossy();
-                name.eq_ignore_ascii_case(stem) || name.eq_ignore_ascii_case(&with_suffix)
-            })
+            sys.process(**pid)
+                .is_some_and(|p| match p.exe().and_then(|e| e.file_name()) {
+                    Some(file) => matches(&file.to_string_lossy()),
+                    None => matches(&p.name().to_string_lossy()),
+                })
         })
         .map(|pid| pid.as_u32())
         .collect()
