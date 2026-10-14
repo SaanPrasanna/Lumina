@@ -1,3 +1,375 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Lumina</title></head>
-<body><h1>It works — Lumina is running.</h1></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="Lumina">
+<title>Lumina is running</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366F1'/%3E%3Cstop offset='1' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='64' y='64' width='896' height='896' rx='208' fill='url(%23b)'/%3E%3Cpath d='M380 280V700H680' fill='none' stroke='%23fff' stroke-width='112' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='668' cy='336' r='92' fill='%23F59E0B'/%3E%3C/svg%3E">
+<!--
+  Lumina's welcome page, copied into your projects folder on first start.
+  It is yours now: edit it, replace it with an index.php, or delete it.
+  Lumina never overwrites it.
+-->
+<style>
+  :root {
+    --bg: #fdfdfc;
+    --card: #ffffff;
+    --text: #1b1b18;
+    --muted: #706f6c;
+    --line: #e3e3e0;
+    --line-strong: #19140035;
+    --accent: #6366f1;
+    --accent-strong: #4f46e5;
+    --ok: #16a34a;
+    --ok-soft: #dcfce7;
+    --code: #f4f4f2;
+    --shadow: 0 0 0 1px #1a1a0016, 0 1px 2px #0000000d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0a0a;
+      --card: #161615;
+      --text: #ededec;
+      --muted: #a1a09a;
+      --line: #3e3e3a;
+      --line-strong: #62605b;
+      --accent: #818cf8;
+      --accent-strong: #a5b4fc;
+      --ok: #4ade80;
+      --ok-soft: #14532d80;
+      --code: #232321;
+      --shadow: inset 0 0 0 1px #fffaed2d;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (min-width: 1024px) { body { justify-content: center; padding: 32px; } }
+  a { color: inherit; }
+  code {
+    font: 12.5px/1.5 ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+    background: var(--code);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  /* Top bar */
+  header {
+    width: 100%;
+    max-width: 896px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; text-decoration: none; }
+  .brand svg { width: 28px; height: 28px; }
+  nav { display: flex; gap: 8px; }
+  nav a {
+    padding: 5px 16px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+  }
+  nav a:hover { border-color: var(--line); }
+  nav a.boxed { border-color: var(--line); }
+  nav a.boxed:hover { border-color: var(--line-strong); }
+
+  /* Card */
+  main {
+    width: 100%;
+    max-width: 896px;
+    display: flex;
+    flex-direction: column-reverse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transform: translateY(6px);
+    animation: rise .6s cubic-bezier(.2,.7,.2,1) .05s forwards;
+  }
+  @media (min-width: 1024px) { main { flex-direction: row; } }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+
+  .content {
+    flex: 1;
+    padding: 24px 24px 48px;
+    background: var(--card);
+  }
+  @media (min-width: 1024px) { .content { padding: 56px 48px 56px 48px; } }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 10px 3px 8px;
+    border-radius: 999px;
+    background: var(--ok-soft);
+    color: var(--ok);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .status i {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0 currentColor;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 60%, transparent); }
+    70%, 100% { box-shadow: 0 0 0 7px transparent; }
+  }
+  h1 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+  h1 .small { display: block; color: var(--muted); font-weight: 400; }
+  .lead { margin: 0 0 20px; color: var(--muted); }
+
+  /* Steps with a connecting line, like a checklist */
+  ol.steps { list-style: none; margin: 0 0 28px; padding: 0; }
+  ol.steps li {
+    position: relative;
+    display: flex;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  ol.steps li::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 0; bottom: 0;
+    border-left: 1px solid var(--line);
+  }
+  ol.steps li:first-child::before { top: 50%; }
+  ol.steps li:last-child::before { bottom: 50%; }
+  ol.steps .dot {
+    position: relative;
+    flex: none;
+    width: 21px; height: 21px;
+    margin-top: 1px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  ol.steps .dot::after {
+    content: "";
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--line-strong);
+  }
+  ol.steps strong { font-weight: 500; }
+  ol.steps p { margin: 0; }
+  ol.steps .hint { color: var(--muted); }
+  ol.steps p { min-width: 0; flex: 1; }
+  .cmd {
+    display: block;
+    margin: 6px 0 4px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--code);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .cmd::before { content: "$ "; color: var(--muted); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 18px;
+    border-radius: 4px;
+    font-size: 13px;
+    text-decoration: none;
+    border: 1px solid var(--line);
+  }
+  .btn:hover { border-color: var(--line-strong); }
+  .btn.primary {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+  .btn svg { width: 12px; height: 12px; }
+
+  /* Brand panel */
+  .art {
+    position: relative;
+    aspect-ratio: 335 / 376;
+    background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+  @media (max-width: 1023px) { .art { aspect-ratio: auto; height: 300px; } }
+  @media (min-width: 1024px) { .art { width: 400px; flex: none; } }
+  .art::before {
+    /* Fine grid that fades towards the edges. */
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(#ffffff14 1px, transparent 1px),
+      linear-gradient(90deg, #ffffff14 1px, transparent 1px);
+    background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 72%);
+            mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 72%);
+  }
+  .art .sun {
+    position: absolute;
+    width: 340px; height: 340px;
+    left: 50%; top: 45%;
+    translate: -20% -78%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fde68a66 0%, #f59e0b26 35%, transparent 68%);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe { 50% { scale: 1.08; opacity: .85; } }
+  .art .mark {
+    position: relative;
+    width: 58%;
+    max-width: 240px;
+    filter: drop-shadow(0 24px 40px #1e1b4b66);
+  }
+  .chip {
+    position: absolute;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: #ffffff1f;
+    border: 1px solid #ffffff38;
+    color: #fff;
+    font: 12px/1.4 ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    white-space: nowrap;
+    animation: float 7s ease-in-out infinite;
+  }
+  .chip b { color: #fcd34d; font-weight: 400; }
+  .chip.c1 { left: 9%;  top: 14%; }
+  .chip.c2 { right: 8%; top: 52%; animation-delay: -2.3s; }
+  .chip.c3 { left: 14%; bottom: 11%; animation-delay: -4.6s; }
+  @keyframes float { 50% { translate: 0 -8px; } }
+
+  footer {
+    width: 100%;
+    max-width: 896px;
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; }
+    main { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">
+      <svg viewBox="0 0 1024 1024" aria-hidden="true">
+        <defs>
+          <linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366F1"/><stop offset="1" stop-color="#7C3AED"/></linearGradient>
+          <radialGradient id="hg" cx="0.4" cy="0.4" r="0.6"><stop offset="0" stop-color="#FEF3C7"/><stop offset="1" stop-color="#F59E0B"/></radialGradient>
+        </defs>
+        <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#hb)"/>
+        <path d="M380 280V700H680" fill="none" stroke="#fff" stroke-width="112" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="668" cy="336" r="92" fill="url(#hg)"/>
+      </svg>
+      Lumina
+    </a>
+    <nav>
+      <a href="https://github.com/SaanPrasanna/Lumina">GitHub</a>
+      <a class="boxed" href="https://laravel.com/docs">Laravel docs</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="content">
+      <span class="status"><i></i>Web server running</span>
+      <h1>
+        It works &mdash; Lumina is running.
+        <span class="small">Your local web server and PHP are up. Here is how to get going.</span>
+      </h1>
+
+      <ol class="steps">
+        <li>
+          <span class="dot"></span>
+          <p>
+            <strong>Create a project folder</strong> next to this page.<br>
+            <span class="hint">A folder named <code>blog</code> opens at <a href="http://blog.test/">http://blog.test</a> &mdash; no setup needed.</span>
+          </p>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <p>
+            <strong>Start a Laravel app</strong> in this folder:
+            <code class="cmd">composer create-project laravel/laravel blog</code>
+            <span class="hint">Lumina serves its <code>public/</code> folder automatically.</span>
+          </p>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <p>
+            <strong>Connect to the database</strong> at <code>127.0.0.1</code> as <code>root</code> with no password.<br>
+            <span class="hint">The port and engine (MySQL or MariaDB) are on Lumina's Services page.</span>
+          </p>
+        </li>
+      </ol>
+
+      <div class="actions">
+        <a class="btn primary" href="https://laravel.com/docs/installation">
+          Laravel installation guide
+          <svg viewBox="0 0 10 11" fill="none" aria-hidden="true"><path d="M7.7 1.7 1 8.4M7.7 1.7H2.1M7.7 1.7v5.5" stroke="currentColor" stroke-linecap="square"/></svg>
+        </a>
+        <a class="btn" href="https://github.com/SaanPrasanna/Lumina">
+          About Lumina
+          <svg viewBox="0 0 10 11" fill="none" aria-hidden="true"><path d="M7.7 1.7 1 8.4M7.7 1.7H2.1M7.7 1.7v5.5" stroke="currentColor" stroke-linecap="square"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <aside class="art" aria-hidden="true">
+      <div class="sun"></div>
+      <svg class="mark" viewBox="0 0 1024 1024">
+        <defs>
+          <linearGradient id="ab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#818CF8"/><stop offset="1" stop-color="#6D28D9"/></linearGradient>
+          <radialGradient id="ag" cx="0.4" cy="0.4" r="0.6"><stop offset="0" stop-color="#FEF3C7"/><stop offset="1" stop-color="#F59E0B"/></radialGradient>
+        </defs>
+        <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#ab)" stroke="#ffffff40" stroke-width="6"/>
+        <path d="M380 280V700H680" fill="none" stroke="#fff" stroke-width="112" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="668" cy="336" r="92" fill="url(#ag)"/>
+      </svg>
+      <span class="chip c1"><b>~/www/</b>blog &rarr; blog.test</span>
+      <span class="chip c2">shop.test</span>
+      <span class="chip c3">api.test <b>&#9679;</b></span>
+    </aside>
+  </main>
+
+  <footer>
+    <span>This page is <code>www/index.html</code> &mdash; edit it or replace it with your own.</span>
+    <span id="served"></span>
+  </footer>
+
+  <script>
+    // Which address answered, e.g. "Served at localhost:8080".
+    if (location.host) document.getElementById("served").textContent = "Served at " + location.host;
+  </script>
+</body>
+</html>
