@@ -13,6 +13,9 @@ allow = [
   # webpki-roots / webpki-root-certs (Mozilla's CA list, used by every rustls
   # HTTPS client including Tauri's): a permissive open-data licence.
   "CDLA-Permissive-2.0",
+  # notify (the projects-folder watcher): a public-domain dedication, at least
+  # as permissive as MIT.
+  "CC0-1.0",
 ]
 confidence-threshold = 0.8
 unused-allowed-license = "allow"
