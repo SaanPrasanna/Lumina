@@ -79,7 +79,10 @@ mod tests {
 
     #[test]
     fn names() {
-        assert_eq!(command_name(Path::new(r"C:\x\.shims\php.exe")), "php");
+        // Built for the OS the test runs on (a Windows path is one file name on Unix).
+        let dir = Path::new("x").join(".shims");
+        let exe = dir.join(format!("php{}", std::env::consts::EXE_SUFFIX));
+        assert_eq!(command_name(&exe), "php");
         assert_eq!(
             shim_file(Path::new("/x/.shims/node")),
             PathBuf::from("/x/.shims/node.shim")
