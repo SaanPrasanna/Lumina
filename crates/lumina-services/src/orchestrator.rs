@@ -1,9 +1,10 @@
 //! Starts and stops the services as one stack.
 //!
-//! - Order: PHP first, then the web server; stopping goes the other way.
+//! - Order: database, Redis, PHP, then the web server; stopping goes the other
+//!   way, so nothing is cut off from a service it depends on.
 //! - One operation at a time: concurrent UI clicks and tray actions are queued.
-//! - Only one web server runs: starting nginx stops Apache and vice versa (they
-//!   would fight over port 80).
+//! - Only one web server and one database engine run: starting nginx stops
+//!   Apache (port 80), starting MariaDB stops MySQL (port 3306), and vice versa.
 //! - PHP's actual port (which may be the fallback) is pushed into the web
 //!   server's config; if PHP moves, a running web server is reloaded.
 
@@ -11,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use lumina_config::AppConfig;
-use lumina_config::schema::WebServer;
+use lumina_config::schema::{DatabaseEngine, WebServer};
 use lumina_core::paths::Layout;
 use lumina_core::types::{ServiceKind, ServiceStatus};
 use lumina_core::{Error, Result};
@@ -20,8 +21,10 @@ use serde::Serialize;
 use tokio::sync::Mutex;
 
 use crate::apache::Apache;
+use crate::database::{Database, DbStatus, engine};
 use crate::nginx::Nginx;
 use crate::php_fcgi::{PhpFcgi, PhpStatus};
+use crate::redis::{Redis, RedisStatus};
 use crate::template::Templates;
 use crate::web::{ReloadOutcome, WebContext, WebStatus};
 
@@ -32,6 +35,9 @@ pub struct StackStatus {
     pub php: PhpStatus,
     /// The configured web server, or the other one if that is what runs.
     pub web: WebStatus,
+    /// The configured database engine, or the other one if that is what runs.
+    pub database: DbStatus,
+    pub redis: RedisStatus,
 }
 
 #[derive(Clone)]
@@ -44,6 +50,9 @@ struct Inner {
     php: PhpFcgi,
     nginx: Nginx,
     apache: Apache,
+    mysql: Database,
+    mariadb: Database,
+    redis: Redis,
     /// Serialises start/stop/reload so the stack never sees two at once.
     lock: Mutex<()>,
 }
@@ -54,7 +63,20 @@ impl Orchestrator {
             inner: Arc::new(Inner {
                 php: PhpFcgi::new(supervisor.clone(), layout.clone(), templates.clone()),
                 nginx: Nginx::new(supervisor.clone(), layout.clone(), templates.clone()),
-                apache: Apache::new(supervisor, layout.clone(), templates),
+                apache: Apache::new(supervisor.clone(), layout.clone(), templates.clone()),
+                mysql: Database::new(
+                    engine::MYSQL,
+                    supervisor.clone(),
+                    layout.clone(),
+                    templates.clone(),
+                ),
+                mariadb: Database::new(
+                    engine::MARIADB,
+                    supervisor.clone(),
+                    layout.clone(),
+                    templates.clone(),
+                ),
+                redis: Redis::new(supervisor, layout.clone(), templates),
                 layout,
                 lock: Mutex::new(()),
             }),
@@ -71,6 +93,25 @@ impl Orchestrator {
 
     pub fn apache(&self) -> &Apache {
         &self.inner.apache
+    }
+
+    pub fn database(&self, engine: DatabaseEngine) -> &Database {
+        match engine {
+            DatabaseEngine::Mysql => &self.inner.mysql,
+            DatabaseEngine::Mariadb => &self.inner.mariadb,
+        }
+    }
+
+    pub fn redis(&self) -> &Redis {
+        &self.inner.redis
+    }
+
+    /// The service kind of the configured database engine.
+    pub fn configured_db(cfg: &AppConfig) -> ServiceKind {
+        match cfg.database.engine {
+            DatabaseEngine::Mysql => ServiceKind::Mysql,
+            DatabaseEngine::Mariadb => ServiceKind::Mariadb,
+        }
     }
 
     /// Served at http://localhost: `general.www_root`, or `<data-root>/www`.
@@ -135,7 +176,22 @@ impl Orchestrator {
                 };
                 Ok(())
             }
-            other => Err(not_available(other)),
+            ServiceKind::Mysql | ServiceKind::Mariadb => {
+                let (this, other) = if kind == ServiceKind::Mysql {
+                    (&self.inner.mysql, &self.inner.mariadb)
+                } else {
+                    (&self.inner.mariadb, &self.inner.mysql)
+                };
+                if other.status().await.runtime.is_some() {
+                    other.stop().await?;
+                }
+                this.start(&cfg.database).await?;
+                Ok(())
+            }
+            ServiceKind::Redis => {
+                self.inner.redis.start(&cfg.redis).await?;
+                Ok(())
+            }
         }
     }
 
@@ -149,7 +205,9 @@ impl Orchestrator {
             ServiceKind::PhpFcgi => self.inner.php.stop().await,
             ServiceKind::Nginx => self.inner.nginx.stop().await,
             ServiceKind::Apache => self.inner.apache.stop().await,
-            other => Err(not_available(other)),
+            ServiceKind::Mysql => self.inner.mysql.stop().await,
+            ServiceKind::Mariadb => self.inner.mariadb.stop().await,
+            ServiceKind::Redis => self.inner.redis.stop().await,
         }
     }
 
@@ -195,25 +253,44 @@ impl Orchestrator {
         Ok(())
     }
 
-    /// PHP, then the configured web server. Both are attempted; the first error
-    /// is returned.
+    /// Database, Redis (if enabled), PHP, then the configured web server. Every
+    /// service is attempted; the first error is returned.
     pub async fn start_all(&self, cfg: &AppConfig) -> Result<()> {
         let _guard = self.inner.lock.lock().await;
-        let php = if self.inner.php.status().await.runtime.is_none() {
-            self.start_locked(ServiceKind::PhpFcgi, cfg).await
-        } else {
-            Ok(())
-        };
-        let web_kind = Self::configured_web(cfg);
-        let web = if self.web_status(web_kind).await.runtime.is_none() {
-            self.start_locked(web_kind, cfg).await
-        } else {
-            Ok(())
-        };
-        php.and(web)
+        let mut kinds = vec![Self::configured_db(cfg)];
+        if cfg.redis.enabled {
+            kinds.push(ServiceKind::Redis);
+        }
+        kinds.push(ServiceKind::PhpFcgi);
+        kinds.push(Self::configured_web(cfg));
+
+        let mut first_error = None;
+        for kind in kinds {
+            if self.is_running(kind).await {
+                continue;
+            }
+            if let Err(err) = self.start_locked(kind, cfg).await {
+                tracing::error!("could not start {kind:?}: {err}");
+                first_error.get_or_insert(err);
+            }
+        }
+        first_error.map_or(Ok(()), Err)
     }
 
-    /// Web servers first, then PHP. Returns the services that failed to stop.
+    async fn is_running(&self, kind: ServiceKind) -> bool {
+        match kind {
+            ServiceKind::PhpFcgi => self.inner.php.status().await.runtime.is_some(),
+            ServiceKind::Nginx | ServiceKind::Apache => {
+                self.web_status(kind).await.runtime.is_some()
+            }
+            ServiceKind::Mysql => self.inner.mysql.status().await.runtime.is_some(),
+            ServiceKind::Mariadb => self.inner.mariadb.status().await.runtime.is_some(),
+            ServiceKind::Redis => self.inner.redis.status().await.runtime.is_some(),
+        }
+    }
+
+    /// Web servers, PHP, Redis, then databases. Returns the services that
+    /// failed to stop.
     pub async fn stop_all(&self) -> Vec<(ServiceKind, Error)> {
         let _guard = self.inner.lock.lock().await;
         let mut failures = Vec::new();
@@ -221,6 +298,9 @@ impl Orchestrator {
             ServiceKind::Nginx,
             ServiceKind::Apache,
             ServiceKind::PhpFcgi,
+            ServiceKind::Redis,
+            ServiceKind::Mysql,
+            ServiceKind::Mariadb,
         ] {
             if let Err(err) = self.stop_locked(kind).await {
                 tracing::error!("could not stop {kind:?}: {err}");
@@ -252,16 +332,22 @@ impl Orchestrator {
                 web = other_status;
             }
         }
+        let (configured_db, other_db) = match cfg.database.engine {
+            DatabaseEngine::Mysql => (&self.inner.mysql, &self.inner.mariadb),
+            DatabaseEngine::Mariadb => (&self.inner.mariadb, &self.inner.mysql),
+        };
+        let mut database = configured_db.status().await;
+        if database.status == ServiceStatus::Stopped {
+            let other = other_db.status().await;
+            if other.runtime.is_some() {
+                database = other;
+            }
+        }
         StackStatus {
             php: self.inner.php.status().await,
             web,
+            database,
+            redis: self.inner.redis.status().await,
         }
     }
-}
-
-fn not_available(kind: ServiceKind) -> Error {
-    Error::Service(
-        format!("{kind:?}"),
-        "not available yet (arrives in a later phase)".into(),
-    )
 }

@@ -30,10 +30,13 @@ https_port = 443
 
 [database]
 engine = "mysql"             # "mysql" | "mariadb"
-port = 3306
+mysql_version = ""           # empty = newest installed
+mariadb_version = ""
+port = 3306                  # root@127.0.0.1 with an empty password (local only)
 
 [redis]
-enabled = false
+enabled = false              # start Redis with "Start All"
+version = ""                 # empty = newest installed
 port = 6379
 
 [editor]

@@ -74,6 +74,8 @@ pub fn run() {
             commands::services::services_stop_all,
             commands::services::php_versions,
             commands::services::web_versions,
+            commands::services::db_versions,
+            commands::services::redis_versions,
             commands::services::php_set_version,
             commands::services::service_open_log,
             commands::services::open_localhost,

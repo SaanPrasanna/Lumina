@@ -3,30 +3,38 @@ import { TriangleAlert } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
-import { serviceStart, webKind } from "@/features/services/api";
-import { settingsUpdate, type WebSettings } from "@/features/settings/api";
 import type { PortConflict } from "@/lib/ipc";
 
-/** 80 → 8080, 443 → 8443, anything else → the next port. */
+/** 80 → 8080, 443 → 8443, anything else (3306, 6379, …) → the next port. */
 export function alternativePort(port: number): number {
   if (port === 80) return 8080;
   if (port === 443) return 8443;
   return port + 1;
 }
 
-/**
- * Explains which program holds the web port and offers to move Lumina to an
- * alternative port (blueprint: IIS, Skype or another Laragon on port 80).
- */
-export function PortConflictDialog(props: {
+/** What the dialog offers to fix: built by the card whose service hit the conflict. */
+export interface PortConflictRequest {
   conflict: PortConflict;
-  web: WebSettings;
-  onClose: () => void;
-}) {
+  /** Display name, e.g. "MySQL". */
+  service: string;
+  /** The web server's port also changes the sites' URLs, which the text mentions. */
+  isWeb: boolean;
+  /** Saves `alternative` as the service's port and starts it. */
+  apply: (alternative: number) => Promise<unknown>;
+}
+
+/**
+ * Explains which program holds a service's port and offers to move the service
+ * to an alternative port (blueprint: IIS or another Laragon on 80, an existing
+ * MySQL on 3306).
+ */
+export function PortConflictDialog({ request, onClose }: { request: PortConflictRequest; onClose: () => void }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const dialog = useRef<HTMLDialogElement>(null);
-  const alternative = alternativePort(props.conflict.port);
+  const { conflict } = request;
+  const alternative = alternativePort(conflict.port);
+  const owner = conflict.owner ?? t("portConflict.unknownOwner");
 
   useEffect(() => {
     const d = dialog.current;
@@ -34,41 +42,36 @@ export function PortConflictDialog(props: {
   }, []);
 
   const move = useMutation({
-    mutationFn: async () => {
-      await settingsUpdate("web", {
-        ...props.web,
-        http_port: alternative,
-        https_port: props.web.https_port === 443 ? 8443 : props.web.https_port,
-      });
-      await serviceStart(webKind(props.web.server));
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["services"] }),
-    onSuccess: props.onClose,
+    mutationFn: () => request.apply(alternative),
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["services"] }),
+        queryClient.invalidateQueries({ queryKey: ["settings"] }),
+      ]),
+    onSuccess: onClose,
   });
 
   return (
     <dialog
       ref={dialog}
       aria-labelledby="port-conflict-title"
-      onCancel={props.onClose}
+      onCancel={onClose}
       className="m-auto w-full max-w-md rounded-xl border border-line bg-surface p-6 text-fg backdrop:bg-black/50"
     >
       <h2 id="port-conflict-title" className="flex items-center gap-2 text-lg font-semibold">
         <TriangleAlert className="size-5 text-warn" aria-hidden />
-        {t("portConflict.title", { port: props.conflict.port })}
+        {t("portConflict.title", { port: conflict.port })}
       </h2>
       <p className="mt-3 text-sm text-fg-soft">
-        {t("portConflict.body", {
-          owner: props.conflict.owner ?? t("portConflict.unknownOwner"),
-          port: props.conflict.port,
-          alternative,
-        })}
+        {request.isWeb
+          ? t("portConflict.body", { owner, port: conflict.port, alternative })
+          : t("portConflict.bodyService", { owner, port: conflict.port, service: request.service, alternative })}
       </p>
       <div className="mt-4">
         <ErrorBox error={move.error} />
       </div>
       <div className="mt-5 flex justify-end gap-2">
-        <button type="button" onClick={props.onClose} className="rounded-md border border-line px-4 py-2 text-sm hover:bg-hover">
+        <button type="button" onClick={onClose} className="rounded-md border border-line px-4 py-2 text-sm hover:bg-hover">
           {t("actions.cancel")}
         </button>
         <button

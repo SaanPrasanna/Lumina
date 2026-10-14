@@ -138,6 +138,9 @@ pub enum DatabaseEngine {
 #[serde(default)]
 pub struct Database {
     pub engine: DatabaseEngine,
+    /// Empty = newest installed; otherwise a version or prefix, as for PHP.
+    pub mysql_version: String,
+    pub mariadb_version: String,
     pub port: u16,
 }
 
@@ -145,6 +148,8 @@ impl Default for Database {
     fn default() -> Self {
         Self {
             engine: DatabaseEngine::Mysql,
+            mysql_version: String::new(),
+            mariadb_version: String::new(),
             port: 3306,
         }
     }
@@ -153,7 +158,10 @@ impl Default for Database {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Redis {
+    /// Start Redis with "Start All".
     pub enabled: bool,
+    /// Empty = newest installed.
+    pub version: String,
     pub port: u16,
 }
 
@@ -161,6 +169,7 @@ impl Default for Redis {
     fn default() -> Self {
         Self {
             enabled: false,
+            version: String::new(),
             port: 6379,
         }
     }

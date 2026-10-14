@@ -58,7 +58,11 @@ describe("WebCard", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: "Start" }));
 
-    await vi.waitFor(() => expect(onPortConflict).toHaveBeenCalledWith({ port: 80, owner: "System (pid 4)" }));
+    await vi.waitFor(() =>
+      expect(onPortConflict).toHaveBeenCalledWith(
+        expect.objectContaining({ conflict: { port: 80, owner: "System (pid 4)" }, isWeb: true, service: "nginx" }),
+      ),
+    );
     expect(api.serviceStart).toHaveBeenCalledWith("nginx");
   });
 
@@ -83,6 +87,7 @@ describe("port conflicts", () => {
     expect(alternativePort(80)).toBe(8080);
     expect(alternativePort(443)).toBe(8443);
     expect(alternativePort(8080)).toBe(8081);
+    expect(alternativePort(3306)).toBe(3307);
   });
 
   it("only treats port_in_use for the web port as a conflict", () => {

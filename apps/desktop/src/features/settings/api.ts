@@ -1,4 +1,4 @@
-import type { WebServer } from "@/features/services/api";
+import type { DatabaseEngine, WebServer } from "@/features/services/api";
 import { call } from "@/lib/ipc";
 import type { ConfigWarning } from "@/types";
 
@@ -29,6 +29,19 @@ export interface WebSettings {
   https_port: number;
 }
 
+export interface DatabaseSettings {
+  engine: DatabaseEngine;
+  mysql_version: string;
+  mariadb_version: string;
+  port: number;
+}
+
+export interface RedisSettings {
+  enabled: boolean;
+  version: string;
+  port: number;
+}
+
 export interface EditorSettings {
   name: string;
   command: string;
@@ -40,6 +53,8 @@ export interface AppConfig {
   general: GeneralSettings;
   php: PhpSettings;
   web: WebSettings;
+  database: DatabaseSettings;
+  redis: RedisSettings;
   editor: EditorSettings;
   // Other sections are edited in later phases.
   [section: string]: unknown;

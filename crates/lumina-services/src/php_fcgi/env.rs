@@ -107,6 +107,10 @@ pub fn ensure_ini(layout: &Layout, templates: &Templates, install: &PhpInstall) 
     ctx.insert("opcache_extension", &available("opcache"));
     ctx.insert("tmp_dir", &forward_slashes(&layout.tmp()));
     ctx.insert(
+        "mysql_socket",
+        &crate::database::Database::socket(layout).map(|s| forward_slashes(&s)),
+    );
+    ctx.insert(
         "error_log",
         &forward_slashes(&layout.logs().join("php_errors.log")),
     );

@@ -1,7 +1,7 @@
 //! Service commands. Everything goes through the orchestrator, which starts PHP
 //! before the web server, stops in reverse, and serialises concurrent requests.
 
-use lumina_config::schema::WebServer;
+use lumina_config::schema::{DatabaseEngine, WebServer};
 use lumina_core::Error;
 use lumina_core::types::ServiceKind;
 use lumina_services::install::Install;
@@ -79,6 +79,19 @@ pub async fn web_versions(
     })
 }
 
+#[tauri::command]
+pub async fn db_versions(
+    state: State<'_, AppState>,
+    engine: DatabaseEngine,
+) -> CommandResult<Vec<Install>> {
+    Ok(state.runtime()?.stack.database(engine).versions().await)
+}
+
+#[tauri::command]
+pub async fn redis_versions(state: State<'_, AppState>) -> CommandResult<Vec<Install>> {
+    Ok(state.runtime()?.stack.redis().versions().await)
+}
+
 /// Saves `version` ("" = newest) as the PHP version and, if PHP is running,
 /// switches to it: the old pool is stopped and verified gone before the new
 /// one starts, and a running web server is pointed at the new pool.
@@ -113,7 +126,9 @@ pub async fn service_open_log(
         ServiceKind::PhpFcgi => rt.stack.php().log_file(),
         ServiceKind::Nginx => rt.stack.nginx().log_file(),
         ServiceKind::Apache => rt.stack.apache().log_file(),
-        other => return Err(Error::Other(format!("no log for {other:?}")).into()),
+        ServiceKind::Mysql => rt.stack.database(DatabaseEngine::Mysql).log_file(),
+        ServiceKind::Mariadb => rt.stack.database(DatabaseEngine::Mariadb).log_file(),
+        ServiceKind::Redis => rt.stack.redis().log_file(),
     };
     if !log.exists() {
         return Err(Error::Other(format!("{} does not exist yet", log.display())).into());

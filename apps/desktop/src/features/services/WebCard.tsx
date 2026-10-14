@@ -20,13 +20,14 @@ import {
 } from "@/features/services/api";
 import { useServiceAction } from "@/features/services/useServiceAction";
 import { settingsUpdate, type WebSettings } from "@/features/settings/api";
+import type { PortConflictRequest } from "@/features/services/PortConflictDialog";
 import { isCommandError, type PortConflict, portConflictOf } from "@/lib/ipc";
 
 /** Web server (nginx or Apache): server and version pickers, facts, controls. */
 export function WebCard(props: {
   status: WebStatus;
   config: WebSettings | undefined;
-  onPortConflict: (conflict: PortConflict) => void;
+  onPortConflict: (request: PortConflictRequest) => void;
 }) {
   const { t } = useTranslation();
   const { status, config } = props;
@@ -48,7 +49,7 @@ export function WebCard(props: {
     action.mutate(fn, {
       onError: (err) => {
         const conflict = portConflictOf(err, config?.http_port);
-        if (conflict) props.onPortConflict(conflict);
+        if (conflict && config) props.onPortConflict(webConflictRequest(conflict, config));
       },
     });
   };
@@ -165,4 +166,21 @@ export function WebCard(props: {
       </div>
     </section>
   );
+}
+
+/** Moves the web server to `alternative` (and HTTPS from 443 to 8443), then starts it. */
+export function webConflictRequest(conflict: PortConflict, web: WebSettings): PortConflictRequest {
+  return {
+    conflict,
+    service: web.server === "nginx" ? "nginx" : "Apache",
+    isWeb: true,
+    apply: async (alternative) => {
+      await settingsUpdate("web", {
+        ...web,
+        http_port: alternative,
+        https_port: web.https_port === 443 ? 8443 : web.https_port,
+      });
+      await serviceStart(webKind(web.server));
+    },
+  };
 }

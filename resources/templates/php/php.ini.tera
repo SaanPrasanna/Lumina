@@ -35,6 +35,12 @@ sys_temp_dir = "{{ tmp_dir }}"
 {% for ext in extensions -%}
 extension={{ ext }}
 {% endfor %}
+{%- if mysql_socket %}
+[MySQL]
+; Lumina's MySQL / MariaDB socket, so "localhost" connections find the server.
+mysqli.default_socket = "{{ mysql_socket }}"
+pdo_mysql.default_socket = "{{ mysql_socket }}"
+{% endif %}
 [Date]
 date.timezone = UTC
 

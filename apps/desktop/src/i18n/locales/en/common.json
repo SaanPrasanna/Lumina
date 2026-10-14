@@ -142,6 +142,26 @@
     "title": "Port {{port}} is in use",
     "body": "{{owner}} is already using port {{port}}, so the web server cannot start. Use port {{alternative}} instead? Your sites will then be at http://localhost:{{alternative}}.",
     "unknownOwner": "Another program",
-    "use": "Use port {{alternative}}"
+    "use": "Use port {{alternative}}",
+    "bodyService": "{{owner}} is already using port {{port}}, so {{service}} cannot start. Use port {{alternative}} instead?"
+  },
+  "db": {
+    "title": "Database",
+    "engine": "Engine",
+    "version": "Version",
+    "newest": "Newest installed ({{version}})",
+    "port": "Port",
+    "dataDir": "Data folder",
+    "login": "Log in as root with no password, at 127.0.0.1. Only this computer can connect.",
+    "firstStart": "The first start creates a new, empty database folder; this takes a few seconds.",
+    "notInstalled": "{{engine}} is not installed yet. Put it in {{path}}."
+  },
+  "redis": {
+    "title": "Redis",
+    "enabled": "Start Redis with Start All",
+    "version": "Version",
+    "newest": "Newest installed ({{version}})",
+    "port": "Port",
+    "notInstalled": "Redis is not installed yet. Put it in {{path}}."
   }
 }
