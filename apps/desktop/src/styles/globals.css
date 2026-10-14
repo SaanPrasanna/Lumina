@@ -17,6 +17,9 @@
   --color-accent-soft: #eef2ff;
   --color-danger: #b91c1c;
   --color-danger-soft: #fef2f2;
+  --color-ok: #15803d;
+  --color-warn: #b45309;
+  --color-warn-soft: #fffbeb;
 
   /* Latin + Sinhala: Segoe UI / Nirmala UI on Windows, Sinhala Sangam MN on macOS,
      Noto Sans Sinhala on Linux. */
@@ -38,6 +41,9 @@
   --color-accent-soft: #1e1b4b;
   --color-danger: #fca5a5;
   --color-danger-soft: #450a0a;
+  --color-ok: #4ade80;
+  --color-warn: #fbbf24;
+  --color-warn-soft: #422006;
 }
 
 html,

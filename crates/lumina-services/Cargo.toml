@@ -11,7 +11,16 @@ publish = false
 [dependencies]
 lumina-core = { workspace = true }
 lumina-config = { workspace = true }
+lumina-platform = { workspace = true }
 lumina-process = { workspace = true }
+serde = { workspace = true }
+sysinfo = { workspace = true }
+tera = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

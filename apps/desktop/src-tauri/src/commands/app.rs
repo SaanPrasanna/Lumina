@@ -46,6 +46,7 @@ pub fn bootstrap_status(state: State<'_, AppState>) -> BootstrapStatus {
 /// then persists the bootstrap file (last, so a failure leaves the wizard rerunnable).
 #[tauri::command]
 pub fn bootstrap_complete(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     data_root: PathBuf,
     language: String,
@@ -58,9 +59,14 @@ pub fn bootstrap_complete(
         bootstrap.data_root.display()
     );
 
-    let mut guard = state.bootstrap.write().unwrap_or_else(|e| e.into_inner());
-    *guard = Some(bootstrap);
-    Ok(status(guard.as_ref()))
+    let layout = Layout::new(&bootstrap.data_root);
+    let status = {
+        let mut guard = state.bootstrap.write().unwrap_or_else(|e| e.into_inner());
+        *guard = Some(bootstrap);
+        status(guard.as_ref())
+    };
+    crate::setup::start_runtime(&app, layout);
+    Ok(status)
 }
 
 /// Persists a language change from the UI language switcher.

@@ -32,8 +32,11 @@ fn log_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .build()
 }
 
+/// How long services get to stop when the app exits.
+const EXIT_STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+
 pub fn run() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         // Must be registered first so a second launch focuses the existing window.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             use tauri::Manager;
@@ -53,7 +56,40 @@ pub fn run() {
             commands::app::bootstrap_status,
             commands::app::bootstrap_complete,
             commands::app::set_language,
+            commands::settings::settings_get,
+            commands::settings::settings_update,
+            commands::services::php_status,
+            commands::services::php_versions,
+            commands::services::php_start,
+            commands::services::php_stop,
+            commands::services::php_restart,
+            commands::services::php_set_version,
+            commands::services::php_open_log,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Lumina");
+        .build(tauri::generate_context!())
+        .expect("error while building Lumina");
+
+    app.run(|app, event| {
+        if let tauri::RunEvent::Exit = event {
+            stop_services(app);
+        }
+    });
+}
+
+/// Stops every service before the process exits. Windows would kill them anyway
+/// (Job Objects), but a clean stop lets servers flush and keeps the PID ledger
+/// empty so the next start has nothing to sweep.
+fn stop_services(app: &tauri::AppHandle) {
+    use tauri::Manager;
+    let Some(state) = app.try_state::<state::AppState>() else {
+        return;
+    };
+    let Ok(runtime) = state.runtime() else {
+        return;
+    };
+    log::info!("stopping services before exit");
+    let failures = tauri::async_runtime::block_on(runtime.supervisor.stop_all(EXIT_STOP_TIMEOUT));
+    for (id, err) in failures {
+        log::error!("could not stop `{id}` on exit: {err}");
+    }
 }

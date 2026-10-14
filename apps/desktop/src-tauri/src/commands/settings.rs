@@ -1,1 +1,70 @@
 //! Read/write config.toml sections.
+
+use std::path::PathBuf;
+
+use lumina_config::{AppConfig, ConfigSource, Warning};
+use lumina_core::Error;
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, State};
+
+use crate::error::CommandResult;
+use crate::events;
+use crate::state::{AppState, Runtime};
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Settings {
+    pub config: AppConfig,
+    pub warnings: Vec<Warning>,
+    pub source: ConfigSource,
+    pub path: PathBuf,
+}
+
+fn snapshot(runtime: &Runtime) -> Settings {
+    Settings {
+        config: runtime.config(),
+        warnings: runtime
+            .warnings
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone(),
+        source: runtime.config_source,
+        path: runtime.layout.config_file(),
+    }
+}
+
+#[tauri::command]
+pub fn settings_get(state: State<'_, AppState>) -> CommandResult<Settings> {
+    let runtime = state.runtime()?;
+    Ok(snapshot(&runtime))
+}
+
+/// Replaces one section (e.g. `"php"`, `"editor"`) with `value`, validates the
+/// result (repairing what it can), saves config.toml and notifies the UI.
+/// Missing fields in `value` take their defaults.
+#[tauri::command]
+pub fn settings_update(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    section: String,
+    value: serde_json::Value,
+) -> CommandResult<Settings> {
+    let runtime = state.runtime()?;
+    let bad = |e: serde_json::Error| Error::Config(e.to_string());
+
+    let mut json = serde_json::to_value(runtime.config()).map_err(bad)?;
+    let Some(slot) = json.get_mut(&section).filter(|v| v.is_object()) else {
+        return Err(Error::Config(format!("unknown settings section `{section}`")).into());
+    };
+    *slot = value;
+    let mut config: AppConfig = serde_json::from_value(json).map_err(bad)?;
+
+    let warnings = lumina_config::validate::validate(&mut config);
+    lumina_config::save(&runtime.layout.config_file(), &config)?;
+    log::info!("settings section `{section}` saved");
+
+    *runtime.config.write().unwrap_or_else(|e| e.into_inner()) = config;
+    *runtime.warnings.write().unwrap_or_else(|e| e.into_inner()) = warnings;
+    let _ = app.emit(events::CONFIG_CHANGED, &section);
+    Ok(snapshot(&runtime))
+}

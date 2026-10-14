@@ -43,6 +43,68 @@
   "errors": {
     "io": "A file or folder could not be accessed.",
     "config": "The settings are invalid.",
-    "unknown": "Something went wrong."
+    "unknown": "Something went wrong.",
+    "port_in_use": "The port is already in use.",
+    "service": "The service could not be started or stopped.",
+    "elevation_required": "Administrator rights are required."
+  },
+  "status": {
+    "stopped": "Stopped",
+    "starting": "Starting",
+    "running": "Running",
+    "stopping": "Stopping",
+    "failed": "Failed"
+  },
+  "actions": {
+    "start": "Start",
+    "stop": "Stop",
+    "restart": "Restart",
+    "openLog": "Open log",
+    "save": "Save",
+    "saving": "Saving…"
+  },
+  "php": {
+    "title": "PHP",
+    "version": "Version",
+    "newest": "Newest installed ({{version}})",
+    "port": "Port",
+    "fallback": "fallback",
+    "fallbackHint": "Port {{configured}} was busy, so PHP uses {{port}}.",
+    "processes": "Processes",
+    "children": "Workers",
+    "maxRequests": "Max requests per worker",
+    "unlimited": "Unlimited",
+    "restarts": "Restarts",
+    "notInstalled": "No PHP version is installed yet. Put PHP in {{path}}."
+  },
+  "settings": {
+    "saved": "Saved",
+    "file": "Settings file",
+    "restartToApply": "Restart PHP to apply these changes.",
+    "php": {
+      "port": "FastCGI port",
+      "fallbackPort": "Fallback port",
+      "portHint": "The fallback is used when the main port is busy.",
+      "children": "Workers (PHP_FCGI_CHILDREN)",
+      "childrenHint": "At least 4. More workers handle more requests at the same time.",
+      "maxRequests": "Max requests per worker (PHP_FCGI_MAX_REQUESTS)",
+      "maxRequestsHint": "A worker is replaced after this many requests. 0 = never."
+    },
+    "editor": {
+      "title": "Code editor",
+      "name": "Name",
+      "command": "Command",
+      "args": "Arguments (one per line; {path} is the folder or file)"
+    }
+  },
+  "configWarnings": {
+    "php_children_raised": "PHP_FCGI_CHILDREN={{from}} is too low; Lumina uses {{to}}.",
+    "port_zero_reset": "A port was set to 0; using {{default}}.",
+    "php_ports_same": "The PHP fallback port is the same as the main port ({{port}}).",
+    "port_conflict": "{{a}} and {{b}} both use port {{port}}.",
+    "tld_reset": "The domain suffix \"{{value}}\" is invalid; using .test.",
+    "editor_reset": "No editor command was set; using VS Code.",
+    "config_restored": "config.toml was damaged and has been restored from the backup. The damaged copy is {{file}}.",
+    "config_reset": "config.toml was damaged and no backup was usable, so the defaults are used. The damaged copy is {{file}}."
   }
 }

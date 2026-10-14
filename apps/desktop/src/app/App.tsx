@@ -1,27 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppRouter } from "@/app/router";
 import { useApplyTheme } from "@/app/theme";
 import { FirstRunPage } from "@/features/onboarding/FirstRunPage";
 import { BOOTSTRAP_QUERY_KEY, bootstrapStatus } from "@/features/onboarding/api";
 import { isLanguage } from "@/i18n";
+import { useBackendEvents } from "@/lib/events";
 
 /** Shows the first-run wizard until a data root is chosen, then the main app. */
 export function App() {
   useApplyTheme();
+  useBackendEvents();
   const { i18n } = useTranslation();
   const status = useQuery({ queryKey: BOOTSTRAP_QUERY_KEY, queryFn: bootstrapStatus });
 
-  // Apply the persisted language once the backend reports it.
+  // Apply the saved language *before* rendering the UI. Switching after the
+  // first paint left components that were mid-mount (React StrictMode mounts
+  // twice) showing the old language.
   const savedLanguage = status.data?.language;
+  const [appliedLanguage, setAppliedLanguage] = useState<string | null>(null);
   useEffect(() => {
-    if (savedLanguage && isLanguage(savedLanguage) && savedLanguage !== i18n.language) {
-      void i18n.changeLanguage(savedLanguage);
+    if (!savedLanguage) return;
+    const target = isLanguage(savedLanguage) ? savedLanguage : "en";
+    if (i18n.language === target) {
+      setAppliedLanguage(target);
+      return;
     }
+    void i18n.changeLanguage(target).then(() => setAppliedLanguage(target));
   }, [savedLanguage, i18n]);
 
-  if (status.isPending) {
+  if (status.isPending || (status.isSuccess && appliedLanguage === null)) {
     return <div className="h-full bg-surface" aria-busy="true" />;
   }
   if (status.isError) {

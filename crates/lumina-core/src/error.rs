@@ -12,8 +12,8 @@ pub enum Error {
     },
     #[error("configuration error: {0}")]
     Config(String),
-    #[error("port {0} is already in use")]
-    PortInUse(u16),
+    #[error("port {port} is already in use{}", owner.as_deref().map(|o| format!(" by {o}")).unwrap_or_default())]
+    PortInUse { port: u16, owner: Option<String> },
     #[error("service `{0}` failed: {1}")]
     Service(String, String),
     #[error("operation requires elevated privileges")]

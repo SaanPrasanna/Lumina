@@ -1,19 +1,22 @@
-# Lumina configuration (equivalent of laragon.ini). Created on first run.
+# Lumina configuration (the equivalent of laragon.ini).
+# Lives at <data-root>/config.toml. Lumina rewrites this file when you change
+# settings in the app; the previous version is kept as config.toml.bak.
 schema_version = 1
 
 [general]
-language = "en"
-www_root = "{{data}}/www"
+# Projects folder; empty = <data-root>/www.
+www_root = ""
 tld = "test"
 auto_vhosts = true
 auto_ssl = true
 start_on_login = false
 
 [php]
-version = ""                 # empty = latest installed
-fcgi_port = 10987
-fcgi_fallback_port = 20987
-fcgi_children = 10           # PHP_FCGI_CHILDREN (minimum 4 enforced)
+# Empty = newest installed version. Otherwise "8.4" (newest 8.4.x) or "8.4.13".
+version = ""
+fcgi_port = 10987            # chosen to avoid Xdebug's 9000/9003
+fcgi_fallback_port = 20987   # used when fcgi_port is busy
+fcgi_children = 10           # PHP_FCGI_CHILDREN (minimum 4 is enforced)
 fcgi_max_requests = 0        # PHP_FCGI_MAX_REQUESTS (0 = unlimited)
 
 [web]
@@ -32,11 +35,11 @@ port = 6379
 [editor]
 name = "VS Code"
 command = "code"
+# {path} is replaced with the folder or file to open.
 args = ["{path}"]
 
 [tunnel]
-provider = "ngrok"
-authtoken = ""
+provider = "ngrok"           # the auth token is stored in the OS keychain, not here
 
 [profiles]
 active = "default"

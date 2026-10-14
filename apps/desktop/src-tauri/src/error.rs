@@ -17,7 +17,7 @@ impl From<lumina_core::Error> for CommandError {
         let code = match &err {
             E::Io { .. } => "io",
             E::Config(_) => "config",
-            E::PortInUse(_) => "port_in_use",
+            E::PortInUse { .. } => "port_in_use",
             E::Service(..) => "service",
             E::ElevationRequired => "elevation_required",
             E::Other(_) => "other",

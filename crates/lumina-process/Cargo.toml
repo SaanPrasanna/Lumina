@@ -11,6 +11,22 @@ publish = false
 [dependencies]
 lumina-core = { workspace = true }
 lumina-platform = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sysinfo = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+# Test fixture that imitates php-cgi with PHP_FCGI_CHILDREN (spawns worker copies of
+# itself). Used by tests/no_ghosts.rs via CARGO_BIN_EXE_lumina-fake-fcgi.
+[[bin]]
+name = "lumina-fake-fcgi"
+path = "src/bin/fake_fcgi.rs"
+test = false
+doc = false
 
 [lints]
 workspace = true

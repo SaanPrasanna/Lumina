@@ -1,7 +1,13 @@
-//! `config.toml` (the `laragon.ini` equivalent): schema, defaults, load/save, migrations.
+//! `config.toml` (the `laragon.ini` equivalent): schema, defaults, load/save,
+//! validation and migrations, plus the bootstrap file that points at the data root.
 
 pub mod bootstrap;
 pub mod defaults;
 pub mod loader;
 pub mod migrate;
 pub mod schema;
+pub mod validate;
+
+pub use loader::{ConfigSource, Loaded, load_or_create, save};
+pub use schema::AppConfig;
+pub use validate::Warning;
