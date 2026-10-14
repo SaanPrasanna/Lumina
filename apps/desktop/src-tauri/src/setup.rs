@@ -50,6 +50,7 @@ pub fn start_runtime(app: &AppHandle, layout: Layout) {
         Ok(runtime) => {
             let runtime = Arc::new(runtime);
             events::bridge_supervisor(app.clone(), &runtime);
+            crate::commands::sites::watch(app, &runtime);
             *state.runtime.write().unwrap_or_else(|e| e.into_inner()) = Some(runtime);
         }
         Err(err) => log::error!("cannot initialise data root: {err}"),

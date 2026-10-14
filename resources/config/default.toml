@@ -6,8 +6,8 @@ schema_version = 1
 [general]
 # Projects folder; empty = <data-root>/www.
 www_root = ""
-tld = "test"
-auto_vhosts = true
+tld = "test"                 # folder "blog" in the projects folder -> http://blog.test
+auto_vhosts = true           # a virtual host + hosts entry for every project folder
 auto_ssl = true
 start_on_login = false
 autostart_services = false   # start PHP + web server when Lumina opens
@@ -50,3 +50,9 @@ provider = "ngrok"           # the auth token is stored in the OS keychain, not 
 
 [profiles]
 active = "default"
+
+# Per-site settings, keyed by folder name (the section is optional):
+# [sites.blog]
+# enabled = true             # false = no blog.test
+# docroot = "dist"           # relative to the folder or absolute; empty = detect
+#                            # (public/, web/, public_html/, then the folder itself)

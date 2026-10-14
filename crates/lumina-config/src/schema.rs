@@ -3,6 +3,7 @@
 //!
 //! Must stay in sync with resources/config/default.toml (a test enforces this).
 
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
@@ -24,6 +25,8 @@ pub struct AppConfig {
     pub editor: Editor,
     pub tunnel: Tunnel,
     pub profiles: Profiles,
+    /// Per-site settings, keyed by the project's folder name.
+    pub sites: BTreeMap<String, SiteOverride>,
 }
 
 impl Default for AppConfig {
@@ -38,6 +41,7 @@ impl Default for AppConfig {
             editor: Editor::default(),
             tunnel: Tunnel::default(),
             profiles: Profiles::default(),
+            sites: BTreeMap::new(),
         }
     }
 }
@@ -48,7 +52,9 @@ pub struct General {
     /// Projects folder; `None` (empty in the file) means `<data-root>/www`.
     #[serde(with = "empty_path_as_none")]
     pub www_root: Option<PathBuf>,
+    /// Domain suffix for automatic sites: folder `blog` becomes `blog.<tld>`.
     pub tld: String,
+    /// Every folder in the projects folder gets a virtual host and a hosts entry.
     pub auto_vhosts: bool,
     pub auto_ssl: bool,
     pub start_on_login: bool,
@@ -171,6 +177,26 @@ impl Default for Redis {
             enabled: false,
             version: String::new(),
             port: 6379,
+        }
+    }
+}
+
+/// Settings for one automatic site (`[sites.<folder>]`).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SiteOverride {
+    /// `false`: no virtual host or hosts entry for this folder.
+    pub enabled: bool,
+    /// Document root relative to the project folder, or absolute; empty =
+    /// detect (`public/`, `web/`, `public_html/`, then the folder itself).
+    pub docroot: String,
+}
+
+impl Default for SiteOverride {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            docroot: String::new(),
         }
     }
 }

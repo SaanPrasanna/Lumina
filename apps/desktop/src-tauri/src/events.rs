@@ -11,6 +11,8 @@ use crate::state::Runtime;
 pub const SERVICE_STATUS: &str = "service-status";
 /// config.toml was saved; the UI refetches settings.
 pub const CONFIG_CHANGED: &str = "config-changed";
+/// Sites or the hosts file state changed; the UI refetches the Sites page.
+pub const SITES_CHANGED: &str = "sites-changed";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,6 +48,14 @@ pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
                 E::Failed { id, reason } => (id, "failed", Some(reason.clone())),
             };
             crate::tray::refresh(app.clone());
+            // A web server came up (start, restart, Apache's restart-reload):
+            // make sure the hosts file has its sites.
+            if let E::Started { id, .. } = &event
+                && (id == lumina_services::nginx::PROCESS_ID
+                    || id == lumina_services::apache::PROCESS_ID)
+            {
+                crate::commands::sites::resync_later(&app);
+            }
             let _ = app.emit(
                 SERVICE_STATUS,
                 ServiceStatusEvent {

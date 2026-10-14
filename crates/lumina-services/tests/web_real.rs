@@ -117,6 +117,12 @@ impl Env {
         Orchestrator::configured_web(&self.cfg)
     }
 
+    /// PHP and the configured web server. Not `start_all`: that also starts
+    /// the database, which these tests do not install.
+    async fn start_web(&self) -> lumina_core::Result<()> {
+        self.stack.start(self.web_kind(), &self.cfg).await
+    }
+
     /// Tails of the server and PHP logs, for assertion messages.
     fn logs(&self) -> String {
         [
@@ -171,7 +177,7 @@ async fn get(url: &str) -> (u16, String) {
 
 async fn serves_static_and_php(server: WebServer) {
     let Some(env) = setup(server) else { return };
-    env.stack.start_all(&env.cfg).await.expect("start stack");
+    env.start_web().await.expect("start stack");
     env.write_www("phpinfo.php", "<?php phpinfo();");
 
     let (status, body) = get(&env.url("/")).await;
@@ -205,12 +211,108 @@ async fn apache_serves_static_and_php() {
     serves_static_and_php(WebServer::Apache).await;
 }
 
+/// GET `path` on the test port with `Host: host`, the way a browser asks for
+/// http://<host>/ once the hosts file points the name at 127.0.0.1.
+async fn get_host(env: &Env, host: &str, path: &str) -> (u16, String) {
+    let resp = reqwest::Client::new()
+        .get(env.url(path))
+        .header("Host", host)
+        .send()
+        .await
+        .expect("request");
+    let status = resp.status().as_u16();
+    (status, resp.text().await.expect("body"))
+}
+
+/// Each project folder becomes `<folder>.test` with its detected docroot;
+/// adding and removing folders takes effect with one sync.
+async fn auto_vhosts_follow_the_projects_folder(server: WebServer) {
+    let Some(env) = setup(server) else { return };
+    let www = env.layout.www();
+    std::fs::create_dir_all(www.join("blog").join("public")).expect("mkdir");
+    std::fs::write(
+        www.join("blog").join("public").join("index.php"),
+        r#"<?php echo "blog:" . $_SERVER['HTTP_HOST'] . ":" . basename(__DIR__);"#,
+    )
+    .expect("write");
+    env.start_web().await.expect("start stack");
+
+    let (status, body) = get_host(&env, "blog.test", "/").await;
+    assert_eq!(
+        (status, body.as_str()),
+        (200, "blog:blog.test:public"),
+        "{}",
+        env.logs()
+    );
+    // Front controller: unknown paths go to index.php.
+    let (_, body) = get_host(&env, "blog.test", "/posts/1").await;
+    assert_eq!(body, "blog:blog.test:public");
+    // localhost still serves the projects folder.
+    let (_, body) = get(&env.url("/")).await;
+    assert!(body.contains("Lumina is running"), "{body}");
+
+    // A new folder is live after one sync.
+    std::fs::create_dir_all(www.join("Shop")).expect("mkdir");
+    std::fs::write(www.join("Shop").join("index.html"), "shop home").expect("write");
+    let started = std::time::Instant::now();
+    let outcome = env.stack.sync_sites(&env.cfg).await.expect("sync");
+    assert!(
+        matches!(
+            outcome,
+            Some(ReloadOutcome::Reloaded { .. } | ReloadOutcome::Restarted)
+        ),
+        "{outcome:?}"
+    );
+    let (status, body) = get_host(&env, "shop.test", "/").await;
+    assert_eq!((status, body.as_str()), (200, "shop home"));
+    // nginx reloads in place; Apache on Windows has no graceful reload outside
+    // service mode and is restarted, which takes a few seconds more.
+    let limit = match server {
+        WebServer::Nginx => Duration::from_secs(3),
+        WebServer::Apache => Duration::from_secs(10),
+    };
+    let elapsed = started.elapsed();
+    println!("{server:?}: shop.test live {elapsed:?} after the sync started");
+    assert!(elapsed < limit, "shop.test live after {elapsed:?}");
+
+    // Nothing changed → no reload.
+    assert_eq!(
+        env.stack.sync_sites(&env.cfg).await.expect("noop"),
+        Some(ReloadOutcome::Unchanged)
+    );
+
+    // A removed folder loses its vhost: the name falls through to localhost.
+    std::fs::remove_dir_all(www.join("blog")).expect("rm");
+    env.stack.sync_sites(&env.cfg).await.expect("sync");
+    let (_, body) = get_host(&env, "blog.test", "/").await;
+    assert!(!body.starts_with("blog:"), "{body}");
+    let sites_dir = match server {
+        WebServer::Nginx => env.stack.nginx().sites_dir(),
+        WebServer::Apache => env.stack.apache().sites_dir(),
+    };
+    assert!(!sites_dir.join("auto.blog.test.conf").exists());
+    assert!(sites_dir.join("auto.shop.test.conf").exists());
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[tokio::test]
+async fn nginx_auto_vhosts_follow_the_projects_folder() {
+    auto_vhosts_follow_the_projects_folder(WebServer::Nginx).await;
+}
+
+#[tokio::test]
+async fn apache_auto_vhosts_follow_the_projects_folder() {
+    auto_vhosts_follow_the_projects_folder(WebServer::Apache).await;
+}
+
 #[tokio::test]
 async fn nginx_reload_takes_exactly_one_signal_and_is_live_quickly() {
     let Some(mut env) = setup(WebServer::Nginx) else {
         return;
     };
-    env.stack.start_all(&env.cfg).await.expect("start");
+    env.start_web().await.expect("start");
     let (_, before) = get(&env.url("/")).await;
     assert!(before.contains("Lumina is running"));
 
@@ -264,7 +366,7 @@ async fn broken_config_is_rejected_rolled_back_and_the_site_keeps_working() {
     let Some(mut env) = setup(WebServer::Nginx) else {
         return;
     };
-    env.stack.start_all(&env.cfg).await.expect("start");
+    env.start_web().await.expect("start");
     let site = env.stack.nginx().sites_dir().join("00-localhost.conf");
     let good = std::fs::read_to_string(&site).expect("site");
 
@@ -299,7 +401,7 @@ async fn broken_config_is_rejected_rolled_back_and_the_site_keeps_working() {
 async fn no_5xx_under_keepalive_load(server: WebServer) {
     let Some(mut env) = setup(server) else { return };
     env.cfg.php.fcgi_max_requests = 50;
-    env.stack.start_all(&env.cfg).await.expect("start");
+    env.start_web().await.expect("start");
     env.write_www("hello.php", "<?php echo 'ok';");
 
     let client = reqwest::Client::builder()
@@ -381,7 +483,7 @@ async fn starting_one_web_server_stops_the_other() {
     let Some(mut env) = setup(WebServer::Nginx) else {
         return;
     };
-    env.stack.start_all(&env.cfg).await.expect("nginx");
+    env.start_web().await.expect("nginx");
     let nginx_root = env.layout.bin().join("nginx");
     assert!(!processes_under(&nginx_root).is_empty());
 

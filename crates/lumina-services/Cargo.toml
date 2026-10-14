@@ -13,6 +13,7 @@ lumina-core = { workspace = true }
 lumina-config = { workspace = true }
 lumina-platform = { workspace = true }
 lumina-process = { workspace = true }
+lumina-vhost = { workspace = true }
 serde = { workspace = true }
 sysinfo = { workspace = true }
 tera = { workspace = true }

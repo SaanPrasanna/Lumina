@@ -22,6 +22,7 @@ lumina-ssl      = { path = "crates/lumina-ssl" }
 lumina-packages = { path = "crates/lumina-packages" }
 lumina-quickapp = { path = "crates/lumina-quickapp" }
 lumina-tunnel   = { path = "crates/lumina-tunnel" }
+lumina-helper   = { path = "crates/lumina-helper" }
 
 # Third-party (declared once here, opted into per crate with `{ workspace = true }`)
 anyhow       = "1"

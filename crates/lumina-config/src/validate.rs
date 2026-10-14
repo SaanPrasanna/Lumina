@@ -121,6 +121,16 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
         }
     }
 
+    // "Test" and ".test" mean "test".
+    let tld = cfg
+        .general
+        .tld
+        .trim()
+        .trim_start_matches('.')
+        .to_ascii_lowercase();
+    if is_valid_tld(&tld) {
+        cfg.general.tld = tld;
+    }
     if !is_valid_tld(&cfg.general.tld) {
         warnings.push(
             Warning::new(
@@ -135,6 +145,20 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
             .with("value", &cfg.general.tld),
         );
         cfg.general.tld = defaults::TLD.to_owned();
+    }
+
+    if HTTPS_ONLY_TLDS.contains(&cfg.general.tld.as_str()) {
+        warnings.push(
+            Warning::new(
+                "tld_https_only",
+                "general.tld",
+                format!(
+                    ".{} is a real domain suffix that browsers only open over HTTPS",
+                    cfg.general.tld
+                ),
+            )
+            .with("tld", &cfg.general.tld),
+        );
     }
 
     if cfg.editor.command.trim().is_empty() {
@@ -163,11 +187,20 @@ fn reset_zero_port(port: &mut u16, field: &str, default: u16, warnings: &mut Vec
     }
 }
 
+/// Real top-level domains on the browsers' HSTS preload list: plain-HTTP sites
+/// under them never load.
+const HTTPS_ONLY_TLDS: &[&str] = &[
+    "app", "bank", "boo", "channel", "dad", "day", "dev", "esq", "foo", "ing", "meme", "mov",
+    "new", "nexus", "page", "phd", "prof", "rsvp", "zip",
+];
+
 /// A single DNS label: letters, digits and inner hyphens.
 fn is_valid_tld(tld: &str) -> bool {
     !tld.is_empty()
         && tld.len() <= 63
-        && tld.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+        && tld
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
         && !tld.starts_with('-')
         && !tld.ends_with('-')
 }
@@ -235,5 +268,17 @@ mod tests {
         assert_eq!(cfg.general.tld, "test");
         assert_eq!(cfg.editor, Editor::default());
         assert_eq!(codes(&warnings), ["tld_reset", "editor_reset"]);
+    }
+
+    #[test]
+    fn normalises_tld_and_warns_about_https_only_suffixes() {
+        let mut cfg = AppConfig::default();
+        cfg.general.tld = " .Local".into();
+        assert!(validate(&mut cfg).is_empty());
+        assert_eq!(cfg.general.tld, "local");
+
+        cfg.general.tld = "dev".into();
+        assert_eq!(codes(&validate(&mut cfg)), ["tld_https_only"]);
+        assert_eq!(cfg.general.tld, "dev");
     }
 }

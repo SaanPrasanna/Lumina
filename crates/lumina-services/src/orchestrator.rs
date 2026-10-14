@@ -27,6 +27,7 @@ use crate::php_fcgi::{PhpFcgi, PhpStatus};
 use crate::redis::{Redis, RedisStatus};
 use crate::template::Templates;
 use crate::web::{ReloadOutcome, WebContext, WebStatus};
+use lumina_vhost::Scan;
 
 /// Everything the Services page shows.
 #[derive(Debug, Clone, Serialize)]
@@ -138,10 +139,38 @@ impl Orchestrator {
             .await
             .runtime
             .map_or(cfg.php.fcgi_port, |rt| rt.port);
+        let www_root = self.www_root(cfg);
         WebContext {
             http_port: cfg.web.http_port,
             php_port,
-            www_root: self.www_root(cfg),
+            sites: lumina_vhost::scan(&www_root, cfg).sites,
+            www_root,
+        }
+    }
+
+    /// The automatic sites for the projects folder as it is now.
+    pub fn sites(&self, cfg: &AppConfig) -> Scan {
+        lumina_vhost::scan(&self.www_root(cfg), cfg)
+    }
+
+    /// The web server that is running, if any.
+    pub async fn running_web(&self) -> Option<ServiceKind> {
+        for kind in [ServiceKind::Nginx, ServiceKind::Apache] {
+            if self.web_status(kind).await.runtime.is_some() {
+                return Some(kind);
+            }
+        }
+        None
+    }
+
+    /// Brings a running web server's virtual hosts in line with the projects
+    /// folder (one reload, only if a vhost file changed). `None` if no web
+    /// server runs; its sites are rendered when it starts.
+    pub async fn sync_sites(&self, cfg: &AppConfig) -> Result<Option<ReloadOutcome>> {
+        let _guard = self.inner.lock.lock().await;
+        match self.running_web().await {
+            Some(kind) => self.reload_locked(kind, cfg).await.map(Some),
+            None => Ok(None),
         }
     }
 

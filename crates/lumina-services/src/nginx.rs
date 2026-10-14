@@ -139,6 +139,13 @@ impl Nginx {
             &c,
             &self.sites_dir().join("00-localhost.conf"),
         )?;
+        web::render_sites(
+            t,
+            &mut changes,
+            "nginx/site.conf.tera",
+            &self.sites_dir(),
+            ctx,
+        )?;
         Ok(changes)
     }
 
@@ -416,10 +423,14 @@ mod tests {
             layout.clone(),
             templates,
         );
-        let ctx = WebContext {
+        let blog = layout.www().join("blog");
+        std::fs::create_dir_all(blog.join("public")).expect("mkdir");
+        let mut cfg = lumina_config::AppConfig::default();
+        let mut ctx = WebContext {
             http_port: 8080,
             php_port: 20987,
             www_root: layout.www(),
+            sites: lumina_vhost::scan(&layout.www(), &cfg).sites,
         };
 
         let changes = nginx.prepare(&ctx).expect("prepare");
@@ -451,5 +462,42 @@ mod tests {
 
         // Same input → nothing to write → no reload needed.
         assert!(!nginx.prepare(&ctx).expect("again").changed());
+
+        // The automatic site for www/blog serves blog/public.
+        let auto = nginx.sites_dir().join("auto.blog.test.conf");
+        let site = std::fs::read_to_string(&auto).expect("auto site");
+        assert!(
+            site.contains("server_name  blog.test *.blog.test;"),
+            "{site}"
+        );
+        assert!(site.contains("listen       127.0.0.1:8080;"), "{site}");
+        assert!(
+            site.contains(&format!(
+                "root         \"{}\";",
+                forward_slashes(&blog.join("public"))
+            )),
+            "{site}"
+        );
+
+        // A user file for the domain replaces the automatic one.
+        let user = nginx.sites_dir().join("blog.test.conf");
+        std::fs::write(&user, "# mine").expect("user file");
+        assert!(nginx.prepare(&ctx).expect("user override").changed());
+        assert!(!auto.exists());
+        std::fs::remove_file(&user).expect("rm");
+
+        // Removing the folder (or turning auto vhosts off) removes the site;
+        // a rollback brings it back.
+        nginx.prepare(&ctx).expect("auto again");
+        cfg.general.auto_vhosts = false;
+        ctx.sites = lumina_vhost::scan(&layout.www(), &cfg).sites;
+        let changes = nginx.prepare(&ctx).expect("no sites");
+        assert!(!auto.exists());
+        changes.rollback();
+        assert!(auto.exists());
+        assert!(
+            nginx.sites_dir().join("00-localhost.conf").exists(),
+            "the localhost site is never removed"
+        );
     }
 }

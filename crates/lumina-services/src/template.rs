@@ -83,6 +83,19 @@ impl ChangeSet {
         Ok(true)
     }
 
+    /// Deletes `path` if it exists, remembering its content for [`Self::rollback`].
+    pub fn remove(&mut self, path: &Path) -> Result<bool> {
+        let Ok(old) = std::fs::read(path) else {
+            return Ok(false);
+        };
+        std::fs::remove_file(path).map_err(|source| Error::Io {
+            path: path.to_path_buf(),
+            source,
+        })?;
+        self.previous.push((path.to_path_buf(), Some(old)));
+        Ok(true)
+    }
+
     pub fn changed(&self) -> bool {
         !self.previous.is_empty()
     }
@@ -173,12 +186,18 @@ mod tests {
         let mut changes = ChangeSet::default();
         assert!(changes.write(&existing, b"broken").expect("modify"));
         assert!(changes.write(&created, b"new").expect("create"));
+        let removed = tmp.path().join("auto.old.conf");
+        std::fs::write(&removed, b"old site").expect("write");
+        assert!(changes.remove(&removed).expect("remove"));
+        assert!(!changes.remove(&removed).expect("already gone"));
+        assert!(!removed.exists());
         assert!(!changes.write(&existing, b"broken").expect("unchanged"));
         assert!(changes.changed());
         changes.rollback();
 
         assert_eq!(std::fs::read(&existing).expect("read"), b"good");
         assert!(!created.exists());
+        assert_eq!(std::fs::read(&removed).expect("restored"), b"old site");
     }
 
     #[test]

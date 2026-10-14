@@ -150,6 +150,7 @@ impl Apache {
             &c,
             &sites.join("00-localhost.conf"),
         )?;
+        web::render_sites(t, &mut changes, "apache/site.conf.tera", &sites, ctx)?;
         Ok(changes)
     }
 
@@ -377,10 +378,12 @@ mod tests {
             layout.clone(),
             templates,
         );
+        std::fs::create_dir_all(layout.www().join("Shop")).expect("mkdir");
         let ctx = WebContext {
             http_port: 80,
             php_port: 10987,
             www_root: layout.www(),
+            sites: lumina_vhost::scan(&layout.www(), &lumina_config::AppConfig::default()).sites,
         };
 
         apache.prepare(&install, &ctx).expect("prepare");
@@ -390,5 +393,17 @@ mod tests {
         assert!(!conf.contains("rewrite_module"), "not shipped → not loaded");
         assert!(conf.contains("fcgi://127.0.0.1:10987/"));
         assert!(conf.contains("Listen 127.0.0.1:80"));
+
+        let site = std::fs::read_to_string(apache.sites_dir().join("auto.shop.test.conf"))
+            .expect("auto site");
+        assert!(site.contains("<VirtualHost 127.0.0.1:80>"), "{site}");
+        assert!(site.contains("ServerName shop.test"), "{site}");
+        assert!(
+            site.contains(&format!(
+                "DocumentRoot \"{}\"",
+                forward_slashes(&layout.www().join("Shop"))
+            )),
+            "{site}"
+        );
     }
 }

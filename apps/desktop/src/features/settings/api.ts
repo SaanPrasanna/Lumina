@@ -42,6 +42,13 @@ export interface RedisSettings {
   port: number;
 }
 
+/** `[sites.<folder>]`: per-site switches for automatic virtual hosts. */
+export interface SiteOverride {
+  enabled: boolean;
+  /** Relative to the project folder, or absolute; "" = detect. */
+  docroot: string;
+}
+
 export interface EditorSettings {
   name: string;
   command: string;
@@ -56,6 +63,7 @@ export interface AppConfig {
   database: DatabaseSettings;
   redis: RedisSettings;
   editor: EditorSettings;
+  sites: Record<string, SiteOverride>;
   // Other sections are edited in later phases.
   [section: string]: unknown;
 }

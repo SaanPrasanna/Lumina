@@ -5,10 +5,12 @@ import { ComingSoonPage } from "@/components/layout/ComingSoonPage";
 import { DashboardPage } from "@/features/dashboard";
 import { ServicesPage } from "@/features/services";
 import { SettingsPage } from "@/features/settings";
+import { SitesPage } from "@/features/sites";
 
 /** Implemented pages; every other nav item shows a placeholder for now. */
 const PAGES: Record<string, React.ReactNode> = {
   "/services": <ServicesPage />,
+  "/sites": <SitesPage />,
   "/settings": <SettingsPage />,
 };
 

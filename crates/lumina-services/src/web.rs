@@ -6,8 +6,11 @@ use lumina_config::schema::WebServer;
 use lumina_core::types::ServiceStatus;
 use lumina_core::{Error, Result};
 use lumina_process::ports;
+use lumina_vhost::{Site, render};
 use serde::Serialize;
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
+
+use crate::template::{ChangeSet, Templates, forward_slashes};
 
 /// What a web server config is rendered from.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,6 +20,41 @@ pub struct WebContext {
     pub php_port: u16,
     /// Served at http://localhost.
     pub www_root: PathBuf,
+    /// Automatic virtual hosts, one `auto.<domain>.conf` each.
+    pub sites: Vec<Site>,
+}
+
+/// Renders `auto.<domain>.conf` from `template` into `sites_dir` for every
+/// site (skipping domains the user has their own `<domain>.conf` for) and
+/// deletes `auto.*.conf` files of sites that are gone, all through `changes`
+/// so a config that fails the server's test is undone as a whole.
+pub fn render_sites(
+    templates: &Templates,
+    changes: &mut ChangeSet,
+    template: &str,
+    sites_dir: &Path,
+    ctx: &WebContext,
+) -> Result<()> {
+    let mut desired = Vec::new();
+    for site in &ctx.sites {
+        if !render::needs_auto_file(sites_dir, site) {
+            continue;
+        }
+        let file = render::auto_file_name(&site.domain);
+        let mut c = tera::Context::new();
+        c.insert("name", &site.name);
+        c.insert("domain", &site.domain);
+        c.insert("root", &forward_slashes(&site.docroot));
+        c.insert("http_port", &ctx.http_port);
+        c.insert("user_file", &render::user_file_name(&site.domain));
+        c.insert("auto_file", &file);
+        templates.render_into(changes, template, &c, &sites_dir.join(&file))?;
+        desired.push(file);
+    }
+    for stale in render::stale_auto_files(sites_dir, &desired) {
+        changes.remove(&stale)?;
+    }
+    Ok(())
 }
 
 /// What is running right now.

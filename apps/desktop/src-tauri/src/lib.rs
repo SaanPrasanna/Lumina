@@ -80,6 +80,10 @@ pub fn run() {
             commands::services::service_open_log,
             commands::services::open_localhost,
             commands::services::open_www,
+            commands::sites::sites_list,
+            commands::sites::sites_sync,
+            commands::sites::site_open,
+            commands::sites::site_open_folder,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Lumina");

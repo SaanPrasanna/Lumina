@@ -4,7 +4,7 @@
 //! owns the configuration, the process supervisor and the services.
 
 use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 
 use lumina_config::bootstrap::Bootstrap;
 use lumina_config::{AppConfig, ConfigSource, Warning};
@@ -14,6 +14,8 @@ use lumina_process::Supervisor;
 use lumina_process::ledger::Ledger;
 use lumina_services::orchestrator::Orchestrator;
 use lumina_services::template::Templates;
+use lumina_vhost::sync::HostsSync;
+use lumina_vhost::watcher::Watcher;
 
 pub struct AppState {
     /// `<app-config-dir>/bootstrap.toml`.
@@ -45,6 +47,19 @@ pub struct Runtime {
     pub supervisor: Supervisor,
     /// PHP + web server as one stack.
     pub stack: Orchestrator,
+    /// The hosts file's Lumina block, changed through `lumina-helper`.
+    pub hosts: HostsSync,
+    /// Watches the projects folder (and which folder it watches).
+    pub watcher: Mutex<Option<(PathBuf, Watcher)>>,
+}
+
+/// `lumina-helper` sits next to the app executable, in development
+/// (`target/debug`) and in installed builds alike.
+fn helper_path() -> PathBuf {
+    let name = format!("lumina-helper{}", std::env::consts::EXE_SUFFIX);
+    std::env::current_exe()
+        .map(|exe| exe.with_file_name(&name))
+        .unwrap_or_else(|_| PathBuf::from(name))
 }
 
 impl Runtime {
@@ -69,7 +84,21 @@ impl Runtime {
             layout.clone(),
             Templates::new(templates),
         );
+        let helper = helper_path();
+        if !helper.is_file() {
+            log::warn!(
+                "{} is missing; hosts entries cannot be written (build it with `cargo build -p lumina-helper`)",
+                helper.display()
+            );
+        }
+        let hosts = HostsSync::new(
+            helper,
+            lumina_platform::hosts::system_hosts_path(),
+            layout.tmp(),
+        );
         Ok(Self {
+            hosts,
+            watcher: Mutex::new(None),
             layout,
             config: RwLock::new(loaded.config),
             warnings: RwLock::new(loaded.warnings),

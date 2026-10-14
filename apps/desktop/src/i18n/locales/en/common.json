@@ -123,7 +123,8 @@
     "tld_reset": "The domain suffix \"{{value}}\" is invalid; using .test.",
     "editor_reset": "No editor command was set; using VS Code.",
     "config_restored": "config.toml was damaged and has been restored from the backup. The damaged copy is {{file}}.",
-    "config_reset": "config.toml was damaged and no backup was usable, so the defaults are used. The damaged copy is {{file}}."
+    "config_reset": "config.toml was damaged and no backup was usable, so the defaults are used. The damaged copy is {{file}}.",
+    "tld_https_only": ".{{tld}} is a real domain suffix that browsers only open over HTTPS, so these sites will not load until HTTPS is set up. Use .test instead."
   },
   "web": {
     "title": "Web server",
@@ -163,5 +164,48 @@
     "newest": "Newest installed ({{version}})",
     "port": "Port",
     "notInstalled": "Redis is not installed yet. Put it in {{path}}."
+  },
+  "sites": {
+    "syncNow": "Sync now",
+    "auto": {
+      "title": "Automatic sites",
+      "description": "Every folder in {{folder}} gets its own address: a folder named blog opens at http://blog.{{tld}}.",
+      "enabled": "Create sites automatically",
+      "tld": "Domain suffix",
+      "localWarning": "On macOS, .local is used for devices on the network (Bonjour), which can make these sites slow to open. .test is safer."
+    },
+    "hosts": {
+      "inSync": "The hosts file has every site.",
+      "pending": "Waiting for you to approve the administrator prompt…",
+      "declined_one": "The administrator prompt was declined, so 1 address is not in the hosts file yet.",
+      "declined_other": "The administrator prompt was declined, so {{count}} addresses are not in the hosts file yet.",
+      "outOfDate_one": "1 address still has to be written to the hosts file.",
+      "outOfDate_other": "{{count}} addresses still have to be written to the hosts file.",
+      "onStart_one": "1 address will be added to the hosts file when the web server starts.",
+      "onStart_other": "{{count}} addresses will be added to the hosts file when the web server starts.",
+      "helperMissing": "Lumina's helper program is missing, so the hosts file cannot be changed. {{detail}}",
+      "failed": "The hosts file could not be updated: {{detail}}",
+      "unreadable": "The hosts file cannot be used: {{error}}",
+      "update": "Update hosts file"
+    },
+    "empty": "No projects yet. Create a folder in {{folder}} and it opens at http://<folder>.{{tld}}.",
+    "startWeb": "Start the web server to open these sites.",
+    "row": "Folder {{folder}} · serves {{docroot}}",
+    "docrootFolder": "the whole folder",
+    "docrootMissing": "This document root does not exist yet; the site answers 404 until it does.",
+    "open": "Open",
+    "folder": "Folder",
+    "edit": "Edit",
+    "docroot": "Document root",
+    "docrootPlaceholder": "Detect (public/, web/, public_html/)",
+    "disable": "Turn off this site",
+    "enable": "Turn on",
+    "skipped": {
+      "title": "Folders without a site",
+      "disabled": "turned off",
+      "invalidName": "the name has no letters or digits to make an address from",
+      "unsafePath": "the name contains a character web servers cannot use (\" $ ; { } \\)",
+      "duplicate": "{{domain}} is already used by the folder {{other}}"
+    }
   }
 }
