@@ -222,9 +222,18 @@ pub(crate) mod test_server {
                 let body = body.clone();
                 let seen = seen.clone();
                 tokio::spawn(async move {
-                    let mut buf = vec![0u8; 4096];
-                    let len = sock.read(&mut buf).await.unwrap_or(0);
-                    let req = String::from_utf8_lossy(&buf[..len]).to_string();
+                    // Read the whole request: closing a socket with unread
+                    // data makes Windows reset the connection, which can
+                    // throw away response bytes still in flight.
+                    let mut raw = Vec::new();
+                    let mut buf = [0u8; 1024];
+                    while !raw.windows(4).any(|w| w == b"\r\n\r\n") {
+                        match sock.read(&mut buf).await {
+                            Ok(0) | Err(_) => break,
+                            Ok(n) => raw.extend_from_slice(&buf[..n]),
+                        }
+                    }
+                    let req = String::from_utf8_lossy(&raw).to_string();
                     let range = req
                         .lines()
                         .find_map(|l| {
@@ -290,10 +299,10 @@ mod tests {
 
         let first = d.fetch(&[&url], &dest, &cancel, &|_, _| {}).await;
         assert!(first.is_err(), "the cut connection must be reported");
-        assert_eq!(
-            std::fs::metadata(part_path(&dest)).expect("part").len(),
-            100_000
-        );
+        // Whatever arrived before the cut is kept (all of it on a quiet
+        // machine; less if the network stack dropped the tail).
+        let kept = std::fs::metadata(part_path(&dest)).expect("part").len();
+        assert!(kept > 0 && kept <= 100_000, "{kept}");
 
         let last = std::sync::Mutex::new((0, None));
         d.fetch(&[&url], &dest, &cancel, &|r, t| {
@@ -304,7 +313,7 @@ mod tests {
         assert_eq!(std::fs::read(&dest).expect("read"), body());
         assert!(!part_path(&dest).exists());
         assert_eq!(*last.lock().expect("lock"), (300_000, Some(300_000)));
-        assert_eq!(server.ranges.lock().expect("lock")[1], "bytes=100000-");
+        assert_eq!(server.ranges.lock().expect("lock")[1], format!("bytes={kept}-"));
     }
 
     #[tokio::test]

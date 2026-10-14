@@ -28,11 +28,10 @@ pub fn long(path: &Path) -> PathBuf {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, windows))]
 mod tests {
     use super::*;
 
-    #[cfg(windows)]
     #[test]
     fn windows_paths_get_the_prefix() {
         assert_eq!(
