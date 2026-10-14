@@ -1,0 +1,34 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Node / frontend
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+
+# Tauri generated schemas
+apps/desktop/src-tauri/gen/
+
+# Downloaded installer payloads (fetched by scripts/fetch-vcredist.ps1)
+packaging/windows/vcredist/*.exe
+
+# Local dev runtime (bin/, data/, www/ created during `pnpm dev`)
+/.lumina-dev/
+
+# Secrets
+*.key
+*.pem
+.env
+.env.*
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Private planning docs (not published for now)
+/docs/
+/IMPLEMENTATION_PLAN.md

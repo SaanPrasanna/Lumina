@@ -1,0 +1,21 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes: { label: Lumina version }
+    validations: { required: true }
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Linux]
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes: { label: What happened? Include steps to reproduce. }
+    validations: { required: true }
+  - type: textarea
+    id: logs
+    attributes: { label: Logs (Help > Open logs folder), render: text }

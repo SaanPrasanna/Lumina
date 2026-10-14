@@ -1,0 +1,16 @@
+[package]
+name = "lumina-config"
+description = "Loading, validating and migrating Lumina's config.toml"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+lumina-core = { workspace = true }
+serde = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,16 @@
+{# Main nginx.conf. Variables: php_port, sites_dir, logs_dir #}
+worker_processes auto;
+events { worker_connections 1024; }
+
+http {
+    include       mime.types;
+    sendfile      on;
+    keepalive_timeout 65;
+    client_max_body_size 256m;
+
+    upstream php_upstream {
+        server 127.0.0.1:{{ php_port }};
+    }
+
+    include "{{ sites_dir }}/*.conf";
+}

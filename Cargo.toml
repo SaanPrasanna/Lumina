@@ -1,0 +1,58 @@
+[workspace]
+resolver = "3"
+members = ["apps/desktop/src-tauri", "crates/*", "xtask"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/OWNER/lumina"
+authors = ["Lumina Contributors"]
+
+[workspace.dependencies]
+# Internal crates
+lumina-core     = { path = "crates/lumina-core" }
+lumina-config   = { path = "crates/lumina-config" }
+lumina-platform = { path = "crates/lumina-platform" }
+lumina-process  = { path = "crates/lumina-process" }
+lumina-services = { path = "crates/lumina-services" }
+lumina-vhost    = { path = "crates/lumina-vhost" }
+lumina-ssl      = { path = "crates/lumina-ssl" }
+lumina-packages = { path = "crates/lumina-packages" }
+lumina-quickapp = { path = "crates/lumina-quickapp" }
+lumina-tunnel   = { path = "crates/lumina-tunnel" }
+
+# Third-party (declared once here, opted into per crate with `{ workspace = true }`)
+anyhow       = "1"
+thiserror    = "2"
+serde        = { version = "1", features = ["derive"] }
+serde_json   = "1"
+toml         = "0.9"
+tokio        = { version = "1", features = ["full"] }
+tracing      = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+directories  = "6"
+notify       = "8"
+tera         = "1"
+rcgen        = "0.14"
+reqwest      = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+sha2         = "0.10"
+zip          = "4"
+semver       = { version = "1", features = ["serde"] }
+sysinfo      = "0.37"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

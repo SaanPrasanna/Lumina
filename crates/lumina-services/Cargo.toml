@@ -1,0 +1,17 @@
+[package]
+name = "lumina-services"
+description = "Service drivers (PHP-FCGI, Nginx, Apache, MySQL/MariaDB, Redis) and profile orchestration"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+lumina-core = { workspace = true }
+lumina-config = { workspace = true }
+lumina-process = { workspace = true }
+
+[lints]
+workspace = true

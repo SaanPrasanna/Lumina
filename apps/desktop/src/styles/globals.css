@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Avoid UI shake while resizing: no scrollbar toggling, no layout transitions. */
+html {
+  scrollbar-gutter: stable;
+}

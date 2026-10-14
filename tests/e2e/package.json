@@ -1,0 +1,8 @@
+{
+  "name": "@lumina/e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:e2e": "wdio run ./wdio.conf.ts"
+  }
+}

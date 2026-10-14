@@ -1,0 +1,18 @@
+{# Per-site vhost. Variables: domain, root, ssl, cert, key #}
+server {
+    listen 80;
+    {% if ssl %}listen 443 ssl;
+    ssl_certificate     "{{ cert }}";
+    ssl_certificate_key "{{ key }}";{% endif %}
+    server_name {{ domain }} *.{{ domain }};
+    root "{{ root }}";
+    index index.php index.html;
+
+    location / { try_files $uri $uri/ /index.php$is_args$args; }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass php_upstream;
+    }
+}

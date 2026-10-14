@@ -1,0 +1,5 @@
+{# Main httpd.conf. Variables: php_port, sites_dir #}
+Listen 80
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+IncludeOptional "{{ sites_dir }}/*.conf"

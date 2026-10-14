@@ -1,0 +1,16 @@
+[package]
+name = "lumina-tunnel"
+description = "Share local sites publicly via Ngrok"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+lumina-core = { workspace = true }
+lumina-process = { workspace = true }
+
+[lints]
+workspace = true

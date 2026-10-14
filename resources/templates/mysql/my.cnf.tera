@@ -1,0 +1,3 @@
+[mysqld]
+port = {{ port }}
+datadir = "{{ data_dir }}"

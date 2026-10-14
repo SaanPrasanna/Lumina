@@ -1,0 +1,17 @@
+[package]
+name = "lumina-vhost"
+description = "Automatic virtual hosts from the www root"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+lumina-core = { workspace = true }
+lumina-config = { workspace = true }
+lumina-platform = { workspace = true }
+
+[lints]
+workspace = true

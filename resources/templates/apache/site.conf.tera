@@ -1,0 +1,13 @@
+{# Per-site vhost. Variables: domain, root, php_port #}
+<VirtualHost *:80>
+    ServerName {{ domain }}
+    ServerAlias *.{{ domain }}
+    DocumentRoot "{{ root }}"
+    <Directory "{{ root }}">
+        AllowOverride All
+        Require all granted
+    </Directory>
+    <FilesMatch "\.php$">
+        SetHandler "proxy:fcgi://127.0.0.1:{{ php_port }}"
+    </FilesMatch>
+</VirtualHost>

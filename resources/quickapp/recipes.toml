@@ -1,0 +1,16 @@
+# QuickApp recipes. Each recipe is a list of steps run by lumina-quickapp.
+
+[[recipe]]
+id = "laravel"
+name = "Laravel"
+steps = [
+  { run = "composer", args = ["create-project", "laravel/laravel", "{name}"] },
+]
+
+[[recipe]]
+id = "wordpress"
+name = "WordPress"
+steps = [
+  { download = "https://wordpress.org/latest.zip", extract_to = "{name}", strip = 1 },
+  { create_database = "{name}" },
+]

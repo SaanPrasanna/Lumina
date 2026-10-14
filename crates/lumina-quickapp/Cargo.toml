@@ -1,0 +1,15 @@
+[package]
+name = "lumina-quickapp"
+description = "One-click project installers (Laravel, WordPress, ...)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+lumina-core = { workspace = true }
+
+[lints]
+workspace = true

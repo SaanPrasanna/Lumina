@@ -1,0 +1,15 @@
+[package]
+name = "lumina-packages"
+description = "Quick Add: catalog, download, verify, extract and track tool versions"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+lumina-core = { workspace = true }
+
+[lints]
+workspace = true
