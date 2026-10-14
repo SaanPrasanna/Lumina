@@ -51,11 +51,11 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             use tauri::Manager;
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                if setup::close_to_tray(window.app_handle()) {
-                    api.prevent_close();
-                    let _ = window.hide();
-                }
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event
+                && setup::close_to_tray(window.app_handle())
+            {
+                api.prevent_close();
+                let _ = window.hide();
             }
         })
         .invoke_handler(tauri::generate_handler![

@@ -180,10 +180,10 @@ impl Nginx {
         cfg: &WebConfig,
         ctx: &WebContext,
     ) -> Result<WebRuntime> {
-        if let Some(info) = self.inner.supervisor.info(PROCESS_ID).await {
-            if info.state != ProcessState::Failed {
-                return Err(Error::Service(PROCESS_ID.into(), "already running".into()));
-            }
+        if let Some(info) = self.inner.supervisor.info(PROCESS_ID).await
+            && info.state != ProcessState::Failed
+        {
+            return Err(Error::Service(PROCESS_ID.into(), "already running".into()));
         }
         let installs = self.versions().await;
         let install = install::select(&installs, &cfg.nginx_version)
@@ -255,10 +255,10 @@ impl Nginx {
         self.inner
             .supervisor
             .stop_gracefully(PROCESS_ID, STOP_TIMEOUT, async {
-                if let Some(install) = &install {
-                    if let Err(err) = self.command(install, &["-s", "quit"]).await {
-                        tracing::warn!("nginx -s quit failed: {err}");
-                    }
+                if let Some(install) = &install
+                    && let Err(err) = self.command(install, &["-s", "quit"]).await
+                {
+                    tracing::warn!("nginx -s quit failed: {err}");
                 }
             })
             .await?;

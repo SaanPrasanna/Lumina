@@ -97,10 +97,10 @@ impl Supervisor {
     /// Starts `spec`. Fails if a process with the same ID is running or restarting.
     pub async fn start(&self, spec: ProcessSpec) -> Result<ProcessInfo> {
         let mut procs = self.inner.procs.lock().await;
-        if let Some(existing) = procs.get(&spec.id) {
-            if existing.run().state != ProcessState::Failed {
-                return Err(Error::Service(spec.id.clone(), "already running".into()));
-            }
+        if let Some(existing) = procs.get(&spec.id)
+            && existing.run().state != ProcessState::Failed
+        {
+            return Err(Error::Service(spec.id.clone(), "already running".into()));
         }
 
         let (child, group) = spawn(&spec, &self.inner.ledger)?;
@@ -182,12 +182,12 @@ impl Supervisor {
         }
         if !exited {
             let _ = managed.group().terminate();
-            if let Some(mut task) = task {
-                if timeout(limit / 2, &mut task).await.is_err() {
-                    // Re-read the group: a restart may have replaced it meanwhile.
-                    let _ = managed.group().kill();
-                    let _ = timeout(limit / 2, &mut task).await;
-                }
+            if let Some(mut task) = task
+                && timeout(limit / 2, &mut task).await.is_err()
+            {
+                // Re-read the group: a restart may have replaced it meanwhile.
+                let _ = managed.group().kill();
+                let _ = timeout(limit / 2, &mut task).await;
             }
         }
 

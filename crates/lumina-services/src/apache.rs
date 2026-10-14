@@ -198,10 +198,10 @@ impl Apache {
         cfg: &WebConfig,
         ctx: &WebContext,
     ) -> Result<WebRuntime> {
-        if let Some(info) = self.inner.supervisor.info(PROCESS_ID).await {
-            if info.state != ProcessState::Failed {
-                return Err(Error::Service(PROCESS_ID.into(), "already running".into()));
-            }
+        if let Some(info) = self.inner.supervisor.info(PROCESS_ID).await
+            && info.state != ProcessState::Failed
+        {
+            return Err(Error::Service(PROCESS_ID.into(), "already running".into()));
         }
         let installs = self.versions().await;
         let install = install::select(&installs, &cfg.apache_version)
