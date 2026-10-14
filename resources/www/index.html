@@ -21,8 +21,11 @@
     --line-strong: #19140035;
     --accent: #6366f1;
     --accent-strong: #4f46e5;
+    --accent-soft: #eef2ff;
     --ok: #16a34a;
     --ok-soft: #dcfce7;
+    --soon: #b45309;
+    --soon-soft: #fef3c7;
     --code: #f4f4f2;
     --shadow: 0 0 0 1px #1a1a0016, 0 1px 2px #0000000d;
   }
@@ -36,8 +39,11 @@
       --line-strong: #62605b;
       --accent: #818cf8;
       --accent-strong: #a5b4fc;
+      --accent-soft: #1e1b4b;
       --ok: #4ade80;
       --ok-soft: #14532d80;
+      --soon: #fbbf24;
+      --soon-soft: #42200680;
       --code: #232321;
       --shadow: inset 0 0 0 1px #fffaed2d;
     }
@@ -57,7 +63,7 @@
     font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  @media (min-width: 1024px) { body { justify-content: center; padding: 32px; } }
+  @media (min-width: 1024px) { body { padding: 40px 32px; } }
   a { color: inherit; }
   code {
     font: 12.5px/1.5 ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
@@ -65,11 +71,10 @@
     border-radius: 4px;
     padding: 1px 5px;
   }
+  .wrap { width: 100%; max-width: 960px; }
 
   /* Top bar */
   header {
-    width: 100%;
-    max-width: 896px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -78,22 +83,18 @@
   }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; text-decoration: none; }
   .brand svg { width: 28px; height: 28px; }
-  nav { display: flex; gap: 8px; }
   nav a {
+    display: inline-block;
     padding: 5px 16px;
-    border: 1px solid transparent;
+    border: 1px solid var(--line);
     border-radius: 4px;
     text-decoration: none;
     font-size: 13px;
   }
-  nav a:hover { border-color: var(--line); }
-  nav a.boxed { border-color: var(--line); }
-  nav a.boxed:hover { border-color: var(--line-strong); }
+  nav a:hover { border-color: var(--line-strong); }
 
-  /* Card */
-  main {
-    width: 100%;
-    max-width: 896px;
+  /* Hero card */
+  .hero {
     display: flex;
     flex-direction: column-reverse;
     border-radius: 8px;
@@ -103,15 +104,16 @@
     transform: translateY(6px);
     animation: rise .6s cubic-bezier(.2,.7,.2,1) .05s forwards;
   }
-  @media (min-width: 1024px) { main { flex-direction: row; } }
+  @media (min-width: 1024px) { .hero { flex-direction: row; } }
   @keyframes rise { to { opacity: 1; transform: none; } }
 
   .content {
     flex: 1;
-    padding: 24px 24px 48px;
+    min-width: 0;
+    padding: 24px 24px 40px;
     background: var(--card);
   }
-  @media (min-width: 1024px) { .content { padding: 56px 48px 56px 48px; } }
+  @media (min-width: 1024px) { .content { padding: 52px 48px; } }
 
   .status {
     display: inline-flex;
@@ -128,30 +130,23 @@
   .status i {
     width: 8px; height: 8px; border-radius: 50%;
     background: currentColor;
-    box-shadow: 0 0 0 0 currentColor;
     animation: pulse 2s infinite;
   }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 60%, transparent); }
     70%, 100% { box-shadow: 0 0 0 7px transparent; }
   }
-  h1 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
-  h1 .small { display: block; color: var(--muted); font-weight: 400; }
-  .lead { margin: 0 0 20px; color: var(--muted); }
+  h1 { margin: 0 0 6px; font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -.01em; }
+  .lead { margin: 0 0 24px; color: var(--muted); font-size: 14.5px; }
 
-  /* Steps with a connecting line, like a checklist */
+  /* Getting-started steps with a connecting line */
+  h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
   ol.steps { list-style: none; margin: 0 0 28px; padding: 0; }
-  ol.steps li {
-    position: relative;
-    display: flex;
-    gap: 16px;
-    padding: 8px 0;
-  }
+  ol.steps li { position: relative; display: flex; gap: 16px; padding: 8px 0; }
   ol.steps li::before {
     content: "";
     position: absolute;
-    left: 10px;
-    top: 0; bottom: 0;
+    left: 10px; top: 0; bottom: 0;
     border-left: 1px solid var(--line);
   }
   ol.steps li:first-child::before { top: 50%; }
@@ -165,27 +160,13 @@
     border-radius: 50%;
     background: var(--card);
     box-shadow: var(--shadow);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
   }
-  ol.steps .dot::after {
-    content: "";
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--line-strong);
-  }
+  ol.steps p { margin: 0; min-width: 0; flex: 1; }
   ol.steps strong { font-weight: 500; }
-  ol.steps p { margin: 0; }
   ol.steps .hint { color: var(--muted); }
-  ol.steps p { min-width: 0; flex: 1; }
-  .cmd {
-    display: block;
-    margin: 6px 0 4px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--line);
-    background: var(--code);
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  .cmd::before { content: "$ "; color: var(--muted); }
 
   .actions { display: flex; flex-wrap: wrap; gap: 10px; }
   .btn {
@@ -197,27 +178,21 @@
     border: 1px solid var(--line);
   }
   .btn:hover { border-color: var(--line-strong); }
-  .btn.primary {
-    background: var(--text);
-    border-color: var(--text);
-    color: var(--bg);
-  }
+  .btn.primary { background: var(--text); border-color: var(--text); color: var(--bg); }
   .btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
   .btn svg { width: 12px; height: 12px; }
 
   /* Brand panel */
   .art {
     position: relative;
-    aspect-ratio: 335 / 376;
+    height: 300px;
     background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
     overflow: hidden;
     display: grid;
     place-items: center;
   }
-  @media (max-width: 1023px) { .art { aspect-ratio: auto; height: 300px; } }
-  @media (min-width: 1024px) { .art { width: 400px; flex: none; } }
+  @media (min-width: 1024px) { .art { width: 400px; height: auto; flex: none; } }
   .art::before {
-    /* Fine grid that fades towards the edges. */
     content: "";
     position: absolute; inset: 0;
     background-image:
@@ -239,12 +214,13 @@
   @keyframes breathe { 50% { scale: 1.08; opacity: .85; } }
   .art .mark {
     position: relative;
-    width: 58%;
-    max-width: 240px;
+    width: 50%;
+    max-width: 210px;
     filter: drop-shadow(0 24px 40px #1e1b4b66);
   }
   .chip {
     position: absolute;
+    display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 11px;
     border-radius: 999px;
     background: #ffffff1f;
@@ -256,16 +232,56 @@
     white-space: nowrap;
     animation: float 7s ease-in-out infinite;
   }
-  .chip b { color: #fcd34d; font-weight: 400; }
-  .chip.c1 { left: 9%;  top: 14%; }
-  .chip.c2 { right: 8%; top: 52%; animation-delay: -2.3s; }
-  .chip.c3 { left: 14%; bottom: 11%; animation-delay: -4.6s; }
+  .chip i { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+  .chip.c1 { left: 8%;  top: 11%; }
+  .chip.c2 { right: 7%; top: 27%; animation-delay: -1.4s; }
+  .chip.c3 { right: 9%; bottom: 25%; animation-delay: -2.8s; }
+  .chip.c4 { left: 7%;  bottom: 30%; animation-delay: -4.2s; }
+  .chip.c5 { left: 30%; bottom: 8%; animation-delay: -5.6s; }
   @keyframes float { 50% { translate: 0 -8px; } }
 
+  /* Features */
+  .features { margin-top: 40px; }
+  .features > h2 { font-size: 17px; margin-bottom: 4px; letter-spacing: -.01em; }
+  .features > p { margin: 0 0 18px; color: var(--muted); }
+  .grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  .feature {
+    padding: 18px 18px 16px;
+    border-radius: 8px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .feature:hover { transform: translateY(-2px); box-shadow: var(--shadow), 0 8px 24px #0000000f; }
+  .feature .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .icon {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .icon svg { width: 18px; height: 18px; }
+  .tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--soon-soft);
+    color: var(--soon);
+  }
+  .feature h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  .feature p { margin: 0; color: var(--muted); font-size: 13px; }
+  .feature.soon .icon { background: var(--code); color: var(--muted); }
+
   footer {
-    width: 100%;
-    max-width: 896px;
-    margin-top: 16px;
+    margin-top: 28px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -275,12 +291,13 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; }
-    main { opacity: 1; transform: none; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .hero { opacity: 1; transform: none; }
   }
 </style>
 </head>
 <body>
+<div class="wrap">
   <header>
     <a class="brand" href="/">
       <svg viewBox="0 0 1024 1024" aria-hidden="true">
@@ -294,52 +311,47 @@
       </svg>
       Lumina
     </a>
-    <nav>
-      <a href="https://github.com/SaanPrasanna/Lumina">GitHub</a>
-      <a class="boxed" href="https://laravel.com/docs">Laravel docs</a>
-    </nav>
+    <nav><a href="https://github.com/SaanPrasanna/Lumina">GitHub</a></nav>
   </header>
 
-  <main>
+  <main class="hero">
     <section class="content">
       <span class="status"><i></i>Web server running</span>
-      <h1>
-        It works &mdash; Lumina is running.
-        <span class="small">Your local web server and PHP are up. Here is how to get going.</span>
-      </h1>
+      <h1>It works &mdash; Lumina is running.</h1>
+      <p class="lead">Your local development environment: web servers, PHP, databases and a real domain for every project, managed from one fast, native app.</p>
 
+      <h2>Get started</h2>
       <ol class="steps">
         <li>
-          <span class="dot"></span>
+          <span class="dot">1</span>
           <p>
-            <strong>Create a project folder</strong> next to this page.<br>
-            <span class="hint">A folder named <code>blog</code> opens at <a href="http://blog.test/">http://blog.test</a> &mdash; no setup needed.</span>
+            <strong>Add a project folder</strong> next to this page.<br>
+            <span class="hint">A folder named <code>blog</code> is served at <a href="http://blog.test/">http://blog.test</a> &mdash; Lumina writes the virtual host and the hosts entry for you.</span>
           </p>
         </li>
         <li>
-          <span class="dot"></span>
+          <span class="dot">2</span>
           <p>
-            <strong>Start a Laravel app</strong> in this folder:
-            <code class="cmd">composer create-project laravel/laravel blog</code>
-            <span class="hint">Lumina serves its <code>public/</code> folder automatically.</span>
+            <strong>Pick your stack</strong> on the Services page.<br>
+            <span class="hint">nginx or Apache, any installed PHP version, MySQL or MariaDB, and Redis &mdash; switch in one click.</span>
           </p>
         </li>
         <li>
-          <span class="dot"></span>
+          <span class="dot">3</span>
           <p>
-            <strong>Connect to the database</strong> at <code>127.0.0.1</code> as <code>root</code> with no password.<br>
-            <span class="hint">The port and engine (MySQL or MariaDB) are on Lumina's Services page.</span>
+            <strong>Connect to the database</strong> at <code>127.0.0.1</code> as <code>root</code>, no password.<br>
+            <span class="hint">The port is shown on the Services page.</span>
           </p>
         </li>
       </ol>
 
       <div class="actions">
-        <a class="btn primary" href="https://laravel.com/docs/installation">
-          Laravel installation guide
+        <a class="btn primary" href="https://github.com/SaanPrasanna/Lumina">
+          Lumina on GitHub
           <svg viewBox="0 0 10 11" fill="none" aria-hidden="true"><path d="M7.7 1.7 1 8.4M7.7 1.7H2.1M7.7 1.7v5.5" stroke="currentColor" stroke-linecap="square"/></svg>
         </a>
-        <a class="btn" href="https://github.com/SaanPrasanna/Lumina">
-          About Lumina
+        <a class="btn" href="https://github.com/SaanPrasanna/Lumina/issues">
+          Report an issue
           <svg viewBox="0 0 10 11" fill="none" aria-hidden="true"><path d="M7.7 1.7 1 8.4M7.7 1.7H2.1M7.7 1.7v5.5" stroke="currentColor" stroke-linecap="square"/></svg>
         </a>
       </div>
@@ -356,20 +368,90 @@
         <path d="M380 280V700H680" fill="none" stroke="#fff" stroke-width="112" stroke-linecap="round" stroke-linejoin="round"/>
         <circle cx="668" cy="336" r="92" fill="url(#ag)"/>
       </svg>
-      <span class="chip c1"><b>~/www/</b>blog &rarr; blog.test</span>
-      <span class="chip c2">shop.test</span>
-      <span class="chip c3">api.test <b>&#9679;</b></span>
+      <span class="chip c1"><i></i>nginx</span>
+      <span class="chip c2"><i></i>PHP 8.4</span>
+      <span class="chip c3"><i></i>MySQL</span>
+      <span class="chip c4"><i></i>Redis</span>
+      <span class="chip c5">blog.test</span>
     </aside>
   </main>
+
+  <section class="features" aria-labelledby="features-title">
+    <h2 id="features-title">Everything your local stack needs, in one app</h2>
+    <p>Lightweight, native and open source &mdash; built in Rust for Windows, macOS and Linux.</p>
+    <div class="grid">
+      <article class="feature">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></span></div>
+        <h3>nginx &amp; Apache</h3>
+        <p>Configs are tested before they are applied, and a reload works on the first try. A broken config is rolled back, never left running.</p>
+      </article>
+      <article class="feature">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></span></div>
+        <h3>Every PHP version</h3>
+        <p>Keep several PHP versions side by side and switch in a click. Old workers are stopped and verified gone &mdash; no ghost processes.</p>
+      </article>
+      <article class="feature">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span></div>
+        <h3>MySQL, MariaDB &amp; Redis</h3>
+        <p>Ready on first start with no setup, sized to your computer's memory, and shut down cleanly so your data stays safe.</p>
+      </article>
+      <article class="feature">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z"/></svg></span></div>
+        <h3>Automatic .test domains</h3>
+        <p>Every folder becomes its own site. Laravel's <code>public/</code> and Symfony's <code>web/</code> are detected; the hosts file is updated for you.</p>
+      </article>
+      <article class="feature">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span></div>
+        <h3>Port conflicts, solved</h3>
+        <p>When a port is taken, Lumina names the program holding it and moves your service to a free port in one click.</p>
+      </article>
+      <article class="feature">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></span></div>
+        <h3>Quiet in the tray</h3>
+        <p>Start and stop everything from the tray. On exit every service is stopped &mdash; nothing keeps running behind your back.</p>
+      </article>
+      <article class="feature soon">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><span class="tag">Coming soon</span></div>
+        <h3>Automatic HTTPS</h3>
+        <p>Trusted local certificates for every site, so <code>https://blog.test</code> shows a padlock without warnings.</p>
+      </article>
+      <article class="feature soon">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><span class="tag">Coming soon</span></div>
+        <h3>Quick Add</h3>
+        <p>Download new versions of PHP, nginx, Apache, MySQL, Node.js and Python straight from the app.</p>
+      </article>
+      <article class="feature soon">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg></span><span class="tag">Coming soon</span></div>
+        <h3>Profiles</h3>
+        <p>Save whole stacks &mdash; nginx with PHP 8.3, Apache with PHP 8.4 &mdash; and switch between them cleanly.</p>
+      </article>
+      <article class="feature soon">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.1 2.1 0 0 0-2.9-.1z"/><path d="M12 15 9 12a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2z"/></svg></span><span class="tag">Coming soon</span></div>
+        <h3>QuickApp</h3>
+        <p>Create Laravel, WordPress and other projects in one click, with their domain and database ready.</p>
+      </article>
+      <article class="feature soon">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></span><span class="tag">Coming soon</span></div>
+        <h3>Share your site</h3>
+        <p>Give a client or a phone a public link to a local site through ngrok, from inside Lumina.</p>
+      </article>
+      <article class="feature soon">
+        <div class="top"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6M12 19h8"/></svg></span><span class="tag">Coming soon</span></div>
+        <h3>Terminal &amp; editor</h3>
+        <p>PHP, Composer and Node.js on your terminal's PATH, and projects open in your favourite editor.</p>
+      </article>
+    </div>
+  </section>
 
   <footer>
     <span>This page is <code>www/index.html</code> &mdash; edit it or replace it with your own.</span>
     <span id="served"></span>
   </footer>
+</div>
 
-  <script>
-    // Which address answered, e.g. "Served at localhost:8080".
-    if (location.host) document.getElementById("served").textContent = "Served at " + location.host;
-  </script>
+<script>
+  // Which address answered, e.g. "Served at localhost:8080".
+  if (location.host) document.getElementById("served").textContent = "Served at " + location.host;
+</script>
 </body>
 </html>
