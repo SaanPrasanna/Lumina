@@ -67,7 +67,7 @@ pub fn tail(path: &Path, max_lines: usize) -> String {
 }
 
 /// New text of a log since a previous read (see [`read_from`]).
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Chunk {
     pub text: String,

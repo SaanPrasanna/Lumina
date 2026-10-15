@@ -15,7 +15,7 @@ use tauri::{AppHandle, Manager, State};
 use crate::error::CommandResult;
 use crate::state::{AppState, Runtime};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PathOverview {
     pub shim_dir: PathBuf,
@@ -48,6 +48,7 @@ async fn overview(rt: &Runtime) -> lumina_core::Result<PathOverview> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn path_status(state: State<'_, AppState>) -> CommandResult<PathOverview> {
     let rt = state.runtime()?;
     Ok(overview(&rt).await?)
@@ -55,6 +56,7 @@ pub async fn path_status(state: State<'_, AppState>) -> CommandResult<PathOvervi
 
 /// Puts the shim folder first on the user's PATH (new terminals see it).
 #[tauri::command]
+#[specta::specta]
 pub async fn path_add(state: State<'_, AppState>) -> CommandResult<PathOverview> {
     let rt = state.runtime()?;
     let cfg = rt.config();
@@ -71,6 +73,7 @@ pub async fn path_add(state: State<'_, AppState>) -> CommandResult<PathOverview>
 
 /// Takes the shim folder off PATH again, restoring what was there.
 #[tauri::command]
+#[specta::specta]
 pub async fn path_remove(state: State<'_, AppState>) -> CommandResult<PathOverview> {
     let rt = state.runtime()?;
     // The machine-wide entry needs administrator rights; only ask if it exists.
@@ -111,6 +114,7 @@ async fn helper(rt: &Runtime, command: &str) -> lumina_core::Result<bool> {
 /// Windows searches before the user PATH, so a PHP or Node.js installed for
 /// all users no longer comes first. One administrator prompt.
 #[tauri::command]
+#[specta::specta]
 pub async fn path_add_system(state: State<'_, AppState>) -> CommandResult<PathOverview> {
     let rt = state.runtime()?;
     let cfg = rt.config();
@@ -127,6 +131,7 @@ pub async fn path_add_system(state: State<'_, AppState>) -> CommandResult<PathOv
 /// Opens a terminal in `path` (default: the projects folder) with Lumina's
 /// commands first on PATH.
 #[tauri::command]
+#[specta::specta]
 pub async fn terminal_open(state: State<'_, AppState>, path: Option<PathBuf>) -> CommandResult<()> {
     let rt = state.runtime()?;
     let cfg = rt.config();

@@ -8,7 +8,7 @@ use lumina_shim::Target;
 use serde::Serialize;
 
 /// One command in the shim folder.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Shim {
     /// `php`, `composer`, `node`, ...

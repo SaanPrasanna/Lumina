@@ -19,7 +19,7 @@ use crate::error::CommandResult;
 use crate::events;
 use crate::state::{AppState, Runtime};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct CaStatus {
     #[serde(flatten)]
@@ -30,7 +30,7 @@ pub struct CaStatus {
     pub covers_tld: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteCert {
     pub domain: String,
@@ -38,7 +38,7 @@ pub struct SiteCert {
     pub not_after: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SslOverview {
     pub enabled: bool,
@@ -55,7 +55,7 @@ pub struct SslOverview {
 }
 
 /// What a trust change did.
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum TrustOutcome {
     Done,
@@ -84,6 +84,7 @@ fn cert(info: &CaInfo) -> CaCert<'_> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn ssl_status(state: State<'_, AppState>) -> CommandResult<SslOverview> {
     let rt = state.runtime()?;
     let cfg = rt.config();
@@ -121,6 +122,7 @@ pub async fn ssl_status(state: State<'_, AppState>) -> CommandResult<SslOverview
 /// Turns HTTPS on or off. Turning it on creates the CA if needed and asks
 /// the OS to trust it (one prompt) when it is not trusted yet.
 #[tauri::command]
+#[specta::specta]
 pub async fn ssl_set_enabled(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -149,6 +151,7 @@ pub async fn ssl_set_enabled(
 
 /// Redirect plain HTTP to HTTPS on every site.
 #[tauri::command]
+#[specta::specta]
 pub fn ssl_set_force_https(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -162,6 +165,7 @@ pub fn ssl_set_force_https(
 
 /// Asks the OS to trust the current CA (one prompt).
 #[tauri::command]
+#[specta::specta]
 pub async fn ssl_trust(state: State<'_, AppState>) -> CommandResult<TrustOutcome> {
     let rt = state.runtime()?;
     let ca = rt
@@ -176,6 +180,7 @@ pub async fn ssl_trust(state: State<'_, AppState>) -> CommandResult<TrustOutcome
 /// Replaces the CA: the old one is removed from the OS store, a new one is
 /// created and trusted, and every site gets a new certificate.
 #[tauri::command]
+#[specta::specta]
 pub async fn ssl_regenerate(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -203,6 +208,7 @@ pub async fn ssl_regenerate(
 /// Removes the CA from the OS store, deletes it and every certificate, and
 /// turns HTTPS off.
 #[tauri::command]
+#[specta::specta]
 pub async fn ssl_remove_ca(
     app: AppHandle,
     state: State<'_, AppState>,

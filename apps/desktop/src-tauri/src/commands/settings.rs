@@ -11,7 +11,7 @@ use crate::error::CommandResult;
 use crate::events;
 use crate::state::{AppState, Runtime};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub config: AppConfig,
@@ -34,6 +34,7 @@ fn snapshot(runtime: &Runtime) -> Settings {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn settings_get(state: State<'_, AppState>) -> CommandResult<Settings> {
     let runtime = state.runtime()?;
     Ok(snapshot(&runtime))
@@ -42,13 +43,21 @@ pub fn settings_get(state: State<'_, AppState>) -> CommandResult<Settings> {
 /// Replaces one section (e.g. `"php"`, `"editor"`) with `value`, validates the
 /// result (repairing what it can), saves config.toml and notifies the UI.
 /// Missing fields in `value` take their defaults.
+/// One config section from the UI, any shape: it is checked against the schema
+/// when merged (`unknown` in TypeScript; serde_json::Value is recursive).
+#[derive(Debug, serde::Deserialize, specta::Type)]
+#[serde(transparent)]
+pub struct SectionValue(#[specta(type = specta_typescript::Unknown)] serde_json::Value);
+
 #[tauri::command]
+#[specta::specta]
 pub fn settings_update(
     app: AppHandle,
     state: State<'_, AppState>,
     section: String,
-    value: serde_json::Value,
+    value: SectionValue,
 ) -> CommandResult<Settings> {
+    let value = value.0;
     let runtime = state.runtime()?;
     let bad = |e: serde_json::Error| Error::Config(e.to_string());
 

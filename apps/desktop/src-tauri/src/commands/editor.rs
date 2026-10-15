@@ -15,7 +15,7 @@ use crate::error::CommandResult;
 use crate::state::{AppState, Runtime};
 
 /// What to open.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", tag = "kind")]
 pub enum OpenTarget {
     /// A project folder, by its folder name in the projects folder.
@@ -26,7 +26,7 @@ pub enum OpenTarget {
     Www,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum ConfigFile {
     /// `config.toml`.
@@ -42,6 +42,7 @@ pub enum ConfigFile {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn editor_presets() -> Vec<EditorPreset> {
     launcher::editor_presets()
 }
@@ -105,6 +106,7 @@ async fn resolve_target(rt: &Runtime, target: &OpenTarget) -> lumina_core::Resul
 
 /// Opens `target` in the editor from the settings (`[editor]`).
 #[tauri::command]
+#[specta::specta]
 pub async fn editor_open(
     state: State<'_, AppState>,
     target: OpenTarget,

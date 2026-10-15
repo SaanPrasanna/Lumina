@@ -23,7 +23,7 @@ use crate::error::CommandResult;
 use crate::events;
 use crate::state::{AppState, Runtime};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SitesOverview {
     #[serde(flatten)]
@@ -56,6 +56,7 @@ fn overview(rt: &Runtime, web_running: bool) -> SitesOverview {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn sites_list(state: State<'_, AppState>) -> CommandResult<SitesOverview> {
     let rt = state.runtime()?;
     let running = rt.stack.running_web().await.is_some();
@@ -65,12 +66,14 @@ pub async fn sites_list(state: State<'_, AppState>) -> CommandResult<SitesOvervi
 /// "Sync now" / "Update hosts file": like an automatic sync, but asks for
 /// administrator rights again even if the last prompt was declined.
 #[tauri::command]
+#[specta::specta]
 pub async fn sites_sync(app: AppHandle) -> CommandResult<Option<Attempt>> {
     Ok(resync(&app, true).await?)
 }
 
 /// Opens http://<domain>/ (with the port if it is not 80).
 #[tauri::command]
+#[specta::specta]
 pub fn site_open(app: AppHandle, state: State<'_, AppState>, domain: String) -> CommandResult<()> {
     let rt = state.runtime()?;
     let cfg = rt.config();
@@ -94,6 +97,7 @@ pub fn site_open(app: AppHandle, state: State<'_, AppState>, domain: String) -> 
 
 /// Opens a project folder in the file manager.
 #[tauri::command]
+#[specta::specta]
 pub fn site_open_folder(
     app: AppHandle,
     state: State<'_, AppState>,

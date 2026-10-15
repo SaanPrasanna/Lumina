@@ -17,7 +17,7 @@ use crate::schema::AppConfig;
 use crate::validate::{Warning, validate};
 
 /// Where the loaded configuration came from.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "kebab-case")]
 pub enum ConfigSource {
     /// Read from config.toml.

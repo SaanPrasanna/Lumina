@@ -25,7 +25,7 @@ const CA_VALIDITY_DAYS: i64 = 3650;
 pub const BASE_SUFFIXES: [&str; 3] = ["test", "local", "localhost"];
 
 /// What the UI and the trust store need to know about the CA.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct CaInfo {
     pub subject: String,

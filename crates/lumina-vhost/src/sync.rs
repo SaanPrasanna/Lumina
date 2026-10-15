@@ -31,7 +31,7 @@ pub fn desired_entries(sites: &[Site]) -> Vec<Entry> {
     entries
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum Outcome {
     /// The block already matched; nothing was run.
@@ -46,7 +46,7 @@ pub enum Outcome {
 }
 
 /// The result of the last [`HostsSync::ensure`].
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Attempt {
     pub outcome: Outcome,
@@ -71,7 +71,7 @@ impl Attempt {
 }
 
 /// What the Sites page shows about the hosts file.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct HostsReport {
     pub file: PathBuf,

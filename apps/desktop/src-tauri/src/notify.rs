@@ -45,7 +45,8 @@ pub fn service_name(id: &str) -> Option<&'static str> {
     })
 }
 
-fn text(language: &str, note: &Note<'_>) -> (String, String) {
+/// Title and body of `note` in `language`.
+pub fn text(language: &str, note: &Note<'_>) -> (String, String) {
     let si = language == "si";
     match *note {
         Note::Crashed { service } if si => (
@@ -112,19 +113,5 @@ pub fn send(app: &AppHandle, note: Note<'_>) {
     let (title, body) = text(&crate::tray::language(app), &note);
     if let Err(err) = app.notification().builder().title(title).body(body).show() {
         log::warn!("notification not shown: {err}");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn texts_follow_the_language() {
-        let note = Note::Crashed { service: "nginx" };
-        assert_eq!(text("en", &note).0, "nginx stopped unexpectedly");
-        assert!(text("si", &note).0.starts_with("nginx "));
-        assert_eq!(service_name("php-fcgi"), Some("PHP"));
-        assert_eq!(service_name("ngrok"), None);
     }
 }

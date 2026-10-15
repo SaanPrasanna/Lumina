@@ -1,10 +1,11 @@
 //! Tauri shell: wires plugins, state, tray and IPC commands. Business logic lives
 //! in `crates/*`; this crate stays a thin adapter.
 
-mod commands;
+#[doc(hidden)]
+pub mod commands;
 mod error;
 mod events;
-mod notify;
+pub mod notify;
 mod setup;
 mod state;
 mod tray;
@@ -38,34 +39,12 @@ fn log_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .build()
 }
 
-pub fn run() {
-    let app = tauri::Builder::default()
-        // Must be registered first so a second launch focuses the existing window.
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            tray::show_main(app);
-        }))
-        .plugin(log_plugin())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .setup(|app| {
-            setup::init(app)?;
-            tray::create(app.handle())?;
-            setup::autostart(app.handle());
-            Ok(())
-        })
-        .on_window_event(|window, event| {
-            use tauri::Manager;
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event
-                && setup::close_to_tray(window.app_handle())
-            {
-                api.prevent_close();
-                let _ = window.hide();
-            }
-        })
-        .invoke_handler(tauri::generate_handler![
+/// Every command the UI can call. `src/lib/bindings.ts` is generated from
+/// this (see the `bindings` test), so the frontend's types cannot drift from
+/// the Rust ones.
+pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
+    tauri_specta::Builder::<tauri::Wry>::new()
+        .commands(tauri_specta::collect_commands![
             commands::app::app_version,
             commands::app::bootstrap_status,
             commands::app::bootstrap_complete,
@@ -134,6 +113,40 @@ pub fn run() {
             commands::logs::logs_open,
             commands::logs::logs_open_folder,
         ])
+        // Failed commands reject the promise, as `invoke` does.
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
+        // u64 values (sizes, offsets, timestamps) stay far below 2^53.
+        .dangerously_cast_bigints_to_number()
+}
+
+pub fn run() {
+    let app = tauri::Builder::default()
+        // Must be registered first so a second launch focuses the existing window.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            tray::show_main(app);
+        }))
+        .plugin(log_plugin())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .setup(|app| {
+            setup::init(app)?;
+            tray::create(app.handle())?;
+            setup::autostart(app.handle());
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            use tauri::Manager;
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event
+                && setup::close_to_tray(window.app_handle())
+            {
+                api.prevent_close();
+                let _ = window.hide();
+            }
+        })
+        .invoke_handler(specta_builder().invoke_handler())
         .build(tauri::generate_context!())
         .expect("error while building Lumina");
 

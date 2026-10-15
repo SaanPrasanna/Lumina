@@ -32,7 +32,7 @@ const STOP_TIMEOUT: Duration = Duration::from_secs(60);
 const INIT_TIMEOUT: Duration = Duration::from_secs(180);
 const ADMIN_TIMEOUT: Duration = Duration::from_secs(30);
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DbRuntime {
     pub engine: DatabaseEngine,
@@ -41,7 +41,7 @@ pub struct DbRuntime {
     pub data_dir: PathBuf,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DbStatus {
     pub engine: DatabaseEngine,

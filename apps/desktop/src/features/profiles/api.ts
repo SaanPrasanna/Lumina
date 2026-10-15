@@ -1,45 +1,22 @@
 // IPC wrappers for the `profiles` feature (see src-tauri/src/commands/profiles.rs).
-import type { DatabaseEngine, WebServer } from "@/features/services/api";
-import { call } from "@/lib/ipc";
-import type { ServiceKind } from "@/types";
+import { commands } from "@/lib/bindings";
+import type * as B from "@/lib/bindings";
 
-/** Mirrors lumina_config::schema::Profile (snake_case, as in config.toml). */
-export interface Profile {
-  name: string;
-  web: WebServer;
-  /** "" = newest installed. */
-  web_version: string;
-  php: string;
-  database: { engine: DatabaseEngine; version: string };
-  redis: boolean;
-}
-
-export interface ProfileView extends Profile {
-  current: boolean;
-  missing: string[];
-}
-
-export interface ProfilesOverview {
-  profiles: ProfileView[];
-  stack: Profile;
-  active: string;
-}
-
-/** Mirrors lumina_services::profiles::Plan. */
-export interface SwitchPlan {
-  stop: ServiceKind[];
-  start: ServiceKind[];
-  keep: ServiceKind[];
-}
+export type { Plan as SwitchPlan } from "@/lib/bindings";
+// Complete as sent by the backend (the Rust struct has `#[serde(default)]`,
+// which makes the generated fields optional; see settings/api.ts).
+export type Profile = Required<Omit<B.Profile, "database">> & { database: Required<B.ProfileDatabase> };
+export type ProfileView = Omit<B.ProfileView, keyof B.Profile> & Profile;
+export type ProfilesOverview = Omit<B.ProfilesOverview, "profiles" | "stack"> & { profiles: ProfileView[]; stack: Profile };
 
 export const PROFILES_KEY = ["profiles"] as const;
 
-export const profilesList = () => call<ProfilesOverview>("profiles_list");
+export const profilesList = () => commands.profilesList() as Promise<ProfilesOverview>;
 /** Adds `profile`, or replaces the one named `original`. */
-export const profileSave = (profile: Profile, original: string | null) => call<void>("profile_save", { profile, original });
-export const profileSaveCurrent = (name: string) => call<void>("profile_save_current", { name });
-export const profileDelete = (name: string) => call<void>("profile_delete", { name });
-export const profileSwitch = (name: string) => call<SwitchPlan>("profile_switch", { name });
+export const profileSave = (profile: Profile, original: string | null) => commands.profileSave(profile, original);
+export const profileSaveCurrent = (name: string) => commands.profileSaveCurrent(name);
+export const profileDelete = (name: string) => commands.profileDelete(name);
+export const profileSwitch = (name: string) => commands.profileSwitch(name);
 
 /** "nginx · PHP 8.3 · MySQL 8.4 · Redis". */
 export function describe(p: Profile, newest: string): string {

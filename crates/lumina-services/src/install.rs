@@ -8,7 +8,7 @@ use std::time::Duration;
 use lumina_core::{Error, Result};
 use serde::Serialize;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Install {
     /// As reported by the tool, e.g. `1.30.5`.

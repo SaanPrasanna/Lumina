@@ -36,7 +36,7 @@ pub fn host_name() -> String {
 }
 
 /// Everything the Services page shows.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct StackStatus {
     pub php: PhpStatus,

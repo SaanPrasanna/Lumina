@@ -1,86 +1,35 @@
-import type { DatabaseEngine, WebServer } from "@/features/services/api";
-import { call } from "@/lib/ipc";
-import type { ConfigWarning } from "@/types";
+// IPC wrappers for config.toml (see src-tauri/src/commands/settings.rs).
+// Field names are snake_case, as in config.toml.
+import { commands } from "@/lib/bindings";
+import type * as B from "@/lib/bindings";
 
-/** Mirrors lumina_config::schema (field names are snake_case, as in config.toml). */
-export interface GeneralSettings {
-  www_root: string;
-  tld: string;
-  auto_vhosts: boolean;
-  auto_ssl: boolean;
-  force_https: boolean;
-  start_on_login: boolean;
-  autostart_services: boolean;
-  close_to_tray: boolean;
-}
-
-export interface PhpSettings {
-  version: string;
-  fcgi_port: number;
-  fcgi_fallback_port: number;
-  fcgi_children: number;
-  fcgi_max_requests: number;
-}
-
-export interface WebSettings {
-  server: WebServer;
-  nginx_version: string;
-  apache_version: string;
-  http_port: number;
-  https_port: number;
-}
-
-export interface DatabaseSettings {
-  engine: DatabaseEngine;
-  mysql_version: string;
-  mariadb_version: string;
-  port: number;
-}
-
-export interface RedisSettings {
-  enabled: boolean;
-  version: string;
-  port: number;
-}
-
-/** `[sites.<folder>]`: per-site switches for automatic virtual hosts. */
-export interface SiteOverride {
-  enabled: boolean;
-  /** Relative to the project folder, or absolute; "" = detect. */
-  docroot: string;
-}
-
-export interface EditorSettings {
-  name: string;
-  command: string;
-  args: string[];
-  args_line: string[];
-}
-
-export interface AppConfig {
-  schema_version: number;
-  general: GeneralSettings;
+// The backend always sends complete sections. The generated types mark their
+// fields optional because the Rust structs have `#[serde(default)]` (missing
+// keys are filled in when config.toml is read), so the UI states the shape it
+// actually receives.
+export type GeneralSettings = B.General_Serialize;
+export type PhpSettings = Required<B.Php>;
+export type WebSettings = Required<B.Web>;
+export type DatabaseSettings = Required<B.Database>;
+export type RedisSettings = Required<B.Redis>;
+export type EditorSettings = Required<B.Editor>;
+export type SiteOverride = Required<B.SiteOverride>;
+export type AppConfig = Omit<B.AppConfig_Serialize, "php" | "web" | "database" | "redis" | "editor" | "tunnel" | "tools" | "packages" | "sites"> & {
   php: PhpSettings;
   web: WebSettings;
   database: DatabaseSettings;
   redis: RedisSettings;
   editor: EditorSettings;
+  tunnel: Required<B.Tunnel>;
+  tools: Required<B.Tools>;
+  packages: Required<B.Packages>;
   sites: Record<string, SiteOverride>;
-  // Other sections are edited in later phases.
-  [section: string]: unknown;
-}
-
-/** Mirrors `Settings` in src-tauri/src/commands/settings.rs. */
-export interface Settings {
-  config: AppConfig;
-  warnings: ConfigWarning[];
-  source: "file" | "created" | "restored-from-backup" | "reset-to-defaults";
-  path: string;
-}
+};
+export type Settings = Omit<B.Settings_Serialize, "config"> & { config: AppConfig };
 
 export const SETTINGS_KEY = ["settings"] as const;
 
-export const settingsGet = () => call<Settings>("settings_get");
+export const settingsGet = () => commands.settingsGet() as Promise<Settings>;
 
-export const settingsUpdate = (section: string, value: unknown) =>
-  call<Settings>("settings_update", { section, value });
+/** Replaces one section of config.toml; the backend validates the result. */
+export const settingsUpdate = (section: string, value: unknown) => commands.settingsUpdate(section, value) as Promise<Settings>;

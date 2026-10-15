@@ -26,7 +26,7 @@ pub const QUICKAPP_OUTPUT: &str = "quickapp-output";
 /// A tunnel opened or closed, or the ngrok agent stopped; the UI refetches.
 pub const TUNNELS_CHANGED: &str = "tunnels-changed";
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ServiceStatusEvent {
     /// Supervisor process ID, e.g. `php-fcgi`.

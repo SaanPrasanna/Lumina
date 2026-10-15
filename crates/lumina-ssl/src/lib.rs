@@ -64,7 +64,7 @@ pub fn random_token(len: usize) -> String {
 }
 
 /// HTTPS settings handed to the web servers.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Tls {
     pub https_port: u16,

@@ -20,8 +20,10 @@ pub struct TunnelSpec {
 }
 
 /// An open tunnel.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
+// The UI's name (`Tunnel` is config.toml's section); JSON never carries it.
+#[serde(rename = "SharedTunnel")]
 pub struct Tunnel {
     pub name: String,
     /// `https://abc123.ngrok-free.app`.

@@ -11,7 +11,7 @@ use crate::schema::{AppConfig, Editor};
 
 /// A config problem shown to the user. `code` is a stable i18n key
 /// (`configWarnings.<code>` in the locale files); `values` fill its placeholders.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Warning {
     pub code: &'static str,

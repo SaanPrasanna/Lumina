@@ -9,6 +9,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+specta = { workspace = true }
 lumina-core = { workspace = true }
 lumina-platform = { workspace = true }
 serde = { workspace = true }

@@ -1,0 +1,11 @@
+# Community translation through Crowdin (free for open-source projects).
+# English is the source; each language's file mirrors it key for key.
+# The project ID and token come from the environment (never committed):
+#   CROWDIN_PROJECT_ID, CROWDIN_PERSONAL_TOKEN
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_PERSONAL_TOKEN
+preserve_hierarchy: true
+
+files:
+  - source: /apps/desktop/src/i18n/locales/en/common.json
+    translation: /apps/desktop/src/i18n/locales/%two_letters_code%/common.json

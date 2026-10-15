@@ -18,7 +18,7 @@ pub fn is_free(port: u16) -> bool {
     TcpStream::connect_timeout(&addr, Duration::from_millis(150)).is_err()
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PortChoice {
     pub port: u16,

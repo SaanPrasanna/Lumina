@@ -46,6 +46,8 @@ flate2       = "1"
 semver       = { version = "1", features = ["serde"] }
 sysinfo      = "0.37"
 log          = "0.4"
+# TypeScript bindings for the UI (beta; `=` keeps it from moving under us).
+specta       = { version = "=2.0.0-rc.25", features = ["derive", "serde_json"] }
 
 # Dev-only
 tempfile     = "3"

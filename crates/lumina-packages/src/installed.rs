@@ -14,7 +14,7 @@ use crate::{Error, Result};
 
 pub const META_FILE: &str = ".lumina-package.json";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Meta {
     pub package: String,
@@ -27,7 +27,7 @@ pub struct Meta {
     pub requires: Requires,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Installed {
     pub version: String,

@@ -12,7 +12,7 @@ use serde::Serialize;
 use crate::path_env;
 
 /// A known editor found on this machine.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct EditorPreset {
     pub id: &'static str,

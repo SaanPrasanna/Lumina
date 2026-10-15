@@ -12,11 +12,12 @@ use crate::error::CommandResult;
 use crate::state::AppState;
 
 #[tauri::command]
+#[specta::specta]
 pub fn app_version(app: tauri::AppHandle) -> String {
     app.package_info().version.to_string()
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct BootstrapStatus {
     /// `false` → show the first-run wizard.
@@ -37,6 +38,7 @@ fn status(bootstrap: Option<&Bootstrap>) -> BootstrapStatus {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn bootstrap_status(state: State<'_, AppState>) -> BootstrapStatus {
     let guard = state.bootstrap.read().unwrap_or_else(|e| e.into_inner());
     status(guard.as_ref())
@@ -45,6 +47,7 @@ pub fn bootstrap_status(state: State<'_, AppState>) -> BootstrapStatus {
 /// Finishes the first-run wizard: validates input, creates the data root layout,
 /// then persists the bootstrap file (last, so a failure leaves the wizard rerunnable).
 #[tauri::command]
+#[specta::specta]
 pub fn bootstrap_complete(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
@@ -71,6 +74,7 @@ pub fn bootstrap_complete(
 
 /// Persists a language change from the UI language switcher.
 #[tauri::command]
+#[specta::specta]
 pub fn set_language(state: State<'_, AppState>, language: String) -> CommandResult<()> {
     let mut guard = state.bootstrap.write().unwrap_or_else(|e| e.into_inner());
     // Before first run there is nothing to persist; the wizard sends the language.

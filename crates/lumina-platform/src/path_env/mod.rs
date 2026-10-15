@@ -25,7 +25,7 @@ pub const BLOCK_END: &str = "# <<< lumina <<<";
 /// Commands whose resolution the status reports.
 pub const CHECKED_COMMANDS: [&str; 4] = ["php", "composer", "node", "python"];
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Shadow {
     pub command: String,
@@ -33,7 +33,7 @@ pub struct Shadow {
     pub found: PathBuf,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PathStatus {
     /// Lumina's folder is in the user's PATH (registry / start-up files).

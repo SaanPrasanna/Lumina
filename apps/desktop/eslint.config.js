@@ -9,7 +9,8 @@ const physicalMessage =
   "Use logical CSS utilities (ms-/me-, ps-/pe-, start-/end-, border-s/-e, rounded-s/-e, text-start/-end) so right-to-left languages mirror.";
 
 export default tseslint.config(
-  { ignores: ["dist", "src-tauri"] },
+  // bindings.ts is generated from Rust (tauri-specta).
+  { ignores: ["dist", "src-tauri", "src/lib/bindings.ts"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

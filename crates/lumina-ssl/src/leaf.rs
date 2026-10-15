@@ -23,7 +23,7 @@ pub const LEAF_VALIDITY_DAYS: i64 = 397;
 pub const RENEW_BEFORE_DAYS: i64 = 30;
 
 /// A site certificate on disk.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Leaf {
     pub cert: PathBuf,

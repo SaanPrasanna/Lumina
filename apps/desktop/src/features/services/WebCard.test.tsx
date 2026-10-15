@@ -71,7 +71,7 @@ describe("WebCard", () => {
     renderCard({
       ...stopped,
       status: "running",
-      runtime: { server: "nginx", version: "1.30.5", httpPort: 80, phpPort: 10987 },
+      runtime: { server: "nginx", version: "1.30.5", httpPort: 80, httpsPort: null, phpPort: 10987 },
       processes: 2,
     });
 

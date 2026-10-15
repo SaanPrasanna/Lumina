@@ -9,6 +9,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+specta = { workspace = true }
 lumina-core = { workspace = true }
 lumina-process = { workspace = true }
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }

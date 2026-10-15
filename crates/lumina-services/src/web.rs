@@ -31,7 +31,7 @@ pub struct WebContext {
 }
 
 /// The phpMyAdmin install served at http://localhost/phpmyadmin/.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DbUi {
     pub version: String,
@@ -160,7 +160,7 @@ pub fn render_sites(
 }
 
 /// What is running right now.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WebRuntime {
     pub server: WebServer,
@@ -171,7 +171,7 @@ pub struct WebRuntime {
     pub php_port: u16,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WebStatus {
     pub server: WebServer,
@@ -186,7 +186,7 @@ pub struct WebStatus {
 }
 
 /// Result of a reload request.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase", tag = "kind")]
 pub enum ReloadOutcome {
     /// Nothing changed on disk, so no signal was sent.

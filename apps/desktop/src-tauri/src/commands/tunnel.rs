@@ -19,7 +19,7 @@ use crate::events;
 use crate::state::{AppState, Runtime};
 use lumina_services::orchestrator::Orchestrator;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TunnelView {
     #[serde(flatten)]
@@ -28,7 +28,7 @@ pub struct TunnelView {
     pub qr_svg: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TunnelOverview {
     /// The ngrok version that runs, if one is installed.
@@ -90,6 +90,7 @@ fn view(tunnel: Tunnel) -> TunnelView {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn tunnel_overview(state: State<'_, AppState>) -> CommandResult<TunnelOverview> {
     let rt = state.runtime()?;
     let (has_token, token_error) = match rt.tunnel_token.load().await {
@@ -110,6 +111,7 @@ pub async fn tunnel_overview(state: State<'_, AppState>) -> CommandResult<Tunnel
 
 /// Saves the authtoken in the system keychain (replacing a saved one).
 #[tauri::command]
+#[specta::specta]
 pub async fn tunnel_set_token(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -124,6 +126,7 @@ pub async fn tunnel_set_token(
 
 /// Removes the authtoken from the keychain; open tunnels keep running.
 #[tauri::command]
+#[specta::specta]
 pub async fn tunnel_clear_token(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
     let rt = state.runtime()?;
     rt.tunnel_token.delete().await.map_err(tunnel_error)?;
@@ -134,6 +137,7 @@ pub async fn tunnel_clear_token(app: AppHandle, state: State<'_, AppState>) -> C
 
 /// Saves the reserved domain offered when sharing (`""` = none).
 #[tauri::command]
+#[specta::specta]
 pub fn tunnel_set_domain(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -155,6 +159,7 @@ pub fn tunnel_set_domain(
 /// Shares site `name` (its folder name), starting the web server if needed.
 /// `domain`: a reserved ngrok domain to use, or none for a random address.
 #[tauri::command]
+#[specta::specta]
 pub async fn tunnel_start(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -220,6 +225,7 @@ pub async fn tunnel_start(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn tunnel_stop(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -232,6 +238,7 @@ pub async fn tunnel_stop(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn tunnel_stop_all(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
     let rt = state.runtime()?;
     let result = rt.tunnels.shutdown().await;
@@ -241,6 +248,7 @@ pub async fn tunnel_stop_all(app: AppHandle, state: State<'_, AppState>) -> Comm
 
 /// Opens the agent's log in the system's default viewer.
 #[tauri::command]
+#[specta::specta]
 pub fn tunnel_open_log(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
     let rt = state.runtime()?;
     let log = rt.tunnels.log_file();

@@ -9,7 +9,7 @@ use serde::Serialize;
 use crate::domain::{self, Folder};
 
 /// One automatic virtual host.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Site {
     /// Folder name inside the projects folder (the key of `[sites.<name>]`).
@@ -27,7 +27,7 @@ pub struct Site {
     pub docroot_exists: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase", tag = "kind", content = "subdir")]
 pub enum DocrootSource {
     /// Detected: `public`, `web`, `public_html`, or `None` for the folder itself.
@@ -37,15 +37,20 @@ pub enum DocrootSource {
 }
 
 /// A folder that does not become a site, and why.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Skipped {
     pub name: String,
     pub reason: SkipReason,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase", tag = "kind")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+// Variant names and their fields are camelCase (`takenBy`), like every other type the UI reads.
+#[serde(
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "kind"
+)]
 pub enum SkipReason {
     /// Nothing usable for a host name is left after slugifying.
     InvalidName,
@@ -65,7 +70,7 @@ fn is_config_safe(name: &str) -> bool {
 }
 
 /// Every project folder, sorted by name, as sites or as skipped folders.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Scan {
     pub sites: Vec<Site>,

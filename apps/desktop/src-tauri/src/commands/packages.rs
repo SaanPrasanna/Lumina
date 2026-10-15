@@ -24,8 +24,10 @@ use crate::events;
 use crate::state::{AppState, Runtime};
 
 /// A running or finished install.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
+// Only the TypeScript name changes (JSON never carries a struct's name).
+#[serde(rename = "PackageJob")]
 pub struct Job {
     pub id: String,
     pub version: String,
@@ -53,7 +55,7 @@ fn key(id: &str, version: &str) -> String {
     format!("{id}@{version}")
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct InstalledVersion {
     pub version: String,
@@ -64,7 +66,7 @@ pub struct InstalledVersion {
     pub requires_php: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct AvailableVersion {
     pub version: String,
@@ -78,7 +80,7 @@ pub struct AvailableVersion {
     pub compatible: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageView {
     pub id: String,
@@ -96,7 +98,7 @@ pub struct PackageView {
     pub jobs: Vec<Job>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PackagesOverview {
     pub packages: Vec<PackageView>,
@@ -280,6 +282,7 @@ async fn view(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn packages_list(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -301,7 +304,7 @@ pub async fn packages_list(
     })
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 struct ProgressEvent {
     id: String,
@@ -313,6 +316,7 @@ struct ProgressEvent {
 
 /// Starts installing `id` `version` in the background.
 #[tauri::command]
+#[specta::specta]
 pub fn package_install(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -432,6 +436,7 @@ pub fn package_install(
 
 /// Stops an install; the partial download is kept so the next install resumes.
 #[tauri::command]
+#[specta::specta]
 pub fn package_cancel(app: AppHandle, id: String, version: String) {
     if let Some(job) = app.state::<Jobs>().lock().get(&key(&id, &version)) {
         job.cancel.store(true, Ordering::Relaxed);
@@ -440,6 +445,7 @@ pub fn package_cancel(app: AppHandle, id: String, version: String) {
 
 /// Forgets a failed or cancelled job (the "x" on its message).
 #[tauri::command]
+#[specta::specta]
 pub fn package_dismiss(app: AppHandle, id: String, version: String) {
     let jobs = app.state::<Jobs>();
     let mut map = jobs.lock();
@@ -451,6 +457,7 @@ pub fn package_dismiss(app: AppHandle, id: String, version: String) {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn package_uninstall(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -487,6 +494,7 @@ pub async fn package_uninstall(
 /// Selects `version` ("" = newest) and applies it: a running service is
 /// restarted on the new version.
 #[tauri::command]
+#[specta::specta]
 pub async fn package_set_active(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -531,6 +539,7 @@ async fn after_change(app: &AppHandle, rt: &Arc<Runtime>, id: &str) {
 
 /// Opens phpMyAdmin at http(s)://localhost/phpmyadmin/.
 #[tauri::command]
+#[specta::specta]
 pub async fn db_ui_open(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
     let rt = state.runtime()?;
     let cfg = rt.config();

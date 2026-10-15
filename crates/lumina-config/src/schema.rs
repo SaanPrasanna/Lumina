@@ -13,7 +13,7 @@ use crate::defaults;
 /// Bump when a change needs a migration step in `migrate.rs`.
 pub const CURRENT_SCHEMA_VERSION: u32 = 1;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct AppConfig {
     pub schema_version: u32,
@@ -50,11 +50,12 @@ impl Default for AppConfig {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct General {
     /// Projects folder; `None` (empty in the file) means `<data-root>/www`.
     #[serde(with = "empty_path_as_none")]
+    #[specta(type = String)]
     pub www_root: Option<PathBuf>,
     /// Domain suffix for automatic sites: folder `blog` becomes `blog.<tld>`.
     pub tld: String,
@@ -86,7 +87,7 @@ impl Default for General {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Php {
     /// Empty = newest installed; `"8.4"` = newest 8.4.x; `"8.4.13"` = exact.
@@ -111,14 +112,14 @@ impl Default for Php {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum WebServer {
     Nginx,
     Apache,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Web {
     pub server: WebServer,
@@ -141,14 +142,14 @@ impl Default for Web {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum DatabaseEngine {
     Mysql,
     Mariadb,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Database {
     pub engine: DatabaseEngine,
@@ -169,7 +170,7 @@ impl Default for Database {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Redis {
     /// Start Redis with "Start All".
@@ -191,7 +192,7 @@ impl Default for Redis {
 
 /// Versions of tools that are not services. Empty = newest installed; for
 /// phpMyAdmin, empty = the newest one that runs on the active PHP.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Tools {
     pub node: String,
@@ -202,7 +203,7 @@ pub struct Tools {
 }
 
 /// Quick Add (downloads).
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Packages {
     /// `http://host:port` for downloads; empty = the system's proxy settings.
@@ -210,7 +211,7 @@ pub struct Packages {
 }
 
 /// Settings for one automatic site (`[sites.<folder>]`).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct SiteOverride {
     /// `false`: no virtual host or hosts entry for this folder.
@@ -230,7 +231,7 @@ impl Default for SiteOverride {
 }
 
 /// The user's code editor (blueprint: custom editor support).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Editor {
     /// Display name, e.g. "VS Code".
@@ -254,7 +255,7 @@ impl Default for Editor {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Tunnel {
     pub provider: String,
@@ -273,7 +274,7 @@ impl Default for Tunnel {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Profiles {
     /// Name of the profile last switched to.
@@ -284,7 +285,7 @@ pub struct Profiles {
 
 /// A saved stack (`[[profiles.list]]`). Versions use the same rules as the
 /// sections they set: empty = newest installed, `"8.3"` = newest 8.3.x.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Profile {
     pub name: String,
@@ -296,7 +297,7 @@ pub struct Profile {
     pub redis: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct ProfileDatabase {
     pub engine: DatabaseEngine,

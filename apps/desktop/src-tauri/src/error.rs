@@ -6,11 +6,12 @@
 
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 pub struct CommandError {
     pub code: &'static str,
     pub message: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// `null` when the error has no details.
+    #[specta(type = Option<specta_typescript::Unknown>)]
     pub details: Option<serde_json::Value>,
 }
 

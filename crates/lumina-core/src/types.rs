@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Every service Lumina can manage.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "kebab-case")]
 pub enum ServiceKind {
     PhpFcgi,
@@ -15,7 +15,7 @@ pub enum ServiceKind {
 }
 
 /// Lifecycle state reported to the UI.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "kebab-case")]
 pub enum ServiceStatus {
     Stopped,

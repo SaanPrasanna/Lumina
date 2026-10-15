@@ -1,81 +1,12 @@
 // IPC wrappers for the `quickapp` feature (see src-tauri/src/commands/quickapp.rs).
-import { call } from "@/lib/ipc";
+import { commands } from "@/lib/bindings";
+import type { Choice_Serialize, QuickAppOverview_Serialize, RecipeOption_Serialize, RecipeView_Serialize, Step } from "@/lib/bindings";
 
-export type Need = "php" | "composer" | "node" | "database";
-export type JobState = "running" | "succeeded" | "failed" | "cancelled";
-
-export interface Choice {
-  value: string;
-  label: string;
-  needs: Need[];
-}
-
-export interface RecipeOption {
-  id: string;
-  label: string;
-  default: string;
-  choices: Choice[];
-}
-
-/** Mirrors `RecipeView`. */
-export interface Recipe {
-  id: string;
-  name: string;
-  description: string;
-  homepage: string;
-  category: string;
-  needs: Need[];
-  options: RecipeOption[];
-}
-
-export interface Step {
-  index: number;
-  total: number;
-  label: string;
-}
-
-/** Mirrors `Job`. */
-export interface Job {
-  id: number;
-  recipe: string;
-  recipeName: string;
-  name: string;
-  dir: string;
-  domain: string;
-  url: string;
-  state: JobState;
-  step: Step | null;
-  /** [received, total] bytes of a running download. */
-  download: [number, number | null] | null;
-  error: string | null;
-  /** Created, but e.g. the web server could not start. */
-  warning: string | null;
-  lines: string[];
-  /** Lines dropped from the front of `lines`. */
-  dropped: number;
-  partial: boolean;
-  createdDatabase: string | null;
-  logFile: string;
-}
-
-export interface DatabaseInfo {
-  engine: "mysql" | "mariadb";
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-}
-
-/** Mirrors `QuickAppOverview`. */
-export interface QuickAppOverview {
-  recipes: Recipe[];
-  www: string;
-  tld: string;
-  missing: Need[];
-  taken: string[];
-  job: Job | null;
-  database: DatabaseInfo;
-}
+export type { DatabaseInfo, JobState, Need, QuickAppJob as Job, Step } from "@/lib/bindings";
+export type Choice = Choice_Serialize;
+export type RecipeOption = RecipeOption_Serialize;
+export type Recipe = RecipeView_Serialize;
+export type QuickAppOverview = QuickAppOverview_Serialize;
 
 /** Payload of the `quickapp-output` event. */
 export interface OutputEvent {
@@ -89,12 +20,12 @@ export interface OutputEvent {
 
 export const QUICKAPP_KEY = ["quickapp"] as const;
 
-export const quickappOverview = () => call<QuickAppOverview>("quickapp_overview");
+export const quickappOverview = () => commands.quickappOverview();
 export const quickappCreate = (recipe: string, name: string, options: Record<string, string>) =>
-  call<void>("quickapp_create", { recipe, name, options });
-export const quickappCancel = () => call<void>("quickapp_cancel");
-export const quickappDismiss = () => call<void>("quickapp_dismiss");
-export const quickappDeletePartial = () => call<void>("quickapp_delete_partial");
+  commands.quickappCreate(recipe, name, options);
+export const quickappCancel = () => commands.quickappCancel();
+export const quickappDismiss = () => commands.quickappDismiss();
+export const quickappDeletePartial = () => commands.quickappDeletePartial();
 
 /** Same rule as `files::is_valid_name`: it becomes the folder, the domain and the database. */
 export function isValidName(name: string): boolean {

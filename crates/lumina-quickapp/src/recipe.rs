@@ -23,7 +23,7 @@ use crate::{Error, Result};
 /// Programs a `run` step may start. The app maps each to Lumina's own copy.
 pub const PROGRAMS: [&str; 6] = ["php", "composer", "node", "npm", "npx", "mysql"];
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, specta::Type)]
 #[serde(deny_unknown_fields)]
 pub struct RecipeFile {
     #[serde(rename = "recipe")]
@@ -31,7 +31,7 @@ pub struct RecipeFile {
 }
 
 /// What a recipe needs before it can run.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum Need {
     Php,
@@ -41,7 +41,7 @@ pub enum Need {
     Database,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(deny_unknown_fields)]
 pub struct Recipe {
     pub id: String,
@@ -67,7 +67,7 @@ pub struct Recipe {
     pub steps: Vec<Step>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(deny_unknown_fields)]
 pub struct RecipeOption {
     pub id: String,
@@ -78,7 +78,7 @@ pub struct RecipeOption {
     pub choices: Vec<Choice>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(deny_unknown_fields)]
 pub struct Choice {
     pub value: String,
@@ -93,7 +93,7 @@ pub struct Choice {
 
 /// One step: a label, an optional condition, an action, and steps to try
 /// instead if it fails.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, specta::Type)]
 pub struct Step {
     /// Shown in the log ("Creating the database").
     pub label: String,
@@ -112,7 +112,7 @@ pub struct Step {
     pub action: Action,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, specta::Type)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Action {
     /// Runs one of [`PROGRAMS`] with `args`.

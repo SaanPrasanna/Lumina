@@ -31,7 +31,7 @@ pub enum RestartPolicy {
     },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "kebab-case")]
 pub enum ProcessState {
     Running,
@@ -42,7 +42,7 @@ pub enum ProcessState {
 }
 
 /// Snapshot of a supervised process.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ProcessInfo {
     pub id: String,

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 pub const FILE_NAME: &str = "bootstrap.toml";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct Bootstrap {
     /// Absolute path of the data root (`bin/`, `etc/`, `www/`, ...).
     pub data_root: PathBuf,

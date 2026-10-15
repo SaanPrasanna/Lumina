@@ -34,7 +34,7 @@ const STOP_TIMEOUT: Duration = Duration::from_secs(10);
 const WATCHDOG_INTERVAL: Duration = Duration::from_secs(30);
 
 /// What is running right now.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PhpRuntime {
     pub version: String,
@@ -47,7 +47,7 @@ pub struct PhpRuntime {
     pub ini: PathBuf,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PhpStatus {
     pub status: ServiceStatus,

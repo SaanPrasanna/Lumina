@@ -16,7 +16,7 @@ use crate::error::CommandResult;
 use crate::events;
 use crate::state::{AppState, Runtime};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileView {
     #[serde(flatten)]
@@ -27,7 +27,7 @@ pub struct ProfileView {
     pub missing: Vec<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfilesOverview {
     pub profiles: Vec<ProfileView>,
@@ -78,6 +78,7 @@ pub async fn missing(rt: &Runtime, profile: &Profile) -> Vec<String> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn profiles_list(state: State<'_, AppState>) -> CommandResult<ProfilesOverview> {
     let rt = state.runtime()?;
     let cfg = rt.config();
@@ -127,6 +128,7 @@ fn check_name(cfg: &AppConfig, name: &str, replacing: Option<&str>) -> lumina_co
 
 /// Adds `profile`, or replaces the one named `original` (renaming is allowed).
 #[tauri::command]
+#[specta::specta]
 pub fn profile_save(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -154,6 +156,7 @@ pub fn profile_save(
 
 /// Saves the stack the configuration describes now as a new profile.
 #[tauri::command]
+#[specta::specta]
 pub fn profile_save_current(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -168,6 +171,7 @@ pub fn profile_save_current(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn profile_delete(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -182,6 +186,7 @@ pub fn profile_delete(
 /// Switches to the profile `name`: only changed services are restarted, and
 /// a failure restores the previous stack (the config is then left as it was).
 #[tauri::command]
+#[specta::specta]
 pub async fn profile_switch(
     app: AppHandle,
     state: State<'_, AppState>,

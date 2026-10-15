@@ -27,7 +27,7 @@ impl Running {
 }
 
 /// The steps of a switch.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Plan {
     /// In this order: web, PHP, Redis, database.

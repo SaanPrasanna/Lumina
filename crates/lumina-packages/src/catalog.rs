@@ -13,7 +13,7 @@ use crate::{Error, Result};
 
 pub const SCHEMA_VERSION: u32 = 1;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct Catalog {
     pub schema_version: u32,
     #[serde(default)]
@@ -21,7 +21,7 @@ pub struct Catalog {
     pub packages: Vec<Package>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind {
     /// Run by Lumina (PHP, web servers, databases, Redis).
@@ -34,7 +34,7 @@ pub enum Kind {
     Webapp,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct Package {
     /// Also the folder name under `bin/`.
     pub id: String,
@@ -47,7 +47,7 @@ pub struct Package {
     pub versions: Vec<Release>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum Archive {
     Zip,
@@ -57,14 +57,14 @@ pub enum Archive {
     File,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct Requires {
     /// Semver requirement on the active PHP, e.g. `">=8.4"`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub php: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 pub struct Release {
     pub version: String,
     /// `windows`, `macos`, `linux` or `any`.

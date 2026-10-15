@@ -15,23 +15,27 @@ use crate::events;
 use crate::state::AppState;
 
 #[tauri::command]
+#[specta::specta]
 pub async fn services_status(state: State<'_, AppState>) -> CommandResult<StackStatus> {
     let rt = state.runtime()?;
     Ok(rt.stack.status(&rt.config()).await)
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn service_start(state: State<'_, AppState>, kind: ServiceKind) -> CommandResult<()> {
     let rt = state.runtime()?;
     Ok(rt.stack.start(kind, &rt.config()).await?)
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn service_stop(state: State<'_, AppState>, kind: ServiceKind) -> CommandResult<()> {
     Ok(state.runtime()?.stack.stop(kind).await?)
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn service_restart(state: State<'_, AppState>, kind: ServiceKind) -> CommandResult<()> {
     let rt = state.runtime()?;
     Ok(rt.stack.restart(kind, &rt.config()).await?)
@@ -39,6 +43,7 @@ pub async fn service_restart(state: State<'_, AppState>, kind: ServiceKind) -> C
 
 /// Applies a changed web-server config with a single confirmed reload.
 #[tauri::command]
+#[specta::specta]
 pub async fn service_reload(
     state: State<'_, AppState>,
     kind: ServiceKind,
@@ -48,12 +53,14 @@ pub async fn service_reload(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn services_start_all(state: State<'_, AppState>) -> CommandResult<()> {
     let rt = state.runtime()?;
     Ok(rt.stack.start_all(&rt.config()).await?)
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn services_stop_all(state: State<'_, AppState>) -> CommandResult<()> {
     let failures = state.runtime()?.stack.stop_all().await;
     match failures.into_iter().next() {
@@ -63,11 +70,13 @@ pub async fn services_stop_all(state: State<'_, AppState>) -> CommandResult<()> 
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn php_versions(state: State<'_, AppState>) -> CommandResult<Vec<Install>> {
     Ok(state.runtime()?.stack.php().versions().await)
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn web_versions(
     state: State<'_, AppState>,
     server: WebServer,
@@ -80,6 +89,7 @@ pub async fn web_versions(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn db_versions(
     state: State<'_, AppState>,
     engine: DatabaseEngine,
@@ -88,6 +98,7 @@ pub async fn db_versions(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn redis_versions(state: State<'_, AppState>) -> CommandResult<Vec<Install>> {
     Ok(state.runtime()?.stack.redis().versions().await)
 }
@@ -96,6 +107,7 @@ pub async fn redis_versions(state: State<'_, AppState>) -> CommandResult<Vec<Ins
 /// switches to it: the old pool is stopped and verified gone before the new
 /// one starts, and a running web server is pointed at the new pool.
 #[tauri::command]
+#[specta::specta]
 pub async fn php_set_version(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -116,6 +128,7 @@ pub async fn php_set_version(
 
 /// Opens a service's log in the system's default viewer.
 #[tauri::command]
+#[specta::specta]
 pub async fn service_open_log(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -138,12 +151,14 @@ pub async fn service_open_log(
 
 /// Opens http://localhost (with the configured port) in the default browser.
 #[tauri::command]
+#[specta::specta]
 pub fn open_localhost(app: AppHandle) -> CommandResult<()> {
     open_localhost_for(&app)
 }
 
 /// Opens the projects folder in the file manager.
 #[tauri::command]
+#[specta::specta]
 pub fn open_www(app: AppHandle) -> CommandResult<()> {
     open_www_for(&app)
 }

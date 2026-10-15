@@ -1,20 +1,14 @@
-import { call } from "@/lib/ipc";
+// IPC wrappers for the first-run wizard and app info (see src-tauri/src/commands/app.rs).
+import { commands } from "@/lib/bindings";
 
-/** Mirrors `BootstrapStatus` in src-tauri/src/commands/app.rs. */
-export interface BootstrapStatus {
-  configured: boolean;
-  dataRoot: string | null;
-  defaultDataRoot: string;
-  language: string;
-}
+export type { BootstrapStatus } from "@/lib/bindings";
 
-export const bootstrapStatus = () => call<BootstrapStatus>("bootstrap_status");
+export const bootstrapStatus = () => commands.bootstrapStatus();
 
-export const bootstrapComplete = (dataRoot: string, language: string) =>
-  call<BootstrapStatus>("bootstrap_complete", { dataRoot, language });
+export const bootstrapComplete = (dataRoot: string, language: string) => commands.bootstrapComplete(dataRoot, language);
 
-export const setLanguage = (language: string) => call<void>("set_language", { language });
+export const setLanguage = (language: string) => commands.setLanguage(language);
 
-export const appVersion = () => call<string>("app_version");
+export const appVersion = () => commands.appVersion();
 
 export const BOOTSTRAP_QUERY_KEY = ["bootstrap"] as const;

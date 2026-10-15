@@ -18,7 +18,7 @@ const APP_LOG: &str = "app";
 /// At most this much is sent per read (the first read shows the end of the file).
 const MAX_READ: u64 = 512 * 1024;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct LogSource {
     pub id: String,
@@ -88,12 +88,14 @@ fn find(app: &AppHandle, state: &AppState, id: &str) -> CommandResult<LogSource>
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn logs_list(app: AppHandle, state: State<'_, AppState>) -> Vec<LogSource> {
     sources(&app, &state)
 }
 
 /// What `id` gained since `offset` (`None`: its last part, to start a tail).
 #[tauri::command]
+#[specta::specta]
 pub fn logs_read(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -106,6 +108,7 @@ pub fn logs_read(
 
 /// Opens a log in the system's default viewer.
 #[tauri::command]
+#[specta::specta]
 pub fn logs_open(app: AppHandle, state: State<'_, AppState>, id: String) -> CommandResult<()> {
     let log = find(&app, &state, &id)?;
     app.opener()
@@ -116,6 +119,7 @@ pub fn logs_open(app: AppHandle, state: State<'_, AppState>, id: String) -> Comm
 
 /// Opens the folder with the service logs.
 #[tauri::command]
+#[specta::specta]
 pub fn logs_open_folder(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
     let dir = state.runtime()?.layout.logs();
     app.opener()

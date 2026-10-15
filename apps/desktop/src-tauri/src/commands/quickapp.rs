@@ -30,7 +30,7 @@ use crate::state::{AppState, Runtime};
 /// Lines kept for the log panel (the full output is in the log file).
 const MAX_LINES: usize = 4000;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum JobState {
     Running,
@@ -39,7 +39,7 @@ pub enum JobState {
     Cancelled,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Step {
     pub index: usize,
@@ -47,8 +47,10 @@ pub struct Step {
     pub label: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
+// Only the TypeScript name changes (JSON never carries a struct's name).
+#[serde(rename = "QuickAppJob")]
 pub struct Job {
     pub id: u64,
     pub recipe: String,
@@ -85,7 +87,7 @@ pub struct Jobs {
     pending: Mutex<Output>,
 }
 
-#[derive(Debug, Default, Clone, Serialize)]
+#[derive(Debug, Default, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 struct Output {
     job_id: u64,
@@ -112,7 +114,7 @@ impl Jobs {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct RecipeView {
     pub id: String,
@@ -125,7 +127,7 @@ pub struct RecipeView {
     pub options: Vec<RecipeOption>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct QuickAppOverview {
     pub recipes: Vec<RecipeView>,
@@ -141,7 +143,7 @@ pub struct QuickAppOverview {
     pub database: DatabaseInfo,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DatabaseInfo {
     pub engine: DatabaseEngine,
@@ -190,6 +192,7 @@ async fn missing(rt: &Runtime, needs: &[Need]) -> Vec<Need> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn quickapp_overview(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -233,6 +236,7 @@ pub async fn quickapp_overview(
 
 /// Starts creating project `name` from `recipe`.
 #[tauri::command]
+#[specta::specta]
 pub fn quickapp_create(
     app: AppHandle,
     state: State<'_, AppState>,
@@ -738,6 +742,7 @@ fn flush(app: &AppHandle, id: u64) {
 
 /// Stops the running job: its process tree is killed.
 #[tauri::command]
+#[specta::specta]
 pub fn quickapp_cancel(app: AppHandle) {
     if let Some(job) = app.state::<Jobs>().job().as_ref() {
         job.cancel.store(true, Ordering::Relaxed);
@@ -746,6 +751,7 @@ pub fn quickapp_cancel(app: AppHandle) {
 
 /// Forgets a finished job.
 #[tauri::command]
+#[specta::specta]
 pub fn quickapp_dismiss(app: AppHandle) {
     let jobs = app.state::<Jobs>();
     let mut slot = jobs.job();
@@ -759,6 +765,7 @@ pub fn quickapp_dismiss(app: AppHandle) {
 /// Removes what a failed or cancelled job left: the project folder and the
 /// database it created.
 #[tauri::command]
+#[specta::specta]
 pub async fn quickapp_delete_partial(
     app: AppHandle,
     state: State<'_, AppState>,
