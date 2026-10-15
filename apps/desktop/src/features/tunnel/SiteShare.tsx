@@ -5,20 +5,42 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { ErrorBox } from "@/components/ErrorBox";
 import { Button } from "@/components/ui";
-import { isCommandError } from "@/lib/ipc";
+import { PortConflictDialog, type PortConflictRequest } from "@/features/services/PortConflictDialog";
+import { webConflictRequest } from "@/features/services/WebCard";
+import type { WebSettings } from "@/features/settings/api";
+import { isCommandError, portConflictOf } from "@/lib/ipc";
 import { SETUP_ERRORS, TUNNEL_KEY, type TunnelOverview, tunnelStart } from "@/features/tunnel/api";
 import { TunnelCard } from "@/features/tunnel/TunnelCard";
 
-/** "Share" for one site: opens a public address and shows it below the site's row. */
-export function useSiteShare(name: string, overview: TunnelOverview | undefined) {
+/**
+ * "Share" for one site: opens a public address and shows it below the site's
+ * row. Sharing starts the web server; if another program holds its port (e.g.
+ * another Laragon on 80), the same dialog as on the Services page offers
+ * 8080/8443 and shares again.
+ */
+export function useSiteShare(name: string, overview: TunnelOverview | undefined, web?: WebSettings) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [conflict, setConflict] = useState<PortConflictRequest | null>(null);
   const tunnel = overview?.tunnels.find((x) => x.name === name);
   // The saved reserved domain, unless another site already uses it.
   const domain = overview?.domain && !overview.tunnels.some((x) => x.publicUrl.endsWith(`//${overview.domain}`)) ? overview.domain : null;
   const start = useMutation({
     mutationFn: () => tunnelStart(name, domain),
     onSettled: () => queryClient.invalidateQueries({ queryKey: TUNNEL_KEY }),
+    onError: (err) => {
+      if (!web) return;
+      const busy = portConflictOf(err, web.http_port) ?? portConflictOf(err, web.https_port);
+      if (!busy) return;
+      const request = webConflictRequest(busy, web);
+      setConflict({
+        ...request,
+        apply: async (alternative) => {
+          await request.apply(alternative);
+          start.mutate();
+        },
+      });
+    },
   });
   // Shown while opening, with the tunnel, or with the reason it did not open.
   const visible = start.isPending || (open && (!!tunnel || !!start.error));
@@ -30,7 +52,7 @@ export function useSiteShare(name: string, overview: TunnelOverview | undefined)
     setOpen(true);
     if (!tunnel) start.mutate();
   };
-  return { open: visible, tunnel, start, toggle };
+  return { open: visible, tunnel, start, toggle, conflict, closeConflict: () => setConflict(null) };
 }
 
 export function ShareButton({ share, disabled }: { share: ReturnType<typeof useSiteShare>; disabled?: boolean }) {
@@ -48,6 +70,15 @@ export function ShareButton({ share, disabled }: { share: ReturnType<typeof useS
 }
 
 export function SharePanel({ share }: { share: ReturnType<typeof useSiteShare> }) {
+  return (
+    <>
+      {share.conflict && <PortConflictDialog request={share.conflict} onClose={share.closeConflict} />}
+      <ShareResult share={share} />
+    </>
+  );
+}
+
+function ShareResult({ share }: { share: ReturnType<typeof useSiteShare> }) {
   const { t } = useTranslation();
   if (!share.open) return null;
   if (share.start.isPending) {

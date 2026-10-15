@@ -233,7 +233,7 @@ function docrootLabel(t: (k: string) => string, site: Site): string {
 function SiteRow(props: { site: Site; config: AppConfig; webRunning: boolean; tunnels: TunnelOverview | undefined }) {
   const { site, config, webRunning } = props;
   const { t, i18n } = useTranslation();
-  const share = useSiteShare(site.name, props.tunnels);
+  const share = useSiteShare(site.name, props.tunnels, config.web);
   const ssl = useQuery({ queryKey: SSL_KEY, queryFn: sslStatus });
   const cert = ssl.data?.enabled ? ssl.data.sites.find((c) => c.domain === site.domain) : undefined;
   const [editing, setEditing] = useState(false);

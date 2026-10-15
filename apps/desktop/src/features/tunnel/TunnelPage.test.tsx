@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as packagesApi from "@/features/packages/api";
+import * as servicesApi from "@/features/services/api";
+import * as settingsApi from "@/features/settings/api";
 import { ShareButton, SharePanel, TunnelPage, useSiteShare } from "@/features/tunnel";
 import * as api from "@/features/tunnel/api";
 
@@ -15,6 +17,14 @@ vi.mock("@/features/tunnel/api", async (orig) => ({
   tunnelStop: vi.fn(),
   tunnelSetToken: vi.fn(),
   tunnelSetDomain: vi.fn(),
+}));
+vi.mock("@/features/services/api", async (orig) => ({
+  ...(await orig<typeof servicesApi>()),
+  serviceStart: vi.fn(),
+}));
+vi.mock("@/features/settings/api", async (orig) => ({
+  ...(await orig<typeof settingsApi>()),
+  settingsUpdate: vi.fn(),
 }));
 vi.mock("@/features/packages/api", async (orig) => ({
   ...(await orig<typeof packagesApi>()),
@@ -50,8 +60,10 @@ function wrap(ui: React.ReactNode) {
   );
 }
 
+const web = { server: "nginx", http_port: 80, https_port: 443 } as settingsApi.WebSettings;
+
 function Row({ overview }: { overview: api.TunnelOverview }) {
-  const share = useSiteShare("blog", overview);
+  const share = useSiteShare("blog", overview, web);
   return (
     <>
       <ShareButton share={share} />
@@ -97,6 +109,29 @@ describe("Share", () => {
     expect(api.tunnelStart).toHaveBeenCalledWith("blog", null);
     expect(await screen.findByText(/Sharing needs your ngrok authtoken/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Set up sharing" })).toHaveAttribute("href", "/tunnel");
+  });
+});
+
+describe("Share with a busy port", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("offers another port and shares again", async () => {
+    vi.mocked(api.tunnelStart)
+      .mockRejectedValueOnce({
+        code: "port_in_use",
+        message: "port 80 is already in use by httpd.exe (pid 23536)",
+        details: { port: 80, owner: "httpd.exe (pid 23536)" },
+      })
+      .mockResolvedValueOnce(tunnel);
+    wrap(<Row overview={ready} />);
+    await userEvent.click(screen.getByRole("button", { name: "Share" }));
+    // jsdom does not open <dialog>s, so the dialog's contents count as hidden.
+    const use = await screen.findByRole("button", { name: "Use port 8080", hidden: true });
+    expect(screen.getByText(/httpd.exe \(pid 23536\) is already using port 80/)).toBeInTheDocument();
+    await userEvent.click(use);
+    expect(settingsApi.settingsUpdate).toHaveBeenCalledWith("web", { ...web, http_port: 8080, https_port: 8443 });
+    expect(servicesApi.serviceStart).toHaveBeenCalled();
+    await vi.waitFor(() => expect(api.tunnelStart).toHaveBeenCalledTimes(2));
   });
 });
 
