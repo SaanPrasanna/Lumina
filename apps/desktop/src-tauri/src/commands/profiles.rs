@@ -74,6 +74,14 @@ pub async fn missing(rt: &Runtime, profile: &Profile) -> Vec<String> {
     if profile.redis {
         check(&stack.redis().versions().await, "Redis", "", &mut out);
     }
+    if profile.postgresql {
+        check(
+            &stack.postgresql().versions().await,
+            "PostgreSQL",
+            "",
+            &mut out,
+        );
+    }
     out
 }
 

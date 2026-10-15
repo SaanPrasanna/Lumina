@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next";
 import type { ServiceStatus } from "@/types";
 
 const DOT: Record<ServiceStatus, string> = {
-  running: "bg-ok",
+  // A running service breathes softly; starting/stopping blink.
+  running: "bg-ok animate-glow",
   starting: "bg-warn animate-pulse",
   stopping: "bg-warn animate-pulse",
   stopped: "bg-muted",

@@ -10,7 +10,13 @@ importers:
 
   apps/desktop:
     dependencies:
-      '@fontsource/noto-sans-sinhala':
+      '@fontsource-variable/manrope':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource-variable/noto-sans-sinhala':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource-variable/roboto-mono':
         specifier: 5.3.0
         version: 5.3.0
       '@tanstack/react-query':
@@ -419,8 +425,14 @@ packages:
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@fontsource/noto-sans-sinhala@5.3.0':
-    resolution: {integrity: sha512-g52kQSjsB3vHmFbp6zrPfumJxZADhsssOHd3fMkN+hCK1JrpKvSudtJMAAGuVUcrC7r9dqNmmslj7I9VU1dzbw==}
+  '@fontsource-variable/manrope@5.3.0':
+    resolution: {integrity: sha512-6D5dgokHsWDDMtmXHznKa0hK229NN+1a4BLPmUCLqcO1Pw5EEhWY5RFt0AcXnVRAljFFPfRtLkJePQj6LSsV6g==}
+
+  '@fontsource-variable/noto-sans-sinhala@5.3.0':
+    resolution: {integrity: sha512-iVQn1Geci7M7mWSt0BLhm5oErJOxgWXnH/+I+2D8lLV7LWqsHl2BOA1k2+ik1HhekHuk1sJSdmdGE5dCU6oAOg==}
+
+  '@fontsource-variable/roboto-mono@5.3.0':
+    resolution: {integrity: sha512-h5r+KY/6qy8JEOj33JgcrFO81YAnvrc1EAwMpl/EPJLb2OIvOy0/jmB5M7qs7x/uXk5JUP5Ux4LrkeOK7faHkQ==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2116,7 +2128,11 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
-  '@fontsource/noto-sans-sinhala@5.3.0': {}
+  '@fontsource-variable/manrope@5.3.0': {}
+
+  '@fontsource-variable/noto-sans-sinhala@5.3.0': {}
+
+  '@fontsource-variable/roboto-mono@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

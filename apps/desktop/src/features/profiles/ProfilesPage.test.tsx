@@ -22,6 +22,7 @@ const legacy: api.ProfileView = {
   php: "8.3",
   database: { engine: "mysql", version: "" },
   redis: false,
+  postgresql: false,
   current: true,
   missing: [],
 };

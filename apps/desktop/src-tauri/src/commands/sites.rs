@@ -75,9 +75,13 @@ pub async fn sites_sync(app: AppHandle) -> CommandResult<Option<Attempt>> {
 #[tauri::command]
 #[specta::specta]
 pub fn site_open(app: AppHandle, state: State<'_, AppState>, domain: String) -> CommandResult<()> {
-    let rt = state.runtime()?;
+    open_site_for(&app, &*state.runtime()?, &domain)
+}
+
+/// [`site_open`], shared with the tray.
+pub fn open_site_for(app: &AppHandle, rt: &Runtime, domain: &str) -> CommandResult<()> {
     let cfg = rt.config();
-    let site = find(&rt, |s| s.domain == domain)?;
+    let site = find(rt, |s| s.domain == domain)?;
     let url = if cfg.general.auto_ssl && rt.stack.tls_error().is_none() {
         match cfg.web.https_port {
             443 => format!("https://{}/", site.domain),

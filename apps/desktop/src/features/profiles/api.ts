@@ -26,6 +26,7 @@ export function describe(p: Profile, newest: string): string {
     `PHP ${v(p.php)}`,
     `${p.database.engine === "mysql" ? "MySQL" : "MariaDB"} ${v(p.database.version)}`,
   ];
+  if (p.postgresql) parts.push("PostgreSQL");
   if (p.redis) parts.push("Redis");
   return parts.join(" · ");
 }

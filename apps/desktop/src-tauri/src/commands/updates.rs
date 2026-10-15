@@ -233,6 +233,9 @@ async fn running(rt: &Runtime) -> Vec<ServiceKind> {
             &rt.config(),
         ));
     }
+    if s.postgresql.runtime.is_some() {
+        out.push(ServiceKind::Postgresql);
+    }
     if s.redis.runtime.is_some() {
         out.push(ServiceKind::Redis);
     }

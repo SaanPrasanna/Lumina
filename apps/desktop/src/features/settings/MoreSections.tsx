@@ -11,6 +11,7 @@ import { Button } from "@/components/ui";
 import { logsOpenFolder } from "@/features/logs/api";
 import {
   type DatabaseSettings,
+  type PostgresqlSettings,
   type RedisSettings,
   SETTINGS_KEY,
   type Settings,
@@ -109,11 +110,20 @@ export function ProjectsFolderField({ value, onChange, fallback }: { value: stri
   );
 }
 
-/** Database and Redis ports (engine and versions are on the Services page). */
-export function DatabaseForm({ database, redis }: { database: DatabaseSettings; redis: RedisSettings }) {
+/** Database, PostgreSQL and Redis ports (engine and versions are on the Services page). */
+export function DatabaseForm({
+  database,
+  redis,
+  postgresql,
+}: {
+  database: DatabaseSettings;
+  redis: RedisSettings;
+  postgresql: PostgresqlSettings;
+}) {
   const { t } = useTranslation();
   const [db, setDb] = useState(database);
   const [rd, setRd] = useState(redis);
+  const [pg, setPg] = useState(postgresql);
   const save = useSaveSections();
   const port = "w-full rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
   return (
@@ -124,6 +134,7 @@ export function DatabaseForm({ database, redis }: { database: DatabaseSettings; 
         save.mutate([
           ["database", db],
           ["redis", rd],
+          ["postgresql", pg],
         ])
       }
       saving={save.isPending}
@@ -136,10 +147,17 @@ export function DatabaseForm({ database, redis }: { database: DatabaseSettings; 
         <Field label={t("settings.database.redisPort")}>
           <input type="number" required min={1} max={65535} dir="ltr" className={port} value={rd.port} onChange={(e) => setRd({ ...rd, port: Number(e.target.value) })} />
         </Field>
+        <Field label={t("settings.database.postgresqlPort")}>
+          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={pg.port} onChange={(e) => setPg({ ...pg, port: Number(e.target.value) })} />
+        </Field>
       </div>
       <label className="flex items-center gap-2.5 text-sm">
         <input type="checkbox" className="size-4 accent-accent" checked={rd.enabled} onChange={(e) => setRd({ ...rd, enabled: e.target.checked })} />
         {t("settings.database.redisEnabled")}
+      </label>
+      <label className="flex items-center gap-2.5 text-sm">
+        <input type="checkbox" className="size-4 accent-accent" checked={pg.enabled} onChange={(e) => setPg({ ...pg, enabled: e.target.checked })} />
+        {t("settings.database.postgresqlEnabled")}
       </label>
       <p className="text-xs text-muted">{t("settings.database.restart")}</p>
       <ErrorBox error={save.error} />

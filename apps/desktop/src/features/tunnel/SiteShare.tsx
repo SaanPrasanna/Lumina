@@ -15,7 +15,7 @@ import { TunnelCard } from "@/features/tunnel/TunnelCard";
 /**
  * "Share" for one site: opens a public address and shows it below the site's
  * row. Sharing starts the web server; if another program holds its port (e.g.
- * another Laragon on 80), the same dialog as on the Services page offers
+ * another local server on 80), the same dialog as on the Services page offers
  * 8080/8443 and shares again.
  */
 export function useSiteShare(name: string, overview: TunnelOverview | undefined, web?: WebSettings) {

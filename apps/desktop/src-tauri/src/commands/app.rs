@@ -6,7 +6,7 @@ use lumina_config::bootstrap::{self, Bootstrap};
 use lumina_core::constants::DEFAULT_LANGUAGE;
 use lumina_core::paths::{Layout, default_data_root};
 use serde::Serialize;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 use crate::error::CommandResult;
 use crate::state::AppState;
@@ -74,17 +74,34 @@ pub fn bootstrap_complete(
     Ok(status)
 }
 
+/// Right-click inside the window: the tray menu, at the cursor.
+#[tauri::command]
+#[specta::specta]
+pub async fn context_menu_show(app: AppHandle, window: tauri::Window) -> CommandResult<()> {
+    crate::tray::popup(&app, &window)
+        .await
+        .map_err(|e| lumina_core::Error::Other(format!("context menu: {e}")).into())
+}
+
 /// Persists a language change from the UI language switcher.
 #[tauri::command]
 #[specta::specta]
-pub fn set_language(state: State<'_, AppState>, language: String) -> CommandResult<()> {
-    let mut guard = state.bootstrap.write().unwrap_or_else(|e| e.into_inner());
-    // Before first run there is nothing to persist; the wizard sends the language.
-    let Some(current) = guard.as_ref() else {
-        return Ok(());
-    };
-    let updated = Bootstrap::new(current.data_root.clone(), language)?;
-    bootstrap::save(&state.bootstrap_path, &updated)?;
-    *guard = Some(updated);
+pub fn set_language(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    language: String,
+) -> CommandResult<()> {
+    {
+        let mut guard = state.bootstrap.write().unwrap_or_else(|e| e.into_inner());
+        // Before first run there is nothing to persist; the wizard sends the language.
+        let Some(current) = guard.as_ref() else {
+            return Ok(());
+        };
+        let updated = Bootstrap::new(current.data_root.clone(), language)?;
+        bootstrap::save(&state.bootstrap_path, &updated)?;
+        *guard = Some(updated);
+    }
+    // The tray labels follow the language.
+    crate::tray::refresh(app);
     Ok(())
 }

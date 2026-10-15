@@ -29,9 +29,9 @@ export function Sidebar() {
                 to={path}
                 end={path === "/"}
                 className={({ isActive }) =>
-                  `flex items-center gap-2.5 rounded-md px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm outline-none transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-accent ${
                     isActive
-                      ? "bg-accent-soft font-medium text-accent"
+                      ? "bg-accent-soft font-medium text-accent-ink"
                       : "text-fg-soft hover:bg-hover"
                   }`
                 }

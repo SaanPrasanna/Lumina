@@ -3,50 +3,126 @@
 /* `dark` class on <html> is set by useApplyTheme (src/app/theme.ts). */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * A graphite dark theme, a clean white light theme and an amber brand colour.
+ * Every text colour keeps at least WCAG AA 4.5:1 against the backgrounds it
+ * is used on.
+ */
+
 /* Semantic color tokens → utilities like bg-surface, text-muted, border-line. */
 @theme {
   --color-surface: #ffffff;
-  --color-sidebar: #f8fafc;
-  --color-fg: #0f172a;
-  --color-fg-soft: #334155;
-  --color-muted: #5b6b81;
-  --color-line: #e2e8f0;
-  --color-hover: #f1f5f9;
-  --color-accent: #4f46e5;
-  --color-accent-strong: #4338ca;
-  --color-accent-soft: #eef2ff;
+  --color-sidebar: #f7f7f5;
+  --color-fg: #1d1d1f;
+  --color-fg-soft: #48484c;
+  --color-muted: #6a6a6f;
+  --color-line: #e4e4e1;
+  --color-hover: #f1f1ef;
+  /* Amber fills (buttons, active items, progress) carry dark text, as in the
+     dark theme; amber *text* uses the deeper accent-ink, readable on white. */
+  --color-accent: #d97706;
+  --color-accent-strong: #ea8c1e;
+  --color-accent-soft: #fdf3e3;
+  --color-accent-ink: #a8530a;
   /* Text on accent-coloured buttons. */
-  --color-on-accent: #ffffff;
-  --color-danger: #b91c1c;
+  --color-on-accent: #2b1a04;
+  --color-danger: #c81e1e;
   --color-danger-soft: #fef2f2;
-  --color-ok: #15803d;
-  --color-warn: #b45309;
-  --color-warn-soft: #fffbeb;
+  --color-ok: #17765f;
+  --color-warn: #b04a20;
+  --color-warn-soft: #fdf0ea;
+  --color-scrollbar: #d4d4d1;
 
-  /* Latin + Sinhala: Segoe UI / Nirmala UI on Windows, Sinhala Sangam MN on macOS,
-     Noto Sans Sinhala on Linux. */
+  /* Manrope for Latin text; Manrope has no Sinhala letters, so they come from
+     Noto Sans Sinhala on every system (both bundled, variable weights). */
   --font-sans:
-    system-ui, "Segoe UI", "Nirmala UI", -apple-system, "Sinhala Sangam MN", "Noto Sans",
-    "Noto Sans Sinhala", sans-serif;
+    "Manrope Variable", "Noto Sans Sinhala Variable", "Noto Sans Sinhala", system-ui, "Segoe UI",
+    "Nirmala UI", -apple-system, sans-serif;
+  --font-mono: "Roboto Mono Variable", "Roboto Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* 8px corners throughout (rounded-lg); smaller and larger steps follow it. */
+  --radius-sm: 4.8px;
+  --radius-md: 6.4px;
+  --radius-lg: 8px;
+  --radius-xl: 11.2px;
+
+  /* Motion: short and quiet. Everything is switched off for prefers-reduced-motion below. */
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-pop-in: pop-in 140ms var(--ease-out-soft) both;
+  --animate-fade-in: fade-in 160ms ease-out both;
+  --animate-glow: glow 2.4s ease-in-out infinite;
+  --animate-flow: flow 1.2s linear infinite;
 }
 
 .dark {
-  --color-surface: #0b1120;
-  --color-sidebar: #0f172a;
-  --color-fg: #e2e8f0;
-  --color-fg-soft: #cbd5e1;
-  --color-muted: #94a3b8;
-  --color-line: #1e293b;
-  --color-hover: #1e293b;
-  --color-accent: #818cf8;
-  --color-accent-strong: #a5b4fc;
-  --color-accent-soft: #1e1b4b;
-  --color-on-accent: #0b1120;
-  --color-danger: #fca5a5;
-  --color-danger-soft: #450a0a;
-  --color-ok: #4ade80;
-  --color-warn: #fbbf24;
-  --color-warn-soft: #422006;
+  /* Graphite instrument panel. */
+  --color-surface: #1b1e20;
+  --color-sidebar: #202325;
+  --color-fg: #eae7e2;
+  --color-fg-soft: #b6b9bd;
+  --color-muted: #959a9f;
+  --color-line: #2b2f33;
+  --color-hover: #262a2d;
+  --color-accent: #d8a44c;
+  --color-accent-strong: #e8bb6d;
+  --color-accent-soft: #33291a;
+  --color-accent-ink: #d8a44c;
+  --color-on-accent: #1b1408;
+  --color-danger: #eda3a3;
+  --color-danger-soft: #2c1c1c;
+  --color-ok: #4ea89a;
+  --color-warn: #d99168;
+  --color-warn-soft: #2e1f17;
+  --color-scrollbar: #3a3f44;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* A live indicator breathing (running services, open tunnels). */
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* A moving dash: something is in progress (installs, opening a tunnel). */
+@keyframes flow {
+  to {
+    background-position: 24px 0;
+  }
+}
+
+/* Indeterminate progress: stripes moving along the bar. */
+@utility progress-flow {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 6px,
+    color-mix(in oklch, var(--color-on-accent) 28%, transparent) 6px 12px
+  );
+  background-size: 24px 100%;
+  animation: var(--animate-flow);
 }
 
 html,
@@ -69,5 +145,79 @@ html.dark {
 body {
   margin: 0;
   font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+  /* A desktop app: controls keep the arrow, as native ones do. */
+  button,
+  [role="button"],
+  summary,
+  select {
+    cursor: default;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-scrollbar);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 9999px;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--color-accent) 30%, transparent);
+  }
+
+  /* Modal dialogs (port conflicts, …) pop in over a softly blurred backdrop. */
+  dialog[open] {
+    animation: var(--animate-pop-in);
+  }
+
+  dialog::backdrop {
+    backdrop-filter: blur(2px);
+    animation: var(--animate-fade-in);
+  }
+}
+
+/* Text fields and selects: on focus (also by click), just the 1px amber
+   border of the profile editor's frame, instead of the browser's black
+   outline or a ring. Unlayered, so it wins over the per-field border and
+   ring classes. */
+input:not([type="checkbox"], [type="radio"], [type="range"]),
+select,
+textarea {
+  transition: border-color 120ms ease-out;
+}
+
+input:not([type="checkbox"], [type="radio"], [type="range"]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: none;
+}
+
+input:is([type="checkbox"], [type="radio"]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

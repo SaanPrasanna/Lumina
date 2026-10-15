@@ -53,7 +53,7 @@ export function SettingsPage() {
       <div className="max-w-2xl space-y-6 px-8 pb-8">
         <nav aria-label={t("settings.index")} className="-mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm">
           {SECTIONS.map(([id, key]) => (
-            <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ block: "start" }); }} className="rounded text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent">
+            <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ block: "start" }); }} className="rounded text-accent-ink outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent">
               {t(key)}
             </a>
           ))}
@@ -71,9 +71,10 @@ export function SettingsPage() {
             <WebForm key={JSON.stringify(settings.data.config.web)} initial={settings.data.config.web} />
             <PhpForm key={JSON.stringify(settings.data.config.php)} initial={settings.data.config.php} />
             <DatabaseForm
-              key={JSON.stringify([settings.data.config.database, settings.data.config.redis])}
+              key={JSON.stringify([settings.data.config.database, settings.data.config.redis, settings.data.config.postgresql])}
               database={settings.data.config.database}
               redis={settings.data.config.redis}
+              postgresql={settings.data.config.postgresql}
             />
             <EditorForm
               key={JSON.stringify(settings.data.config.editor)}
@@ -246,7 +247,7 @@ function EditorForm({ initial }: { initial: EditorSettings }) {
           <textarea value={argsLine} onChange={(e) => setArgsLine(e.target.value)} rows={3} dir="ltr" spellCheck={false} className={area} />
         </Field>
       </div>
-      <button type="button" className="text-sm text-accent hover:underline" onClick={() => open.mutate()}>
+      <button type="button" className="text-sm text-accent-ink hover:underline" onClick={() => open.mutate()}>
         {t("editor.openConfigToml")}
       </button>
       <ErrorBox error={save.error ?? open.error} />

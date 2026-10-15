@@ -11,7 +11,7 @@ export function Button({
     <button
       type="button"
       {...props}
-      className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 [&_svg]:size-4 ${
+      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium outline-none transition-[background-color,border-color,color,transform] duration-150 ease-out focus-visible:ring-3 focus-visible:ring-accent/50 active:not-disabled:translate-y-px disabled:opacity-50 [&_svg]:size-4 ${
         primary ? "bg-accent text-on-accent hover:bg-accent-strong" : "border border-line hover:bg-hover"
       }`}
     >

@@ -38,7 +38,7 @@ export default tseslint.config(
               // Punctuation and separators between translated parts.
               String.raw`^[\s.,:;·—–\-()/|•]*$`,
               // Product names are never translated.
-              String.raw`^(nginx|Apache|MySQL|MariaDB|PHP|Redis|Node\.js|Composer|ngrok|Lumina)$`,
+              String.raw`^(nginx|Apache|MySQL|MariaDB|PHP|Redis|PostgreSQL|Node\.js|Composer|ngrok|Lumina)$`,
             ],
           },
         },

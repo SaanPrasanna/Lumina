@@ -22,6 +22,7 @@ pub struct AppConfig {
     pub web: Web,
     pub database: Database,
     pub redis: Redis,
+    pub postgresql: Postgresql,
     pub editor: Editor,
     pub tunnel: Tunnel,
     pub updates: Updates,
@@ -41,6 +42,7 @@ impl Default for AppConfig {
             web: Web::default(),
             database: Database::default(),
             redis: Redis::default(),
+            postgresql: Postgresql::default(),
             editor: Editor::default(),
             tunnel: Tunnel::default(),
             updates: Updates::default(),
@@ -192,6 +194,27 @@ impl Default for Redis {
     }
 }
 
+/// PostgreSQL, a separate server next to MySQL/MariaDB (`[postgresql]`).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(default)]
+pub struct Postgresql {
+    /// Start PostgreSQL with "Start All".
+    pub enabled: bool,
+    /// Empty = newest installed; `"17"` = newest 17.x.
+    pub version: String,
+    pub port: u16,
+}
+
+impl Default for Postgresql {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            version: String::new(),
+            port: 5432,
+        }
+    }
+}
+
 /// Versions of tools that are not services. Empty = newest installed; for
 /// phpMyAdmin, empty = the newest one that runs on the active PHP.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -236,7 +259,7 @@ impl Default for SiteOverride {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(default)]
 pub struct Editor {
-    /// Display name, e.g. "VS Code".
+    /// Display name, e.g. "Notepad++".
     pub name: String,
     /// Executable name or full path.
     pub command: String,
@@ -247,12 +270,26 @@ pub struct Editor {
 }
 
 impl Default for Editor {
+    /// Notepad++ on Windows (its installer does not add it to PATH; the
+    /// launcher also looks in Program Files), VS Code elsewhere.
     fn default() -> Self {
-        Self {
-            name: "VS Code".to_owned(),
-            command: "code".to_owned(),
-            args: vec!["{path}".to_owned()],
-            args_line: vec!["--goto".to_owned(), "{path}:{line}".to_owned()],
+        let strings = |a: &[&str]| a.iter().map(|s| (*s).to_owned()).collect();
+        if cfg!(windows) {
+            Self {
+                name: "Notepad++".to_owned(),
+                command: "notepad++".to_owned(),
+                // A folder opens in the Folder as Workspace panel instead of
+                // opening every file in it.
+                args: strings(&["-openFoldersAsWorkspace", "{path}"]),
+                args_line: strings(&["-n{line}", "{path}"]),
+            }
+        } else {
+            Self {
+                name: "VS Code".to_owned(),
+                command: "code".to_owned(),
+                args: strings(&["{path}"]),
+                args_line: strings(&["--goto", "{path}:{line}"]),
+            }
         }
     }
 }
@@ -318,6 +355,8 @@ pub struct Profile {
     pub database: ProfileDatabase,
     /// Run Redis with this stack.
     pub redis: bool,
+    /// Run PostgreSQL with this stack.
+    pub postgresql: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -345,6 +384,7 @@ impl Default for Profile {
             php: String::new(),
             database: ProfileDatabase::default(),
             redis: false,
+            postgresql: false,
         }
     }
 }
@@ -369,6 +409,7 @@ impl Profile {
                 },
             },
             redis: cfg.redis.enabled,
+            postgresql: cfg.postgresql.enabled,
         }
     }
 
@@ -386,6 +427,7 @@ impl Profile {
             DatabaseEngine::Mariadb => cfg.database.mariadb_version = self.database.version.clone(),
         }
         cfg.redis.enabled = self.redis;
+        cfg.postgresql.enabled = self.postgresql;
         cfg.profiles.active = self.name.clone();
     }
 

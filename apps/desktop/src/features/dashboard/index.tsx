@@ -38,7 +38,7 @@ export function DashboardPage() {
   const tunnels = useQuery({ queryKey: TUNNEL_KEY, queryFn: tunnelOverview });
   const { action, startAll, conflict, setConflict } = useStartAll(settings.data?.config);
   const data = stack.data;
-  const anyRunning = !!(data?.php.runtime || data?.web.runtime || data?.database.runtime || data?.redis.runtime);
+  const anyRunning = !!(data?.php.runtime || data?.web.runtime || data?.database.runtime || data?.redis.runtime || data?.postgresql.runtime);
 
   return (
     <>
@@ -88,7 +88,7 @@ export function DashboardPage() {
 
         {bootstrap.data?.dataRoot && (
           <div className="flex items-center gap-3 rounded-lg border border-line p-4">
-            <FolderOpen className="size-5 shrink-0 text-accent" aria-hidden />
+            <FolderOpen className="size-5 shrink-0 text-accent-ink" aria-hidden />
             <div className="min-w-0">
               <div className="text-xs text-muted">{t("dashboard.dataRoot")}</div>
               <div className="truncate font-mono text-sm" dir="ltr">
@@ -119,6 +119,7 @@ function rows(data: StackStatus): Row[] {
     { kind: "php-fcgi", name: "PHP", status: data.php.status, version: data.php.runtime?.version ?? null, port: data.php.runtime?.port ?? null, error: data.php.error },
     { kind: webKind(data.web.server), name: web, status: data.web.status, version: data.web.runtime?.version ?? null, port: data.web.runtime?.httpPort ?? null, error: data.web.error },
     { kind: dbKind(data.database.engine), name: db, status: data.database.status, version: data.database.runtime?.version ?? null, port: data.database.runtime?.port ?? null, error: data.database.error },
+    { kind: "postgresql", name: "PostgreSQL", status: data.postgresql.status, version: data.postgresql.runtime?.version ?? null, port: data.postgresql.runtime?.port ?? null, error: data.postgresql.error },
     { kind: "redis", name: "Redis", status: data.redis.status, version: data.redis.runtime?.version ?? null, port: data.redis.runtime?.port ?? null, error: data.redis.error },
   ];
 }
@@ -131,7 +132,7 @@ function ServiceGrid({ data, onAction, busy }: { data: StackStatus; onAction: (f
         <h2 id="dash-services" className="text-sm font-semibold text-muted">
           {t("nav.services")}
         </h2>
-        <Link to="/services" className="rounded text-sm text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent">
+        <Link to="/services" className="rounded text-sm text-accent-ink outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent">
           {t("dashboard.manage")}
         </Link>
       </div>
@@ -173,7 +174,7 @@ function Tile({ to, title, value, hint, icon }: { to: string; title: string; val
       to={to}
       className="flex items-start gap-3 rounded-lg border border-line p-4 outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-accent [&_svg]:size-5"
     >
-      <span className="mt-0.5 shrink-0 text-accent" aria-hidden>
+      <span className="mt-0.5 shrink-0 text-accent-ink" aria-hidden>
         {icon}
       </span>
       <span className="min-w-0">

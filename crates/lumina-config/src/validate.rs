@@ -90,6 +90,12 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
     );
     reset_zero_port(&mut cfg.database.port, "database.port", 3306, &mut warnings);
     reset_zero_port(&mut cfg.redis.port, "redis.port", 6379, &mut warnings);
+    reset_zero_port(
+        &mut cfg.postgresql.port,
+        "postgresql.port",
+        5432,
+        &mut warnings,
+    );
 
     if cfg.php.fcgi_fallback_port == cfg.php.fcgi_port {
         warnings.push(
@@ -115,6 +121,9 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
     ];
     if cfg.redis.enabled {
         ports.push(("redis.port", cfg.redis.port));
+    }
+    if cfg.postgresql.enabled {
+        ports.push(("postgresql.port", cfg.postgresql.port));
     }
     for (i, (field_a, port_a)) in ports.iter().enumerate() {
         for (field_b, port_b) in &ports[i + 1..] {
@@ -199,7 +208,7 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
         warnings.push(Warning::new(
             "editor_reset",
             "editor.command",
-            "no editor command set; using VS Code".to_owned(),
+            "no editor command set; using the default editor".to_owned(),
         ));
     }
 

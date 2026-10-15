@@ -140,6 +140,8 @@
       "portHint": "Services පිටුවේ තෝරා ඇති MySQL හෝ MariaDB.",
       "redisPort": "Redis port",
       "redisEnabled": "Start All සමඟ Redis ආරම්භ කරන්න",
+      "postgresqlPort": "PostgreSQL පෝට්",
+      "postgresqlEnabled": "Start All සමඟ PostgreSQL ආරම්භ කරන්න",
       "restart": "ධාවනය වන සේවාදායකයක් නව port එක භාවිත කරන්නේ නැවත ආරම්භ කළ පසුවය."
     },
     "appearance": {
@@ -193,7 +195,7 @@
     "php_ports_same": "PHP විකල්ප පෝට් එක ප්‍රධාන පෝට් එකට සමානයි ({{port}}).",
     "port_conflict": "{{a}} සහ {{b}} දෙකම පෝට් {{port}} භාවිත කරයි.",
     "tld_reset": "ඩොමේන් ප්‍රත්‍යය \"{{value}}\" වලංගු නැත; .test භාවිත කරයි.",
-    "editor_reset": "සංස්කාරක විධානයක් සකසා නොතිබුණි; VS Code භාවිත කරයි.",
+    "editor_reset": "සංස්කාරක විධානයක් සකසා නොතිබුණි; පෙරනිමි සංස්කාරකය භාවිත කරයි.",
     "config_restored": "config.toml හානි වී තිබූ නිසා උපස්ථයෙන් ප්‍රතිස්ථාපනය කරන ලදී. හානි වූ පිටපත {{file}} වේ.",
     "config_reset": "config.toml හානි වී තිබූ අතර භාවිත කළ හැකි උපස්ථයක් නොතිබූ නිසා පෙරනිමි සැකසුම් භාවිත කෙරේ. හානි වූ පිටපත {{file}} වේ.",
     "tld_https_only": ".{{tld}} යනු බ්‍රවුසර HTTPS හරහා පමණක් විවෘත කරන සැබෑ වසම් උපසර්ගයකි, එබැවින් HTTPS සකසන තෙක් මෙම අඩවි විවෘත නොවේ. ඒ වෙනුවට .test භාවිත කරන්න.",
@@ -230,6 +232,16 @@
     "firstStart": "පළමු ආරම්භයේදී නව, හිස් දත්ත සමුදා ෆෝල්ඩරයක් සාදයි; මේ සඳහා තත්පර කිහිපයක් ගතවේ.",
     "notInstalled": "{{engine}} තවම ස්ථාපනය කර නැත. එය {{path}} තුළට දමන්න.",
     "openUi": "DB UI විවෘත කරන්න"
+  },
+  "postgresql": {
+    "title": "PostgreSQL",
+    "enabled": "සියල්ල ආරම්භ කරන විට PostgreSQL ද ආරම්භ කරන්න",
+    "version": "සංස්කරණය",
+    "newest": "නවතම ස්ථාපිත ({{version}})",
+    "port": "පෝට්",
+    "user": "පරිශීලක",
+    "notInstalled": "PostgreSQL තවම ස්ථාපනය කර නැත. එය ඉක්මන් එකතුව වෙතින් ස්ථාපනය කරන්න.",
+    "connectHint": "postgres ලෙස 127.0.0.1:{{port}} වෙත සම්බන්ධ වන්න (මුරපදයක් නැත). එය MySQL/MariaDB සමඟම ධාවනය වේ."
   },
   "redis": {
     "title": "Redis",

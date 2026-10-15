@@ -125,7 +125,7 @@ function CreateForm(props: { recipe: Recipe; overview: QuickAppOverview; busy: b
           {t("quickapp.newProject", { recipe: recipe.name })}
         </h2>
         {recipe.homepage && (
-          <a href={recipe.homepage} target="_blank" rel="noreferrer" className="text-sm text-accent hover:underline" dir="ltr">
+          <a href={recipe.homepage} target="_blank" rel="noreferrer" className="text-sm text-accent-ink hover:underline" dir="ltr">
             {recipe.homepage.replace(/^https:\/\//, "")}
           </a>
         )}
@@ -354,7 +354,7 @@ function JobPanel({ job, overview }: { job: Job; overview: QuickAppOverview }) {
         <div>
           <div className="h-1.5 overflow-hidden rounded-full bg-hover" aria-hidden="true">
             <div
-              className={`h-full bg-accent transition-[width] ${percent === null ? "w-full animate-pulse" : ""}`}
+              className={`h-full bg-accent transition-[width] duration-300 ease-out ${percent === null ? "w-full progress-flow" : ""}`}
               style={percent !== null ? { width: `${percent}%` } : undefined}
             />
           </div>

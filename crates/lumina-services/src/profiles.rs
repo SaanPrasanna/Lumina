@@ -18,11 +18,12 @@ pub struct Running {
     pub web: Option<ServiceKind>,
     pub database: Option<ServiceKind>,
     pub redis: bool,
+    pub postgresql: bool,
 }
 
 impl Running {
     fn any(&self) -> bool {
-        self.php || self.web.is_some() || self.database.is_some() || self.redis
+        self.php || self.web.is_some() || self.database.is_some() || self.redis || self.postgresql
     }
 }
 
@@ -105,6 +106,21 @@ pub fn plan(running: &Running, old: &AppConfig, new: &AppConfig) -> Plan {
         redis_start = true;
     }
 
+    // PostgreSQL: follows `postgresql.enabled` while the stack runs, like Redis.
+    let mut pg_start = false;
+    if running.postgresql {
+        if !new.postgresql.enabled {
+            stop.push(ServiceKind::Postgresql);
+        } else if old.postgresql.version != new.postgresql.version {
+            stop.push(ServiceKind::Postgresql);
+            pg_start = true;
+        } else {
+            keep.push(ServiceKind::Postgresql);
+        }
+    } else if new.postgresql.enabled && running.any() {
+        pg_start = true;
+    }
+
     // PHP
     let mut php_start = false;
     if running.php {
@@ -133,11 +149,14 @@ pub fn plan(running: &Running, old: &AppConfig, new: &AppConfig) -> Plan {
         ServiceKind::Nginx | ServiceKind::Apache => 0,
         ServiceKind::PhpFcgi => 1,
         ServiceKind::Redis => 2,
-        ServiceKind::Mysql | ServiceKind::Mariadb => 3,
+        ServiceKind::Postgresql | ServiceKind::Mysql | ServiceKind::Mariadb => 3,
     };
     stop.sort_by_key(order);
 
     start.extend(db_start);
+    if pg_start {
+        start.push(ServiceKind::Postgresql);
+    }
     if redis_start {
         start.push(ServiceKind::Redis);
     }
@@ -173,6 +192,7 @@ mod tests {
             web: Some(web_kind(cfg.web.server)),
             database: Some(db_kind(cfg.database.engine)),
             redis: cfg.redis.enabled,
+            postgresql: cfg.postgresql.enabled,
         }
     }
 
@@ -222,5 +242,26 @@ mod tests {
         let p = plan(&running, &new, &old);
         assert_eq!(p.stop, [ServiceKind::Redis, ServiceKind::Mariadb]);
         assert_eq!(p.start, [ServiceKind::Mysql]);
+    }
+
+    #[test]
+    fn postgresql_runs_next_to_the_mysql_database() {
+        let old = stack(WebServer::Nginx, "8.4");
+        let mut new = old.clone();
+        new.postgresql.enabled = true;
+        let p = plan(&all_running(&old), &old, &new);
+        assert!(p.stop.is_empty());
+        assert_eq!(p.start, [ServiceKind::Postgresql]);
+        assert!(p.keep.contains(&ServiceKind::Mysql));
+
+        // A new major is a different server: restart it. Switched off: stop it.
+        let mut newer = new.clone();
+        newer.postgresql.version = "17".into();
+        let p = plan(&all_running(&new), &new, &newer);
+        assert_eq!(p.stop, [ServiceKind::Postgresql]);
+        assert_eq!(p.start, [ServiceKind::Postgresql]);
+        let p = plan(&all_running(&new), &new, &old);
+        assert_eq!(p.stop, [ServiceKind::Postgresql]);
+        assert!(p.start.is_empty());
     }
 }

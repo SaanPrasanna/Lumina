@@ -15,6 +15,8 @@ export const commands = {
 	bootstrapComplete: (dataRoot: string, language: string) => __TAURI_INVOKE<BootstrapStatus>("bootstrap_complete", { dataRoot, language }),
 	/**  Persists a language change from the UI language switcher. */
 	setLanguage: (language: string) => __TAURI_INVOKE<null>("set_language", { language }),
+	/**  Right-click inside the window: the tray menu, at the cursor. */
+	contextMenuShow: () => __TAURI_INVOKE<null>("context_menu_show"),
 	settingsGet: () => __TAURI_INVOKE<Settings_Serialize>("settings_get"),
 	settingsUpdate: (section: string, value: SectionValue) => __TAURI_INVOKE<Settings_Serialize>("settings_update", { section, value }),
 	servicesStatus: () => __TAURI_INVOKE<StackStatus>("services_status"),
@@ -29,6 +31,7 @@ export const commands = {
 	webVersions: (server: WebServer) => __TAURI_INVOKE<Install[]>("web_versions", { server }),
 	dbVersions: (engine: DatabaseEngine) => __TAURI_INVOKE<Install[]>("db_versions", { engine }),
 	redisVersions: () => __TAURI_INVOKE<Install[]>("redis_versions"),
+	postgresqlVersions: () => __TAURI_INVOKE<Install[]>("postgresql_versions"),
 	/**
 	 *  Saves `version` ("" = newest) as the PHP version and, if PHP is running,
 	 *  switches to it: the old pool is stopped and verified gone before the new
@@ -181,6 +184,7 @@ export type AppConfig_Deserialize = {
 	web?: Web,
 	database?: Database,
 	redis?: Redis,
+	postgresql?: Postgresql,
 	editor?: Editor,
 	tunnel?: Tunnel,
 	updates?: Updates,
@@ -198,6 +202,7 @@ export type AppConfig_Serialize = {
 	web: Web,
 	database: Database,
 	redis: Redis,
+	postgresql: Postgresql,
 	editor: Editor,
 	tunnel: Tunnel,
 	updates: Updates,
@@ -305,6 +310,8 @@ export type ConfigFile =
 "database" | 
 /**  Redis `custom.conf` (redis.conf includes it). */
 "redis" | 
+/**  `postgresql.conf` in the data folder of the selected PostgreSQL. */
+"postgresql" | 
 /**  The web server's `sites/` folder (vhost files; `<domain>.conf` overrides). */
 "webSites";
 
@@ -362,7 +369,7 @@ export type DocrootSource =
 
 /**  The user's code editor (blueprint: custom editor support). */
 export type Editor = {
-	/**  Display name, e.g. "VS Code". */
+	/**  Display name, e.g. "Notepad++". */
 	name?: string,
 	/**  Executable name or full path. */
 	command?: string,
@@ -569,6 +576,20 @@ export type PathStatus = {
 	shadowed: Shadow[],
 };
 
+export type PgRuntime = {
+	version: string,
+	port: number,
+	dataDir: string,
+};
+
+export type PgStatus = {
+	status: ServiceStatus,
+	runtime: PgRuntime | null,
+	pid: number | null,
+	error: string | null,
+	logFile: string,
+};
+
 export type Php = {
 	/**  Empty = newest installed; `"8.4"` = newest 8.4.x; `"8.4.13"` = exact. */
 	version?: string,
@@ -614,6 +635,15 @@ export type Plan = {
 	keep: ServiceKind[],
 };
 
+/**  PostgreSQL, a separate server next to MySQL/MariaDB (`[postgresql]`). */
+export type Postgresql = {
+	/**  Start PostgreSQL with "Start All". */
+	enabled?: boolean,
+	/**  Empty = newest installed; `"17"` = newest 17.x. */
+	version?: string,
+	port?: number,
+};
+
 /**
  *  A saved stack (`[[profiles.list]]`). Versions use the same rules as the
  *  sections they set: empty = newest installed, `"8.3"` = newest 8.3.x.
@@ -626,6 +656,8 @@ export type Profile = {
 	database?: ProfileDatabase,
 	/**  Run Redis with this stack. */
 	redis?: boolean,
+	/**  Run PostgreSQL with this stack. */
+	postgresql?: boolean,
 };
 
 export type ProfileDatabase = {
@@ -806,7 +838,7 @@ export type Scan = {
 export type SectionValue = unknown;
 
 /**  Every service Lumina can manage. */
-export type ServiceKind = "php-fcgi" | "nginx" | "apache" | "mysql" | "mariadb" | "redis";
+export type ServiceKind = "php-fcgi" | "nginx" | "apache" | "mysql" | "mariadb" | "redis" | "postgresql";
 
 /**  Lifecycle state reported to the UI. */
 export type ServiceStatus = "stopped" | "starting" | "running" | "stopping" | "failed";
@@ -945,6 +977,7 @@ export type StackStatus = {
 	/**  The configured database engine, or the other one if that is what runs. */
 	database: DbStatus,
 	redis: RedisStatus,
+	postgresql: PgStatus,
 };
 
 export type Stage = "downloading" | "verifying" | "extracting";

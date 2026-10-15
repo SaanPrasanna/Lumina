@@ -1,6 +1,6 @@
 # Lumina
 
-A fast, cross-platform, open-source local development environment — a Laragon-style
+A fast, cross-platform, open-source local development environment — a
 stack manager built with **Rust + Tauri 2 + React**.
 
 - One-click Nginx / Apache, PHP (FastCGI), MySQL / MariaDB, Redis, Node.js, Python

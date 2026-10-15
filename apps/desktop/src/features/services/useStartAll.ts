@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { dbConflictRequest } from "@/features/services/DatabaseCard";
 import type { PortConflictRequest } from "@/features/services/PortConflictDialog";
+import { postgresConflictRequest } from "@/features/services/PostgresCard";
 import { redisConflictRequest } from "@/features/services/RedisCard";
 import { servicesStartAll } from "@/features/services/api";
 import { useServiceAction } from "@/features/services/useServiceAction";
@@ -23,8 +24,10 @@ export function useStartAll(config: AppConfig | undefined) {
         const web = portConflictOf(err, config.web.http_port) ?? portConflictOf(err, config.web.https_port);
         const db = portConflictOf(err, config.database.port);
         const redis = portConflictOf(err, config.redis.port);
+        const pg = portConflictOf(err, config.postgresql.port);
         if (web) setConflict(webConflictRequest(web, config.web));
         else if (db) setConflict(dbConflictRequest(db, config.database));
+        else if (pg) setConflict(postgresConflictRequest(pg, config.postgresql));
         else if (redis) setConflict(redisConflictRequest(redis, config.redis));
       },
     });

@@ -125,7 +125,7 @@ function ProfileCard(props: {
             <Layers className="size-4 text-muted" aria-hidden />
             <span className="font-medium">{profile.name}</span>
             {profile.current && (
-              <span className="flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">
+              <span className="flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-ink">
                 <Check className="size-3" /> {t("profiles.current")}
               </span>
             )}
@@ -288,6 +288,15 @@ function ProfileForm({ initial, original, onDone }: { initial: Profile; original
             onChange={(e) => setForm({ ...form, redis: e.target.checked })}
           />
           Redis
+        </label>
+        <label className="flex items-center gap-2.5 self-end pb-2 text-sm">
+          <input
+            type="checkbox"
+            className="size-4 accent-accent"
+            checked={form.postgresql}
+            onChange={(e) => setForm({ ...form, postgresql: e.target.checked })}
+          />
+          PostgreSQL
         </label>
       </div>
       <ErrorBox error={action.error} />

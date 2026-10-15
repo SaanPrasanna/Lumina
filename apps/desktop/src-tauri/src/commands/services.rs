@@ -103,6 +103,12 @@ pub async fn redis_versions(state: State<'_, AppState>) -> CommandResult<Vec<Ins
     Ok(state.runtime()?.stack.redis().versions().await)
 }
 
+#[tauri::command]
+#[specta::specta]
+pub async fn postgresql_versions(state: State<'_, AppState>) -> CommandResult<Vec<Install>> {
+    Ok(state.runtime()?.stack.postgresql().versions().await)
+}
+
 /// Saves `version` ("" = newest) as the PHP version and, if PHP is running,
 /// switches to it: the old pool is stopped and verified gone before the new
 /// one starts, and a running web server is pointed at the new pool.
@@ -134,7 +140,15 @@ pub async fn service_open_log(
     state: State<'_, AppState>,
     kind: ServiceKind,
 ) -> CommandResult<()> {
-    let rt = state.runtime()?;
+    open_log_for(&app, &*state.runtime()?, kind)
+}
+
+/// [`service_open_log`], shared with the tray.
+pub fn open_log_for(
+    app: &AppHandle,
+    rt: &crate::state::Runtime,
+    kind: ServiceKind,
+) -> CommandResult<()> {
     let log = match kind {
         ServiceKind::PhpFcgi => rt.stack.php().log_file(),
         ServiceKind::Nginx => rt.stack.nginx().log_file(),
@@ -142,11 +156,12 @@ pub async fn service_open_log(
         ServiceKind::Mysql => rt.stack.database(DatabaseEngine::Mysql).log_file(),
         ServiceKind::Mariadb => rt.stack.database(DatabaseEngine::Mariadb).log_file(),
         ServiceKind::Redis => rt.stack.redis().log_file(),
+        ServiceKind::Postgresql => rt.stack.postgresql().log_file(),
     };
     if !log.exists() {
         return Err(Error::Other(format!("{} does not exist yet", log.display())).into());
     }
-    open_path(&app, &log.to_string_lossy())
+    open_path(app, &log.to_string_lossy())
 }
 
 /// Opens http://localhost (with the configured port) in the default browser.

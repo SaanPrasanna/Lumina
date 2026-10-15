@@ -110,7 +110,7 @@ pub struct PackagesOverview {
 }
 
 /// The config field that selects a version of `id`.
-fn selected(cfg: &AppConfig, id: &str) -> Option<String> {
+pub(crate) fn selected(cfg: &AppConfig, id: &str) -> Option<String> {
     Some(match id {
         "php" => cfg.php.version.clone(),
         "nginx" => cfg.web.nginx_version.clone(),
@@ -118,6 +118,7 @@ fn selected(cfg: &AppConfig, id: &str) -> Option<String> {
         "mysql" => cfg.database.mysql_version.clone(),
         "mariadb" => cfg.database.mariadb_version.clone(),
         "redis" => cfg.redis.version.clone(),
+        "postgresql" => cfg.postgresql.version.clone(),
         "node" => cfg.tools.node.clone(),
         "python" => cfg.tools.python.clone(),
         "composer" => cfg.tools.composer.clone(),
@@ -135,6 +136,7 @@ fn set_selected(cfg: &mut AppConfig, id: &str, version: String) -> lumina_core::
         "mysql" => &mut cfg.database.mysql_version,
         "mariadb" => &mut cfg.database.mariadb_version,
         "redis" => &mut cfg.redis.version,
+        "postgresql" => &mut cfg.postgresql.version,
         "node" => &mut cfg.tools.node,
         "python" => &mut cfg.tools.python,
         "composer" => &mut cfg.tools.composer,
@@ -155,6 +157,7 @@ fn service(id: &str) -> Option<ServiceKind> {
         "mysql" => ServiceKind::Mysql,
         "mariadb" => ServiceKind::Mariadb,
         "redis" => ServiceKind::Redis,
+        "postgresql" => ServiceKind::Postgresql,
         _ => return None,
     })
 }
@@ -186,12 +189,13 @@ async fn running_version(rt: &Runtime, id: &str) -> Option<String> {
             .runtime
             .map(|r| r.version),
         "redis" => stack.redis().status().await.runtime.map(|r| r.version),
+        "postgresql" => stack.postgresql().status().await.runtime.map(|r| r.version),
         _ => None,
     }
 }
 
 /// `wanted` among `versions` (newest first): "" = newest, prefix or exact.
-fn pick<'a>(versions: &'a [String], wanted: &str) -> Option<&'a String> {
+pub(crate) fn pick<'a>(versions: &'a [String], wanted: &str) -> Option<&'a String> {
     let wanted = wanted.trim();
     if wanted.is_empty() {
         return versions.first();
@@ -501,27 +505,36 @@ pub async fn package_set_active(
     id: String,
     version: String,
 ) -> CommandResult<()> {
-    let rt = state.runtime()?;
+    set_active(&app, &state.runtime()?, &id, version).await
+}
+
+/// [`package_set_active`], shared with the tray.
+pub async fn set_active(
+    app: &AppHandle,
+    rt: &Arc<Runtime>,
+    id: &str,
+    version: String,
+) -> CommandResult<()> {
     let mut cfg = rt.config();
-    set_selected(&mut cfg, &id, version)?;
+    set_selected(&mut cfg, id, version)?;
     let warnings = lumina_config::validate::validate(&mut cfg);
     lumina_config::save(&rt.layout.config_file(), &cfg)?;
     *rt.config.write().unwrap_or_else(|e| e.into_inner()) = cfg.clone();
     *rt.warnings.write().unwrap_or_else(|e| e.into_inner()) = warnings;
     let _ = app.emit(events::CONFIG_CHANGED, "packages");
 
-    if let Some(kind) = service(&id) {
+    if let Some(kind) = service(id) {
         let running = match kind {
             ServiceKind::Nginx | ServiceKind::Apache => {
                 rt.stack.web_status(kind).await.runtime.is_some()
             }
-            _ => running_version(&rt, &id).await.is_some(),
+            _ => running_version(rt, id).await.is_some(),
         };
         if running {
             rt.stack.restart(kind, &cfg).await?;
         }
     }
-    after_change(&app, &rt, &id).await;
+    after_change(app, rt, id).await;
     let _ = app.emit(events::PACKAGES_CHANGED, ());
     Ok(())
 }
@@ -541,7 +554,11 @@ async fn after_change(app: &AppHandle, rt: &Arc<Runtime>, id: &str) {
 #[tauri::command]
 #[specta::specta]
 pub async fn db_ui_open(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
-    let rt = state.runtime()?;
+    open_db_ui(&app, &*state.runtime()?).await
+}
+
+/// [`db_ui_open`], shared with the tray.
+pub async fn open_db_ui(app: &AppHandle, rt: &Runtime) -> CommandResult<()> {
     let cfg = rt.config();
     if rt.packages.installed("phpmyadmin").is_empty() {
         return Err(Error::Other("phpMyAdmin is not installed; add it in Quick Add".into()).into());

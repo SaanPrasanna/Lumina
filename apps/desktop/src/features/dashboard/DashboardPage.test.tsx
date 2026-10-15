@@ -34,6 +34,7 @@ const stack = {
   web: { server: "nginx", status: "running", runtime: { version: "1.30.5", httpPort: 8080 }, error: null },
   database: { engine: "mysql", status: "stopped", runtime: null, error: null },
   redis: { status: "failed", runtime: null, error: "port 6379 is already in use" },
+  postgresql: { status: "stopped", runtime: null, error: null },
 } as unknown as services.StackStatus;
 
 describe("DashboardPage", () => {

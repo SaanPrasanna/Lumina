@@ -32,6 +32,10 @@ pub enum Note<'a> {
     UpdateAvailable {
         version: &'a str,
     },
+    /// A tray action failed; `message` is the error (English, from the backend).
+    ActionFailed {
+        message: &'a str,
+    },
 }
 
 /// The name shown for a supervisor process ID (`None`: not worth a notification).
@@ -43,6 +47,7 @@ pub fn service_name(id: &str) -> Option<&'static str> {
         "mysql" => "MySQL",
         "mariadb" => "MariaDB",
         "redis" => "Redis",
+        "postgresql" => "PostgreSQL",
         // The tunnel agent's exits are shown on the Sharing page.
         _ => return None,
     })
@@ -103,6 +108,8 @@ pub fn text(language: &str, note: &Note<'_>) -> (String, String) {
             format!("{name} සෑදිය නොහැකි විය"),
             "QuickApp පිටුවේ ප්‍රතිදානය බලන්න.".into(),
         ),
+        Note::ActionFailed { message } if si => ("එය සාර්ථක නොවීය".into(), (*message).to_owned()),
+        Note::ActionFailed { message } => ("That did not work".into(), (*message).to_owned()),
         Note::ProjectFailed { name } => (
             format!("{name} could not be created"),
             "The QuickApp page shows the output.".into(),
@@ -115,7 +122,10 @@ pub fn text(language: &str, note: &Note<'_>) -> (String, String) {
 pub fn send(app: &AppHandle, note: Note<'_>) {
     let background_only = !matches!(
         note,
-        Note::Crashed { .. } | Note::Failed { .. } | Note::UpdateAvailable { .. }
+        Note::Crashed { .. }
+            | Note::Failed { .. }
+            | Note::UpdateAvailable { .. }
+            | Note::ActionFailed { .. }
     );
     if background_only
         && app

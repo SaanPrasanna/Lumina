@@ -25,7 +25,7 @@ export interface PortConflictRequest {
 
 /**
  * Explains which program holds a service's port and offers to move the service
- * to an alternative port (blueprint: IIS or another Laragon on 80, an existing
+ * to an alternative port (blueprint: IIS or another local server on 80, an existing
  * MySQL on 3306).
  */
 export function PortConflictDialog({ request, onClose }: { request: PortConflictRequest; onClose: () => void }) {

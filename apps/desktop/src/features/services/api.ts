@@ -8,6 +8,7 @@ export type {
   DbStatus,
   Install,
   PhpRuntime,
+  PgStatus,
   PhpStatus,
   RedisStatus,
   ReloadOutcome,
@@ -25,6 +26,7 @@ export const webKind = (server: WebServer): ServiceKind => server;
 export const dbKind = (engine: DatabaseEngine): ServiceKind => engine;
 export const dbVersionsKey = (engine: DatabaseEngine) => ["db", "versions", engine] as const;
 export const REDIS_VERSIONS_KEY = ["redis", "versions"] as const;
+export const POSTGRESQL_VERSIONS_KEY = ["postgresql", "versions"] as const;
 
 export const servicesStatus = () => commands.servicesStatus();
 export const serviceStart = (kind: ServiceKind) => commands.serviceStart(kind);
@@ -38,6 +40,7 @@ export const phpVersions = () => commands.phpVersions();
 export const webVersions = (server: WebServer) => commands.webVersions(server);
 export const dbVersions = (engine: DatabaseEngine) => commands.dbVersions(engine);
 export const redisVersions = () => commands.redisVersions();
+export const postgresqlVersions = () => commands.postgresqlVersions();
 export const phpSetVersion = (version: string) => commands.phpSetVersion(version);
 export const openLocalhost = () => commands.openLocalhost();
 export const openWww = () => commands.openWww();

@@ -7,6 +7,7 @@ pub mod install;
 pub mod nginx;
 pub mod orchestrator;
 pub mod php_fcgi;
+pub mod postgresql;
 pub mod profiles;
 pub mod redis;
 pub mod template;

@@ -1,10 +1,11 @@
-//! End-to-end checks with real MySQL, MariaDB, Redis and PHP builds. Opt-in:
+//! End-to-end checks with real MySQL, MariaDB, Redis, PostgreSQL and PHP builds. Opt-in:
 //!
 //! ```powershell
 //! $env:LUMINA_TEST_PHP_DIRS     = "C:\Lumina\bin\php\8.4.26"
 //! $env:LUMINA_TEST_MYSQL_DIR    = "C:\Lumina\bin\mysql\8.4.11"
 //! $env:LUMINA_TEST_MARIADB_DIR  = "C:\Lumina\bin\mariadb\12.3.3"
 //! $env:LUMINA_TEST_REDIS_DIR    = "C:\Lumina\bin\redis\8.10.2"
+//! $env:LUMINA_TEST_POSTGRES_DIR = "C:\Lumina\bin\postgresql\18.6"
 //! cargo test -p lumina-services --test db_real -- --nocapture --test-threads=1
 //! ```
 //!
@@ -76,6 +77,7 @@ fn setup(vars: &[(&str, &str)]) -> Option<Env> {
     let mut cfg = AppConfig::default();
     cfg.database.port = free_port();
     cfg.redis.port = free_port();
+    cfg.postgresql.port = free_port();
     let templates = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/templates");
     let stack = Orchestrator::new(
         Supervisor::new(Ledger::disabled()),
@@ -279,4 +281,69 @@ async fn redis_starts_serves_and_saves_on_stop() {
         env.layout.data().join("redis/dump.rdb").is_file(),
         "snapshot saved on stop"
     );
+}
+
+#[tokio::test]
+async fn postgresql_initialises_serves_and_stops_cleanly() {
+    let Some(env) = setup(&[("LUMINA_TEST_POSTGRES_DIR", "postgresql")]) else {
+        return;
+    };
+    env.stack
+        .start(ServiceKind::Postgresql, &env.cfg)
+        .await
+        .expect("start");
+    let data = env
+        .stack
+        .postgresql()
+        .status()
+        .await
+        .runtime
+        .expect("runtime")
+        .data_dir;
+    assert!(data.join("PG_VERSION").is_file(), "initdb ran");
+
+    let dir = PathBuf::from(std::env::var("LUMINA_TEST_POSTGRES_DIR").expect("var"));
+    let psql = dir
+        .join("bin")
+        .join(format!("psql{}", std::env::consts::EXE_SUFFIX));
+    let port = env.cfg.postgresql.port.to_string();
+    let query = |sql: &str| {
+        let out = Command::new(&psql)
+            .args([
+                "-h",
+                "127.0.0.1",
+                "-p",
+                &port,
+                "-U",
+                "postgres",
+                "-tAc",
+                sql,
+            ])
+            .output()
+            .expect("psql");
+        assert!(out.status.success(), "psql: {out:?}");
+        String::from_utf8_lossy(&out.stdout).trim().to_owned()
+    };
+    assert_eq!(query("SHOW server_encoding"), "UTF8");
+    query("CREATE DATABASE lumina_test");
+    let exists = "SELECT count(*) FROM pg_database WHERE datname = 'lumina_test'";
+    assert_eq!(query(exists), "1");
+
+    env.stack.stop(ServiceKind::Postgresql).await.expect("stop");
+    assert!(
+        processes_under(&env.layout.bin().join("postgresql")).is_empty(),
+        "leftovers"
+    );
+    assert!(
+        !data.join("postmaster.pid").exists(),
+        "a clean shutdown removes postmaster.pid"
+    );
+
+    // A second start reuses the data folder.
+    env.stack
+        .start(ServiceKind::Postgresql, &env.cfg)
+        .await
+        .expect("restart");
+    assert_eq!(query(exists), "1");
+    env.stack.stop(ServiceKind::Postgresql).await.expect("stop");
 }

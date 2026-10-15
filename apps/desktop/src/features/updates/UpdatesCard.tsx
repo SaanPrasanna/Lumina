@@ -127,7 +127,7 @@ export function UpdateBanner({ onOpen }: { onOpen: () => void }) {
   const version = status.data?.available?.version;
   if (!version || dismissed === version || status.data?.installing) return null;
   return (
-    <div role="status" className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-accent-soft px-8 py-2 text-sm">
+    <div role="status" className="flex animate-fade-in flex-wrap items-center justify-between gap-3 border-b border-line bg-accent-soft px-8 py-2 text-sm">
       <span>{t("settings.updates.available", { version })}</span>
       <span className="flex gap-2">
         <Button primary onClick={onOpen} icon={<Download />}>

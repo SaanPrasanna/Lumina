@@ -140,6 +140,8 @@
       "portHint": "MySQL or MariaDB, whichever is selected on the Services page.",
       "redisPort": "Redis port",
       "redisEnabled": "Start Redis with Start All",
+      "postgresqlPort": "PostgreSQL port",
+      "postgresqlEnabled": "Start PostgreSQL with Start All",
       "restart": "A running server uses a new port after it is restarted."
     },
     "appearance": {
@@ -193,7 +195,7 @@
     "php_ports_same": "The PHP fallback port is the same as the main port ({{port}}).",
     "port_conflict": "{{a}} and {{b}} both use port {{port}}.",
     "tld_reset": "The domain suffix \"{{value}}\" is invalid; using .test.",
-    "editor_reset": "No editor command was set; using VS Code.",
+    "editor_reset": "No editor command was set; using the default editor.",
     "config_restored": "config.toml was damaged and has been restored from the backup. The damaged copy is {{file}}.",
     "config_reset": "config.toml was damaged and no backup was usable, so the defaults are used. The damaged copy is {{file}}.",
     "tld_https_only": ".{{tld}} is a real domain suffix that browsers only open over HTTPS, so these sites will not load until HTTPS is set up. Use .test instead.",
@@ -230,6 +232,16 @@
     "firstStart": "The first start creates a new, empty database folder; this takes a few seconds.",
     "notInstalled": "{{engine}} is not installed yet. Put it in {{path}}.",
     "openUi": "Open DB UI"
+  },
+  "postgresql": {
+    "title": "PostgreSQL",
+    "enabled": "Start PostgreSQL with Start All",
+    "version": "Version",
+    "newest": "Newest installed ({{version}})",
+    "port": "Port",
+    "user": "User",
+    "notInstalled": "PostgreSQL is not installed yet. Install it from Quick Add.",
+    "connectHint": "Connect to 127.0.0.1:{{port}} as postgres (no password). It runs next to MySQL/MariaDB."
   },
   "redis": {
     "title": "Redis",

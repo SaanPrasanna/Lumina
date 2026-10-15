@@ -24,6 +24,7 @@ use crate::apache::Apache;
 use crate::database::{Database, DbStatus, engine};
 use crate::nginx::Nginx;
 use crate::php_fcgi::{PhpFcgi, PhpStatus};
+use crate::postgresql::{PgStatus, Postgresql};
 use crate::redis::{Redis, RedisStatus};
 use crate::template::Templates;
 use crate::web::{DbUi, ReloadOutcome, WebContext, WebStatus};
@@ -45,6 +46,7 @@ pub struct StackStatus {
     /// The configured database engine, or the other one if that is what runs.
     pub database: DbStatus,
     pub redis: RedisStatus,
+    pub postgresql: PgStatus,
 }
 
 #[derive(Clone)]
@@ -60,6 +62,7 @@ struct Inner {
     mysql: Database,
     mariadb: Database,
     redis: Redis,
+    postgresql: Postgresql,
     /// The local CA and site certificates (`<data-root>/ssl`).
     ssl: Ssl,
     /// Why HTTPS could not be set up last time, for the UI.
@@ -87,6 +90,7 @@ impl Orchestrator {
                     layout.clone(),
                     templates.clone(),
                 ),
+                postgresql: Postgresql::new(supervisor.clone(), layout.clone()),
                 redis: Redis::new(supervisor, layout.clone(), templates),
                 ssl: Ssl::new(layout.ssl()),
                 tls_error: std::sync::Mutex::new(None),
@@ -117,6 +121,10 @@ impl Orchestrator {
 
     pub fn redis(&self) -> &Redis {
         &self.inner.redis
+    }
+
+    pub fn postgresql(&self) -> &Postgresql {
+        &self.inner.postgresql
     }
 
     /// The service kind of the configured database engine.
@@ -485,6 +493,10 @@ impl Orchestrator {
                 self.inner.redis.start(&cfg.redis).await?;
                 Ok(())
             }
+            ServiceKind::Postgresql => {
+                self.inner.postgresql.start(&cfg.postgresql).await?;
+                Ok(())
+            }
         }
     }
 
@@ -501,6 +513,7 @@ impl Orchestrator {
             ServiceKind::Mysql => self.inner.mysql.stop().await,
             ServiceKind::Mariadb => self.inner.mariadb.stop().await,
             ServiceKind::Redis => self.inner.redis.stop().await,
+            ServiceKind::Postgresql => self.inner.postgresql.stop().await,
         }
     }
 
@@ -560,6 +573,7 @@ impl Orchestrator {
             web: self.running_web().await,
             database,
             redis: self.inner.redis.status().await.runtime.is_some(),
+            postgresql: self.inner.postgresql.status().await.runtime.is_some(),
         }
     }
 
@@ -639,11 +653,14 @@ impl Orchestrator {
         ))
     }
 
-    /// Database, Redis (if enabled), PHP, then the configured web server. Every
+    /// Database, PostgreSQL and Redis (if enabled), PHP, then the configured web server. Every
     /// service is attempted; the first error is returned.
     pub async fn start_all(&self, cfg: &AppConfig) -> Result<()> {
         let _guard = self.inner.lock.lock().await;
         let mut kinds = vec![Self::configured_db(cfg)];
+        if cfg.postgresql.enabled {
+            kinds.push(ServiceKind::Postgresql);
+        }
         if cfg.redis.enabled {
             kinds.push(ServiceKind::Redis);
         }
@@ -672,6 +689,7 @@ impl Orchestrator {
             ServiceKind::Mysql => self.inner.mysql.status().await.runtime.is_some(),
             ServiceKind::Mariadb => self.inner.mariadb.status().await.runtime.is_some(),
             ServiceKind::Redis => self.inner.redis.status().await.runtime.is_some(),
+            ServiceKind::Postgresql => self.inner.postgresql.status().await.runtime.is_some(),
         }
     }
 
@@ -685,6 +703,7 @@ impl Orchestrator {
             ServiceKind::Apache,
             ServiceKind::PhpFcgi,
             ServiceKind::Redis,
+            ServiceKind::Postgresql,
             ServiceKind::Mysql,
             ServiceKind::Mariadb,
         ] {
@@ -734,6 +753,7 @@ impl Orchestrator {
             web,
             database,
             redis: self.inner.redis.status().await,
+            postgresql: self.inner.postgresql.status().await,
         }
     }
 }

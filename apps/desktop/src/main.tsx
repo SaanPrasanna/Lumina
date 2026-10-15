@@ -3,11 +3,11 @@ import ReactDOM from "react-dom/client";
 import { App } from "@/app/App";
 import { AppProviders } from "@/app/providers";
 import "@/i18n";
-// Sinhala fallback for systems without a Sinhala font (bundled, so it works
-// offline); system fonts come first in --font-sans.
-import "@fontsource/noto-sans-sinhala/sinhala-400.css";
-import "@fontsource/noto-sans-sinhala/sinhala-500.css";
-import "@fontsource/noto-sans-sinhala/sinhala-600.css";
+// Manrope (text) and Roboto Mono (code, figures), bundled so they work offline.
+import "@fontsource-variable/manrope";
+import "@fontsource-variable/roboto-mono";
+// Noto Sans Sinhala for all Sinhala text, every weight (variable, bundled).
+import "@fontsource-variable/noto-sans-sinhala";
 import "@/styles/globals.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

@@ -37,6 +37,8 @@ pub enum ConfigFile {
     Database,
     /// Redis `custom.conf` (redis.conf includes it).
     Redis,
+    /// `postgresql.conf` in the data folder of the selected PostgreSQL.
+    Postgresql,
     /// The web server's `sites/` folder (vhost files; `<domain>.conf` overrides).
     WebSites,
 }
@@ -96,6 +98,19 @@ async fn resolve_target(rt: &Runtime, target: &OpenTarget) -> lumina_core::Resul
                 ensure(etc.join(engine).join("custom.cnf"))?
             }
             ConfigFile::Redis => ensure(etc.join("redis").join("custom.conf"))?,
+            ConfigFile::Postgresql => {
+                let pg = rt.stack.postgresql();
+                let installs = pg.versions().await;
+                let install = lumina_services::install::select(&installs, &cfg.postgresql.version)
+                    .ok_or_else(|| Error::Other("PostgreSQL is not installed yet".into()))?;
+                let file = pg.data_dir(install).join("postgresql.conf");
+                if !file.is_file() {
+                    return Err(Error::Other(
+                        "start PostgreSQL once; its first start creates postgresql.conf".into(),
+                    ));
+                }
+                file
+            }
             ConfigFile::WebSites => match cfg.web.server {
                 lumina_config::schema::WebServer::Nginx => rt.stack.nginx().sites_dir(),
                 lumina_config::schema::WebServer::Apache => rt.stack.apache().sites_dir(),
@@ -112,8 +127,12 @@ pub async fn editor_open(
     target: OpenTarget,
     line: Option<u32>,
 ) -> CommandResult<()> {
-    let rt = state.runtime()?;
-    let path = resolve_target(&rt, &target).await?;
+    open(&*state.runtime()?, &target, line).await
+}
+
+/// [`editor_open`], shared with the tray.
+pub async fn open(rt: &Runtime, target: &OpenTarget, line: Option<u32>) -> CommandResult<()> {
+    let path = resolve_target(rt, target).await?;
     let editor = rt.config().editor;
     let program = launcher::resolve(&editor.command).ok_or_else(|| {
         Error::Other(format!(

@@ -175,11 +175,11 @@ function TokenCard({ data }: { data: TunnelOverview }) {
         <>
           <p className="text-muted">
             {t("tunnel.token.help")}{" "}
-            <button type="button" className="text-accent underline" onClick={() => void openUrl(SIGNUP_URL)}>
+            <button type="button" className="text-accent-ink underline" onClick={() => void openUrl(SIGNUP_URL)}>
               {t("tunnel.token.signup")}
             </button>{" "}
             ·{" "}
-            <button type="button" className="text-accent underline" onClick={() => void openUrl(TOKEN_URL)}>
+            <button type="button" className="text-accent-ink underline" onClick={() => void openUrl(TOKEN_URL)}>
               {t("tunnel.token.get")}
             </button>
           </p>
@@ -234,7 +234,7 @@ function DomainCard({ data }: { data: TunnelOverview }) {
       </h2>
       <p className="mt-1 text-sm text-muted">
         {t("tunnel.domain.help")}{" "}
-        <button type="button" className="text-accent underline" onClick={() => void openUrl(DOMAINS_URL)}>
+        <button type="button" className="text-accent-ink underline" onClick={() => void openUrl(DOMAINS_URL)}>
           {t("tunnel.domain.find")}
         </button>
       </p>

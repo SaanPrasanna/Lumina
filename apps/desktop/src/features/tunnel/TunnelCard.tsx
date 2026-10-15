@@ -32,7 +32,11 @@ export function TunnelCard({ tunnel }: { tunnel: TunnelView }) {
         />
       )}
       <div className="min-w-0 flex-1 space-y-2">
-        <p className="text-sm text-muted">{t("tunnel.sharing", { host: tunnel.host })}</p>
+        <p className="flex items-center gap-2 text-sm text-muted">
+          {/* Live: the tunnel is open. */}
+          <span className="size-2 shrink-0 rounded-full bg-ok animate-glow" aria-hidden />
+          {t("tunnel.sharing", { host: tunnel.host })}
+        </p>
         <p className="break-all font-mono text-base font-medium select-all" dir="ltr">
           {tunnel.publicUrl}
         </p>

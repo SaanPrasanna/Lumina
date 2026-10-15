@@ -212,6 +212,7 @@ mod tests {
             "mysql",
             "mariadb",
             "redis",
+            "postgresql",
             "phpmyadmin",
             "node",
             "python",

@@ -25,7 +25,7 @@ export function ThemeSelect() {
           title={t(`theme.${value}`)}
           onClick={() => setTheme(value)}
           className={`flex flex-1 justify-center rounded py-1 outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-            theme === value ? "bg-accent-soft text-accent" : "text-muted hover:bg-hover"
+            theme === value ? "bg-accent-soft text-accent-ink" : "text-muted hover:bg-hover"
           }`}
         >
           <Icon className="size-4" aria-hidden />

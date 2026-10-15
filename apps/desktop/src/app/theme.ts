@@ -24,7 +24,7 @@ export const useThemeStore = create<ThemeState>()(
 /** The page background (--color-surface) as RGB, per theme. */
 const SURFACE: Record<"light" | "dark", [number, number, number]> = {
   light: [255, 255, 255],
-  dark: [11, 17, 32],
+  dark: [27, 30, 32],
 };
 
 /**

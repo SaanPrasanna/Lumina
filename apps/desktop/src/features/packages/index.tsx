@@ -23,7 +23,7 @@ import {
 } from "@/features/packages/api";
 
 /** Query keys that show installed versions somewhere in the app. */
-const AFFECTED = [PACKAGES_KEY, ["services"], ["php"], ["web"], ["db"], ["redis"], ["sites"]] as const;
+const AFFECTED = [PACKAGES_KEY, ["services"], ["php"], ["web"], ["db"], ["redis"], ["postgresql"], ["sites"]] as const;
 
 /** Live progress from `package-progress`, by `id@version`. */
 function useProgress() {
@@ -168,7 +168,7 @@ function PackagePanel(props: { pkg: PackageView; overview: PackagesOverview; pro
           {pkg.selected !== "" && (
             <button
               type="button"
-              className="mt-2 text-sm text-accent hover:underline disabled:opacity-50"
+              className="mt-2 text-sm text-accent-ink hover:underline disabled:opacity-50"
               disabled={busy}
               onClick={() => action.mutate(() => packageSetActive(pkg.id, ""))}
             >
@@ -256,7 +256,7 @@ function AvailableRow(props: {
         <div className="mt-2" role="status">
           <div className="h-1.5 overflow-hidden rounded-full bg-hover" aria-hidden="true">
             <div
-              className={`h-full bg-accent transition-[width] ${percent === null || stage !== "downloading" ? "w-full animate-pulse" : ""}`}
+              className={`h-full bg-accent transition-[width] duration-300 ease-out ${percent === null || stage !== "downloading" ? "w-full progress-flow" : ""}`}
               style={percent !== null && stage === "downloading" ? { width: `${percent}%` } : undefined}
             />
           </div>

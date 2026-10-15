@@ -133,7 +133,14 @@ pub async fn path_add_system(state: State<'_, AppState>) -> CommandResult<PathOv
 #[tauri::command]
 #[specta::specta]
 pub async fn terminal_open(state: State<'_, AppState>, path: Option<PathBuf>) -> CommandResult<()> {
-    let rt = state.runtime()?;
+    open_terminal_for(&*state.runtime()?, path).await
+}
+
+/// [`terminal_open`], shared with the tray.
+pub async fn open_terminal_for(
+    rt: &crate::state::Runtime,
+    path: Option<PathBuf>,
+) -> CommandResult<()> {
     let cfg = rt.config();
     rt.stack.refresh_shims(&cfg, Some(&rt.shim_exe)).await?;
     let dir = path

@@ -1,4 +1,4 @@
-# Lumina configuration (the equivalent of laragon.ini).
+# Lumina configuration.
 # Lives at <data-root>/config.toml. Lumina rewrites this file when you change
 # settings in the app; the previous version is kept as config.toml.bak.
 schema_version = 1
@@ -40,13 +40,18 @@ enabled = false              # start Redis with "Start All"
 version = ""                 # empty = newest installed
 port = 6379
 
+[postgresql]
+enabled = false              # start PostgreSQL with Start All (it runs next to MySQL/MariaDB)
+version = ""                 # empty = newest installed; "17" = newest 17.x
+port = 5432
+
 [editor]
-name = "VS Code"
-command = "code"
-# {path} is replaced with the folder or file to open.
-args = ["{path}"]
-# Used to open a file at a line ({line}); empty = args.
-args_line = ["--goto", "{path}:{line}"]
+# Default: Notepad++ on Windows, VS Code on macOS and Linux. Choose another
+# in Settings, or set it here:
+# name = "VS Code"
+# command = "code"           # a name on PATH or a full path
+# args = ["{path}"]          # {path} is replaced with the folder or file to open
+# args_line = ["--goto", "{path}:{line}"]   # to open a file at a line; empty = args
 
 [tunnel]
 provider = "ngrok"           # the auth token is stored in the OS keychain, not here

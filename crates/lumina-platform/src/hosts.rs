@@ -357,7 +357,7 @@ mod tests {
     }
 
     const ORIGINAL: &[u8] =
-        b"# Copyright (c) Microsoft\r\n#\r\n127.0.0.1      shop.test   #laragon magic!   \r\n\r\n";
+        b"# Copyright (c) Microsoft\r\n#\r\n127.0.0.1      shop.test   #added by another tool   \r\n\r\n";
 
     #[test]
     fn appends_block_with_the_files_line_ending() {

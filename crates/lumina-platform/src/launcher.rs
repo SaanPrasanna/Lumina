@@ -32,6 +32,8 @@ struct Known {
     /// Install locations, relative to a base folder (see `bases`).
     windows: &'static [&'static str],
     macos: &'static [&'static str],
+    /// To open a folder or file.
+    args: &'static [&'static str],
     args_line: &'static [&'static str],
 }
 
@@ -45,6 +47,7 @@ const KNOWN: &[Known] = &[
             r"%ProgramFiles%\Microsoft VS Code\bin\code.cmd",
         ],
         macos: &["/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"],
+        args: &["{path}"],
         args_line: &["--goto", "{path}:{line}"],
     },
     Known {
@@ -53,6 +56,7 @@ const KNOWN: &[Known] = &[
         on_path: &["code-insiders"],
         windows: &[r"%LOCALAPPDATA%\Programs\Microsoft VS Code Insiders\bin\code-insiders.cmd"],
         macos: &["/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code"],
+        args: &["{path}"],
         args_line: &["--goto", "{path}:{line}"],
     },
     Known {
@@ -64,6 +68,7 @@ const KNOWN: &[Known] = &[
             r"%LOCALAPPDATA%\Programs\cursor\Cursor.exe",
         ],
         macos: &["/Applications/Cursor.app/Contents/Resources/app/bin/cursor"],
+        args: &["{path}"],
         args_line: &["--goto", "{path}:{line}"],
     },
     Known {
@@ -72,6 +77,7 @@ const KNOWN: &[Known] = &[
         on_path: &["phpstorm", "pstorm"],
         windows: &[r"%LOCALAPPDATA%\JetBrains\Toolbox\scripts\phpstorm.cmd"],
         macos: &["/Applications/PhpStorm.app/Contents/MacOS/phpstorm"],
+        args: &["{path}"],
         args_line: &["--line", "{line}", "{path}"],
     },
     Known {
@@ -83,6 +89,7 @@ const KNOWN: &[Known] = &[
             r"%ProgramFiles%\Sublime Text 3\subl.exe",
         ],
         macos: &["/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl"],
+        args: &["{path}"],
         args_line: &["{path}:{line}"],
     },
     Known {
@@ -94,6 +101,7 @@ const KNOWN: &[Known] = &[
             r"%ProgramFiles(x86)%\Notepad++\notepad++.exe",
         ],
         macos: &[],
+        args: &["-openFoldersAsWorkspace", "{path}"],
         args_line: &["-n{line}", "{path}"],
     },
     Known {
@@ -105,6 +113,7 @@ const KNOWN: &[Known] = &[
             r"%LOCALAPPDATA%\Programs\Zed\Zed.exe",
         ],
         macos: &["/Applications/Zed.app/Contents/MacOS/cli"],
+        args: &["{path}"],
         args_line: &["{path}:{line}"],
     },
 ];
@@ -124,28 +133,32 @@ fn expand_vars(s: &str) -> Option<PathBuf> {
     Some(PathBuf::from(out))
 }
 
+/// Where `k` is installed on this machine: its usual install folder, else PATH.
+fn installed_at(k: &Known) -> Option<PathBuf> {
+    let places = if cfg!(windows) {
+        k.windows
+    } else if cfg!(target_os = "macos") {
+        k.macos
+    } else {
+        &[]
+    };
+    places
+        .iter()
+        .filter_map(|p| expand_vars(p))
+        .find(|p| p.is_file())
+        .or_else(|| k.on_path.iter().find_map(|c| path_env::which(c)))
+}
+
 /// Editors installed on this machine, in a fixed order.
 pub fn editor_presets() -> Vec<EditorPreset> {
     KNOWN
         .iter()
         .filter_map(|k| {
-            let installed = if cfg!(windows) {
-                k.windows
-            } else if cfg!(target_os = "macos") {
-                k.macos
-            } else {
-                &[]
-            };
-            let command = installed
-                .iter()
-                .filter_map(|p| expand_vars(p))
-                .find(|p| p.is_file())
-                .or_else(|| k.on_path.iter().find_map(|c| path_env::which(c)))?;
             Some(EditorPreset {
                 id: k.id,
                 name: k.name,
-                command,
-                args: vec!["{path}".into()],
+                command: installed_at(k)?,
+                args: k.args.iter().map(|a| (*a).to_owned()).collect(),
                 args_line: k.args_line.iter().map(|a| (*a).to_owned()).collect(),
             })
         })
@@ -177,13 +190,20 @@ pub fn editor_args(
 }
 
 /// Resolves a command name or path: absolute paths as they are, names on
-/// PATH (including `code.cmd`-style launchers on Windows).
+/// PATH (including `code.cmd`-style launchers on Windows), then a known
+/// editor's install folder (`notepad++` is usually not on PATH).
 pub fn resolve(command: &str) -> Option<PathBuf> {
-    let p = Path::new(command.trim());
+    let command = command.trim();
+    let p = Path::new(command);
     if p.is_absolute() {
         return p.is_file().then(|| p.to_path_buf());
     }
-    path_env::which(command.trim())
+    path_env::which(command).or_else(|| {
+        KNOWN
+            .iter()
+            .find(|k| k.on_path.iter().any(|c| c.eq_ignore_ascii_case(command)))
+            .and_then(installed_at)
+    })
 }
 
 /// Starts `program` detached from Lumina. `path_prefix` goes in front of PATH.

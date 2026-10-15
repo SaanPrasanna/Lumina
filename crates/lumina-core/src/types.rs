@@ -12,6 +12,7 @@ pub enum ServiceKind {
     Mysql,
     Mariadb,
     Redis,
+    Postgresql,
 }
 
 /// Lifecycle state reported to the UI.
