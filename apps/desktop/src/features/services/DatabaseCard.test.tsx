@@ -18,7 +18,7 @@ const config: DatabaseSettings = { engine: "mysql", mysql_version: "", mariadb_v
 const stopped: api.DbStatus = { engine: "mysql", status: "stopped", runtime: null, pid: null, error: null, logFile: "x" };
 
 function renderCard(status: api.DbStatus, onPortConflict = vi.fn()) {
-  vi.mocked(api.dbVersions).mockResolvedValue([{ version: "8.4.11", dir: "a", exe: "a" }]);
+  vi.mocked(api.dbVersions).mockResolvedValue([{ version: "8.4.11", dir: "a", exe: "a", homebrew: null }]);
   render(
     <QueryClientProvider client={new QueryClient()}>
       <DatabaseCard status={status} config={config} onPortConflict={onPortConflict} />

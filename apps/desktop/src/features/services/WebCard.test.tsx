@@ -36,7 +36,7 @@ const stopped: api.WebStatus = {
 };
 
 function renderCard(status: api.WebStatus, onPortConflict = vi.fn()) {
-  vi.mocked(api.webVersions).mockResolvedValue([{ version: "1.30.5", dir: "a", exe: "a" }]);
+  vi.mocked(api.webVersions).mockResolvedValue([{ version: "1.30.5", dir: "a", exe: "a", homebrew: null }]);
   render(
     <QueryClientProvider client={new QueryClient()}>
       <WebCard status={status} config={config} onPortConflict={onPortConflict} />

@@ -25,14 +25,15 @@ const php: api.PackageView = {
   active: "8.4.26",
   running: "8.4.26",
   installed: [
-    { version: "8.4.26", inUse: "running", managed: false, requiresPhp: null },
-    { version: "8.3.35", inUse: null, managed: true, requiresPhp: null },
+    { version: "8.4.26", inUse: "running", managed: false, requiresPhp: null, homebrew: null },
+    { version: "8.3.35", inUse: null, managed: true, requiresPhp: null, homebrew: null },
   ],
   available: [
     { version: "8.5.11", channel: null, size: 36_000_000, requiresPhp: null, installed: false, partial: null, compatible: true },
     { version: "8.4.26", channel: null, size: null, requiresPhp: null, installed: true, partial: null, compatible: true },
   ],
   jobs: [],
+  homebrew: null,
 };
 
 const pma: api.PackageView = {

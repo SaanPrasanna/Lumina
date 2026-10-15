@@ -25,8 +25,8 @@ const config: PhpSettings = {
 };
 
 const installs: api.Install[] = [
-  { version: "8.4.26", dir: "a", exe: "a" },
-  { version: "8.3.35", dir: "b", exe: "b" },
+  { version: "8.4.26", dir: "a", exe: "a", homebrew: null },
+  { version: "8.3.35", dir: "b", exe: "b", homebrew: null },
 ];
 
 const stopped: api.PhpStatus = {
