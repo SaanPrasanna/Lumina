@@ -9,12 +9,14 @@
   --color-sidebar: #f8fafc;
   --color-fg: #0f172a;
   --color-fg-soft: #334155;
-  --color-muted: #64748b;
+  --color-muted: #5b6b81;
   --color-line: #e2e8f0;
   --color-hover: #f1f5f9;
   --color-accent: #4f46e5;
   --color-accent-strong: #4338ca;
   --color-accent-soft: #eef2ff;
+  /* Text on accent-coloured buttons. */
+  --color-on-accent: #ffffff;
   --color-danger: #b91c1c;
   --color-danger-soft: #fef2f2;
   --color-ok: #15803d;
@@ -39,6 +41,7 @@
   --color-accent: #818cf8;
   --color-accent-strong: #a5b4fc;
   --color-accent-soft: #1e1b4b;
+  --color-on-accent: #0b1120;
   --color-danger: #fca5a5;
   --color-danger-soft: #450a0a;
   --color-ok: #4ade80;

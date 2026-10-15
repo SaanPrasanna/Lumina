@@ -19,8 +19,17 @@
     "comingSoon": "මෙම කොටස ඉදිරි නිකුතුවකින් ලැබෙනු ඇත."
   },
   "dashboard": {
-    "empty": "සේවා එක් කළ පසු ඔබගේ ස්ථානීය ස්ටැක් එක මෙහි දිස්වේ.",
-    "dataRoot": "දත්ත ෆෝල්ඩරය"
+    "dataRoot": "දත්ත ෆෝල්ඩරය",
+    "sites": "අඩවි",
+    "sitesHint": "සෑම ෆෝල්ඩරයක්ම .{{tld}} අඩවියක් වේ",
+    "shared": "දැන් බෙදාගෙන ඇත",
+    "sharedHint": "ngrok හරහා පොදු ලිපින",
+    "newProject": "නව ව්‍යාපෘතිය",
+    "newProjectHint": "Laravel, WordPress සහ තවත් බොහෝ දේ එක ක්ලික් එකකින්",
+    "manage": "සේවා කළමනාකරණය",
+    "port": "port {{port}}",
+    "startService": "{{name}} ආරම්භ කරන්න",
+    "stopService": "{{name}} නවත්වන්න"
   },
   "theme": {
     "label": "තේමාව",
@@ -111,7 +120,9 @@
     "general": {
       "title": "සාමාන්‍ය",
       "autostart": "Lumina විවෘත වන විට PHP සහ වෙබ් සේවාදායකය ආරම්භ කරන්න",
-      "closeToTray": "කවුළුව වසා දැමූ විට ට්‍රේ එකේ දිගටම ක්‍රියාත්මක වන්න"
+      "closeToTray": "කවුළුව වසා දැමූ විට ට්‍රේ එකේ දිගටම ක්‍රියාත්මක වන්න",
+      "www": "ව්‍යාපෘති ෆෝල්ඩරය",
+      "wwwHint": "මෙහි ඇති සෑම ෆෝල්ඩරයක්ම අඩවියක් වේ. හිස් නම් = {{folder}}."
     },
     "web": {
       "title": "වෙබ් සේවාදායකය",
@@ -119,7 +130,44 @@
       "httpsPort": "HTTPS පෝට්",
       "portHint": "වෙබ් අඩවි වෙත ප්‍රවේශ විය හැක්කේ මෙම පරිගණකයෙන් පමණි (127.0.0.1)."
     },
-    "restartWebToApply": "මෙම වෙනස්කම් යෙදීමට වෙබ් සේවාදායකය නැවත ආරම්භ කරන්න."
+    "restartWebToApply": "මෙම වෙනස්කම් යෙදීමට වෙබ් සේවාදායකය නැවත ආරම්භ කරන්න.",
+    "index": "සැකසීම් කොටස්",
+    "browse": "සොයන්න",
+    "database": {
+      "title": "දත්ත සමුදාය සහ Redis",
+      "port": "දත්ත සමුදා port",
+      "portHint": "Services පිටුවේ තෝරා ඇති MySQL හෝ MariaDB.",
+      "redisPort": "Redis port",
+      "redisEnabled": "Start All සමඟ Redis ආරම්භ කරන්න",
+      "restart": "ධාවනය වන සේවාදායකයක් නව port එක භාවිත කරන්නේ නැවත ආරම්භ කළ පසුවය."
+    },
+    "appearance": {
+      "title": "භාෂාව සහ පෙනුම",
+      "hint": "Tray මෙනුව සහ දැනුම්දීම් ද භාෂාව අනුගමනය කරයි."
+    },
+    "elsewhere": {
+      "title": "තවත් සැකසීම්",
+      "https": "HTTPS සහ සහතික",
+      "httpsHint": "Sites පිටුව: දේශීය සහතික අධිකාරිය, Force HTTPS",
+      "versions": "සංස්කරණ සහ සේවාදායක",
+      "versionsHint": "Services පිටුව: PHP සංස්කරණය, nginx හෝ Apache, MySQL හෝ MariaDB",
+      "path": "ටර්මිනල් PATH",
+      "pathHint": "PATH පිටුව: සෑම ටර්මිනලයකම php, composer සහ node",
+      "sharing": "බෙදාගැනීම",
+      "sharingHint": "Sharing පිටුව: ngrok ගිණුම සහ වෙන් කළ ඩොමේනය",
+      "profiles": "පැතිකඩ",
+      "profilesHint": "Profiles පිටුව: මාරු වීමට සුරැකි stack"
+    },
+    "advanced": {
+      "title": "උසස්",
+      "proxy": "බාගැනීම් proxy",
+      "proxyHint": "Quick Add බාගැනීම් සඳහා. හිස් නම් = පද්ධතියේ proxy සැකසීම්. Lumina නැවත ආරම්භ කළ පසු බලපායි."
+    },
+    "about": {
+      "title": "පිළිබඳ",
+      "version": "Lumina {{version}}",
+      "updates": "ස්වයංක්‍රීය යාවත්කාලීන කිරීම් පළමු අත්සන් කළ නිකුතුව සමඟ පැමිණේ."
+    }
   },
   "configWarnings": {
     "php_children_raised": "PHP_FCGI_CHILDREN={{from}} ඉතා අඩුය; Lumina {{to}} භාවිත කරයි.",
@@ -213,7 +261,9 @@
       "invalidName": "ලිපිනයක් සෑදීමට නමේ අකුරු හෝ ඉලක්කම් නැත",
       "unsafePath": "නමේ වෙබ් සේවාදායකවලට භාවිත කළ නොහැකි අක්ෂරයක් ඇත (\" $ ; { } \\)",
       "duplicate": "{{domain}} දැනටමත් {{other}} ෆෝල්ඩරය භාවිත කරයි"
-    }
+    },
+    "search": "අඩවි සොයන්න",
+    "noMatch": "සෙවුමට ගැළපෙන අඩවියක් නැත."
   },
   "ssl": {
     "title": "HTTPS",
@@ -434,5 +484,32 @@
       "find": "ඔබේ ඩොමේනය සොයන්න",
       "label": "ඩොමේනය"
     }
+  },
+  "logs": {
+    "openFile": "ගොනුව විවෘත කරන්න",
+    "openFolder": "ලොග් ෆෝල්ඩරය විවෘත කරන්න",
+    "none": "තවම ලොග් නැත. සේවාවක් ධාවනය වූ පසු ඒවා පෙනේ.",
+    "group": {
+      "app": "Lumina",
+      "service": "සේවා",
+      "quickapp": "QuickApp ව්‍යාපෘති"
+    },
+    "appLog": "Lumina යෙදුම",
+    "source": "ලොගය",
+    "filter": "පෙරහන",
+    "filterPlaceholder": "මෙය අඩංගු පේළි පමණක් පෙන්වන්න…",
+    "level": "පෙන්වන්න",
+    "levels": {
+      "all": "සියලු පේළි",
+      "warn": "අනතුරු ඇඟවීම් සහ දෝෂ",
+      "error": "දෝෂ පමණක්"
+    },
+    "follow": "අනුගමනය කරන්න",
+    "clear": "දසුන හිස් කරන්න",
+    "skipped": "දිගු ලොගයක අවසානය පෙන්වයි; පැරණි පේළි සඳහා ගොනුව විවෘත කරන්න.",
+    "output": "ලොග් පේළි",
+    "empty": "තවම කිසිවක් ලියා නැත. නව පේළි ලියූ විට මෙහි පෙනේ.",
+    "noMatch": "පෙරහනට ගැළපෙන පේළියක් නැත.",
+    "count": "පේළි {{total}} න් {{shown}}"
   }
 }

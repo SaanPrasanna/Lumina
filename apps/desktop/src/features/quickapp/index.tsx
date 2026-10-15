@@ -185,7 +185,7 @@ function CreateForm(props: { recipe: Recipe; overview: QuickAppOverview; busy: b
         <button
           type="submit"
           disabled={!valid || taken || busy || action.isPending}
-          className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white outline-none hover:bg-accent-strong focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 [&_svg]:size-4"
+          className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent outline-none hover:bg-accent-strong focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 [&_svg]:size-4"
         >
           <Rocket />
           {t("quickapp.create")}

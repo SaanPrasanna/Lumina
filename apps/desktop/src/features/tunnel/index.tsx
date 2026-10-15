@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
 import { PACKAGES_KEY, packageInstall, packagesList } from "@/features/packages/api";
 import {
+  DOMAIN_EXAMPLE,
   DOMAINS_URL,
   SIGNUP_URL,
   TOKEN_URL,
@@ -198,7 +199,7 @@ function TokenCard({ data }: { data: TunnelOverview }) {
             <button
               type="submit"
               disabled={action.isPending || token.trim() === ""}
-              className="rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-strong disabled:opacity-50"
+              className="rounded-md bg-accent px-3 py-1.5 text-sm text-on-accent hover:bg-accent-strong disabled:opacity-50"
             >
               {t("actions.save")}
             </button>
@@ -243,7 +244,7 @@ function DomainCard({ data }: { data: TunnelOverview }) {
           <input
             className="rounded-md border border-line bg-surface px-3 py-1.5 font-mono"
             dir="ltr"
-            placeholder="my-app.ngrok-free.app"
+            placeholder={DOMAIN_EXAMPLE}
             spellCheck={false}
             value={domain}
             onChange={(e) => setDomain(e.target.value)}

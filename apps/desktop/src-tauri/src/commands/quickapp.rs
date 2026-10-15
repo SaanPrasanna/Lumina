@@ -336,6 +336,7 @@ pub fn quickapp_create(
             None if state == JobState::Succeeded => {
                 sink.line(format!("Done: {url}"));
                 log::info!("QuickApp: created {name}");
+                crate::notify::send(&app, crate::notify::Note::ProjectReady { name: &name });
             }
             None => {
                 sink.line("Cancelled.".to_owned());
@@ -344,6 +345,7 @@ pub fn quickapp_create(
             Some(err) => {
                 sink.line(format!("Failed: {err}"));
                 log::warn!("QuickApp: {name} failed: {err}");
+                crate::notify::send(&app, crate::notify::Note::ProjectFailed { name: &name });
             }
         }
         flusher.store(true, Ordering::Relaxed);

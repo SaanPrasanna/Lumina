@@ -19,8 +19,17 @@
     "comingSoon": "This section is coming in a later release."
   },
   "dashboard": {
-    "empty": "Your local stack will appear here once services are added.",
-    "dataRoot": "Data folder"
+    "dataRoot": "Data folder",
+    "sites": "Sites",
+    "sitesHint": "Every folder becomes a .{{tld}} site",
+    "shared": "Shared now",
+    "sharedHint": "Public addresses through ngrok",
+    "newProject": "New project",
+    "newProjectHint": "Laravel, WordPress and more in one click",
+    "manage": "Manage services",
+    "port": "port {{port}}",
+    "startService": "Start {{name}}",
+    "stopService": "Stop {{name}}"
   },
   "theme": {
     "label": "Theme",
@@ -111,7 +120,9 @@
     "general": {
       "title": "General",
       "autostart": "Start PHP and the web server when Lumina opens",
-      "closeToTray": "Keep running in the tray when the window is closed"
+      "closeToTray": "Keep running in the tray when the window is closed",
+      "www": "Projects folder",
+      "wwwHint": "Every folder inside becomes a site. Empty = {{folder}}."
     },
     "web": {
       "title": "Web server",
@@ -119,7 +130,44 @@
       "httpsPort": "HTTPS port",
       "portHint": "Sites are reachable only from this computer (127.0.0.1)."
     },
-    "restartWebToApply": "Restart the web server to apply these changes."
+    "restartWebToApply": "Restart the web server to apply these changes.",
+    "index": "Settings sections",
+    "browse": "Browse",
+    "database": {
+      "title": "Database and Redis",
+      "port": "Database port",
+      "portHint": "MySQL or MariaDB, whichever is selected on the Services page.",
+      "redisPort": "Redis port",
+      "redisEnabled": "Start Redis with Start All",
+      "restart": "A running server uses a new port after it is restarted."
+    },
+    "appearance": {
+      "title": "Language and appearance",
+      "hint": "The tray menu and notifications follow the language too."
+    },
+    "elsewhere": {
+      "title": "More settings",
+      "https": "HTTPS and certificates",
+      "httpsHint": "Sites page: local certificate authority, Force HTTPS",
+      "versions": "Versions and servers",
+      "versionsHint": "Services page: PHP version, nginx or Apache, MySQL or MariaDB",
+      "path": "Terminal PATH",
+      "pathHint": "PATH page: php, composer and node in every terminal",
+      "sharing": "Sharing",
+      "sharingHint": "Sharing page: ngrok account and reserved domain",
+      "profiles": "Profiles",
+      "profilesHint": "Profiles page: saved stacks to switch between"
+    },
+    "advanced": {
+      "title": "Advanced",
+      "proxy": "Download proxy",
+      "proxyHint": "For Quick Add downloads. Empty = the system's proxy settings. Applies after Lumina restarts."
+    },
+    "about": {
+      "title": "About",
+      "version": "Lumina {{version}}",
+      "updates": "Automatic updates arrive with the first signed release."
+    }
   },
   "configWarnings": {
     "php_children_raised": "PHP_FCGI_CHILDREN={{from}} is too low; Lumina uses {{to}}.",
@@ -213,7 +261,9 @@
       "invalidName": "the name has no letters or digits to make an address from",
       "unsafePath": "the name contains a character web servers cannot use (\" $ ; { } \\)",
       "duplicate": "{{domain}} is already used by the folder {{other}}"
-    }
+    },
+    "search": "Search sites",
+    "noMatch": "No site matches the search."
   },
   "ssl": {
     "title": "HTTPS",
@@ -434,5 +484,32 @@
       "find": "Find yours",
       "label": "Domain"
     }
+  },
+  "logs": {
+    "openFile": "Open file",
+    "openFolder": "Open logs folder",
+    "none": "No logs yet. They appear once a service has run.",
+    "group": {
+      "app": "Lumina",
+      "service": "Services",
+      "quickapp": "QuickApp projects"
+    },
+    "appLog": "Lumina app",
+    "source": "Log",
+    "filter": "Filter",
+    "filterPlaceholder": "Show only lines containing…",
+    "level": "Show",
+    "levels": {
+      "all": "All lines",
+      "warn": "Warnings and errors",
+      "error": "Errors only"
+    },
+    "follow": "Follow",
+    "clear": "Clear view",
+    "skipped": "Showing the end of a long log; open the file for older lines.",
+    "output": "Log lines",
+    "empty": "Nothing written yet. New lines appear here as they are written.",
+    "noMatch": "No line matches the filter.",
+    "count": "{{shown}} of {{total}} lines"
   }
 }

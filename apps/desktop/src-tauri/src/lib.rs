@@ -4,6 +4,7 @@
 mod commands;
 mod error;
 mod events;
+mod notify;
 mod setup;
 mod state;
 mod tray;
@@ -47,6 +48,7 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             setup::init(app)?;
@@ -127,6 +129,10 @@ pub fn run() {
             commands::tunnel::tunnel_stop,
             commands::tunnel::tunnel_stop_all,
             commands::tunnel::tunnel_open_log,
+            commands::logs::logs_list,
+            commands::logs::logs_read,
+            commands::logs::logs_open,
+            commands::logs::logs_open_folder,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Lumina");

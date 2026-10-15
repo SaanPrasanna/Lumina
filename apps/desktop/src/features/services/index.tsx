@@ -1,27 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { FolderOpen, Globe, Play, Square } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfigWarnings } from "@/components/ConfigWarnings";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
-import {
-  openLocalhost,
-  openWww,
-  SERVICES_KEY,
-  servicesStartAll,
-  servicesStatus,
-  servicesStopAll,
-} from "@/features/services/api";
+import { openLocalhost, openWww, SERVICES_KEY, servicesStatus, servicesStopAll } from "@/features/services/api";
 import { PhpCard } from "@/features/services/PhpCard";
-import { DatabaseCard, dbConflictRequest } from "@/features/services/DatabaseCard";
-import { PortConflictDialog, type PortConflictRequest } from "@/features/services/PortConflictDialog";
-import { RedisCard, redisConflictRequest } from "@/features/services/RedisCard";
-import { useServiceAction } from "@/features/services/useServiceAction";
-import { WebCard, webConflictRequest } from "@/features/services/WebCard";
+import { DatabaseCard } from "@/features/services/DatabaseCard";
+import { PortConflictDialog } from "@/features/services/PortConflictDialog";
+import { RedisCard } from "@/features/services/RedisCard";
+import { useStartAll } from "@/features/services/useStartAll";
+import { WebCard } from "@/features/services/WebCard";
 import { SETTINGS_KEY, settingsGet } from "@/features/settings/api";
-import { isCommandError, portConflictOf } from "@/lib/ipc";
+import { isCommandError } from "@/lib/ipc";
 
 export function ServicesPage() {
   const { t } = useTranslation();
@@ -35,30 +27,14 @@ export function ServicesPage() {
       return d && (d.php.runtime || d.web.runtime || d.database.runtime || d.redis.runtime) ? 5000 : false;
     },
   });
-  const action = useServiceAction();
-  const [conflict, setConflict] = useState<PortConflictRequest | null>(null);
-
   const config = settings.data?.config;
+  const { action, startAll, conflict, setConflict } = useStartAll(config);
   const anyRunning = !!(
     stack.data?.php.runtime ||
     stack.data?.web.runtime ||
     stack.data?.database.runtime ||
     stack.data?.redis.runtime
   );
-
-  const startAll = () =>
-    action.mutate(servicesStartAll, {
-      onError: (err) => {
-        if (!config) return;
-        // Whichever service hit a busy port gets the "use another port" offer.
-        const web = portConflictOf(err, config.web.http_port) ?? portConflictOf(err, config.web.https_port);
-        const db = portConflictOf(err, config.database.port);
-        const redis = portConflictOf(err, config.redis.port);
-        if (web) setConflict(webConflictRequest(web, config.web));
-        else if (db) setConflict(dbConflictRequest(db, config.database));
-        else if (redis) setConflict(redisConflictRequest(redis, config.redis));
-      },
-    });
 
   return (
     <>

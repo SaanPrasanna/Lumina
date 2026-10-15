@@ -5,7 +5,7 @@ import { AppRouter } from "@/app/router";
 import { useApplyTheme } from "@/app/theme";
 import { FirstRunPage } from "@/features/onboarding/FirstRunPage";
 import { BOOTSTRAP_QUERY_KEY, bootstrapStatus } from "@/features/onboarding/api";
-import { isLanguage } from "@/i18n";
+import { changeLanguage, isLanguage } from "@/i18n";
 import { useBackendEvents } from "@/lib/events";
 
 /** Shows the first-run wizard until a data root is chosen, then the main app. */
@@ -21,7 +21,7 @@ export function App() {
   const savedLanguage = status.data?.language;
   const target = savedLanguage ? (isLanguage(savedLanguage) ? savedLanguage : "en") : null;
   useEffect(() => {
-    if (target && i18n.language !== target) void i18n.changeLanguage(target);
+    if (target && i18n.language !== target) void changeLanguage(target);
   }, [target, i18n]);
   // Derived, not stored: `useTranslation` re-renders App when the language
   // changes, so the UI appears exactly once the saved language is active.

@@ -60,6 +60,17 @@ pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
                 E::Failed { id, reason } => (id, "failed", Some(reason.clone())),
             };
             crate::tray::refresh(app.clone());
+            if let Some(service) = crate::notify::service_name(event.id()) {
+                match &event {
+                    E::Restarting { attempt: 1, .. } => {
+                        crate::notify::send(&app, crate::notify::Note::Crashed { service });
+                    }
+                    E::Failed { .. } => {
+                        crate::notify::send(&app, crate::notify::Note::Failed { service });
+                    }
+                    _ => {}
+                }
+            }
             if event.id() == lumina_tunnel::ngrok::PROCESS_ID {
                 let _ = app.emit(TUNNELS_CHANGED, ());
             }

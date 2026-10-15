@@ -47,6 +47,8 @@ export const tunnelOpenLog = () => call<void>("tunnel_open_log");
 export const TOKEN_URL = "https://dashboard.ngrok.com/get-started/your-authtoken";
 export const SIGNUP_URL = "https://dashboard.ngrok.com/signup";
 export const DOMAINS_URL = "https://dashboard.ngrok.com/domains";
+/** Shape of a free static domain (an example, not translated). */
+export const DOMAIN_EXAMPLE = "my-app.ngrok-free.app";
 
 /** The QR code as an <img> source. */
 export function qrSource(svg: string): string {

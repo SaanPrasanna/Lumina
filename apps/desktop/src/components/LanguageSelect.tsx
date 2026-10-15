@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Languages } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BOOTSTRAP_QUERY_KEY, setLanguage } from "@/features/onboarding/api";
-import { isLanguage, LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "@/i18n";
+import { changeLanguage, isLanguage, LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "@/i18n";
 
 /** Switches the UI language and persists it in the backend bootstrap file. */
 export function LanguageSelect() {
@@ -11,7 +11,7 @@ export function LanguageSelect() {
 
   const change = async (value: string) => {
     if (!isLanguage(value)) return;
-    await i18n.changeLanguage(value);
+    await changeLanguage(value);
     try {
       await setLanguage(value);
       await queryClient.invalidateQueries({ queryKey: BOOTSTRAP_QUERY_KEY });

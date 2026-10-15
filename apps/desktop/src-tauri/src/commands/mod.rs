@@ -4,6 +4,7 @@
 pub mod app;
 pub mod editor;
 pub mod env_path;
+pub mod logs;
 pub mod packages;
 pub mod profiles;
 pub mod quickapp;

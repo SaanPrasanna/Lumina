@@ -63,12 +63,12 @@ export function PackagesPage() {
                   aria-selected={p.id === current?.id}
                   onClick={() => setTab(p.id)}
                   className={`rounded-md px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                    p.id === current?.id ? "bg-accent text-white" : "border border-line hover:bg-hover"
+                    p.id === current?.id ? "bg-accent text-on-accent" : "border border-line hover:bg-hover"
                   }`}
                 >
                   {p.name}
                   {p.installed.length > 0 && (
-                    <span className={`ms-1.5 text-xs ${p.id === current?.id ? "text-white/80" : "text-muted"}`}>
+                    <span className={`ms-1.5 text-xs ${p.id === current?.id ? "text-on-accent/80" : "text-muted"}`}>
                       {p.installed.length}
                     </span>
                   )}

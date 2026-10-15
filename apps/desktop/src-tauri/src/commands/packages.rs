@@ -383,9 +383,34 @@ pub fn package_install(
             Err(lumina_packages::Error::Cancelled) => Some("cancelled".to_owned()),
             Err(e) => Some(e.to_string()),
         };
+        let package = rt
+            .packages
+            .catalog()
+            .package(&id)
+            .map_or_else(|| id.clone(), |p| p.name.clone());
         match &error {
-            None => log::info!("installed {id} {version}"),
-            Some(e) => log::warn!("{id} {version} not installed: {e}"),
+            None => {
+                log::info!("installed {id} {version}");
+                crate::notify::send(
+                    &app,
+                    crate::notify::Note::Installed {
+                        package: &package,
+                        version: &version,
+                    },
+                );
+            }
+            Some(e) => {
+                log::warn!("{id} {version} not installed: {e}");
+                if !matches!(result, Err(lumina_packages::Error::Cancelled)) {
+                    crate::notify::send(
+                        &app,
+                        crate::notify::Note::InstallFailed {
+                            package: &package,
+                            version: &version,
+                        },
+                    );
+                }
+            }
         }
         {
             let jobs = app.state::<Jobs>();

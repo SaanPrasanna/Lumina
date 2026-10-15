@@ -54,7 +54,7 @@ fn labels(language: &str) -> Labels {
 }
 
 /// Current language, from the bootstrap file.
-fn language(app: &AppHandle) -> String {
+pub(crate) fn language(app: &AppHandle) -> String {
     app.state::<AppState>()
         .bootstrap
         .read()

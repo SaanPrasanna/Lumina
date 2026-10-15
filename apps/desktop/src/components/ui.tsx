@@ -12,7 +12,7 @@ export function Button({
       type="button"
       {...props}
       className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 [&_svg]:size-4 ${
-        primary ? "bg-accent text-white hover:bg-accent-strong" : "border border-line hover:bg-hover"
+        primary ? "bg-accent text-on-accent hover:bg-accent-strong" : "border border-line hover:bg-hover"
       }`}
     >
       {icon}

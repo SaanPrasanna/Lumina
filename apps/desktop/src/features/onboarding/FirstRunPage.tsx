@@ -87,7 +87,7 @@ export function FirstRunPage({ status }: { status: BootstrapStatus }) {
         <button
           type="submit"
           disabled={complete.isPending || dataRoot.trim() === ""}
-          className="w-full rounded-md bg-accent py-2.5 text-sm font-medium text-white hover:bg-accent-strong disabled:opacity-60"
+          className="w-full rounded-md bg-accent py-2.5 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:opacity-60"
         >
           {complete.isPending ? t("firstRun.saving") : t("firstRun.continue")}
         </button>

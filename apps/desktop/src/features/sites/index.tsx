@@ -204,6 +204,9 @@ export function HostsStatus(props: { hosts: HostsReport; webRunning: boolean; bu
 function SiteList({ data, config }: { data: SitesOverview; config: AppConfig }) {
   const { t } = useTranslation();
   const tunnels = useQuery({ queryKey: TUNNEL_KEY, queryFn: tunnelOverview });
+  const [search, setSearch] = useState("");
+  const needle = search.trim().toLowerCase();
+  const shown = needle ? data.sites.filter((s) => s.domain.includes(needle) || s.name.toLowerCase().includes(needle)) : data.sites;
   if (data.sites.length === 0 && data.skipped.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-line p-6 text-sm text-muted">
@@ -214,8 +217,19 @@ function SiteList({ data, config }: { data: SitesOverview; config: AppConfig }) 
   return (
     <>
       {!data.webRunning && data.sites.length > 0 && <p className="text-sm text-muted">{t("sites.startWeb")}</p>}
-      <ul className="divide-y divide-line rounded-xl border border-line" aria-label={t("nav.sites")}>
-        {data.sites.map((site) => (
+      {data.sites.length > 3 && (
+        <input
+          type="search"
+          aria-label={t("sites.search")}
+          placeholder={t("sites.search")}
+          className="w-full max-w-sm rounded-md border border-line bg-surface px-3 py-1.5 text-sm"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      )}
+      {shown.length === 0 && data.sites.length > 0 && <p className="text-sm text-muted">{t("sites.noMatch")}</p>}
+      <ul className="divide-y divide-line rounded-xl border border-line empty:hidden" aria-label={t("nav.sites")}>
+        {shown.map((site) => (
           <SiteRow key={site.name} site={site} config={config} webRunning={data.webRunning} tunnels={tunnels.data} />
         ))}
       </ul>
@@ -303,7 +317,7 @@ function SiteRow(props: { site: Site; config: AppConfig; webRunning: boolean; tu
               onChange={(e) => setDocroot(e.target.value)}
             />
           </label>
-          <button type="submit" disabled={action.isPending} className="rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-strong disabled:opacity-50">
+          <button type="submit" disabled={action.isPending} className="rounded-md bg-accent px-3 py-1.5 text-sm text-on-accent hover:bg-accent-strong disabled:opacity-50">
             {t("actions.save")}
           </button>
           <button

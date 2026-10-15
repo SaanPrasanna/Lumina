@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check } from "lucide-react";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfigWarnings } from "@/components/ConfigWarnings";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { editorOpen, editorPresets } from "@/features/env-path/api";
+import { BOOTSTRAP_QUERY_KEY, bootstrapStatus } from "@/features/onboarding/api";
 import { SERVICES_KEY, servicesStatus } from "@/features/services/api";
 import {
   type EditorSettings,
@@ -17,15 +17,47 @@ import {
   settingsUpdate,
   type WebSettings,
 } from "@/features/settings/api";
+import {
+  AboutCard,
+  AdvancedForm,
+  AppearanceCard,
+  DatabaseForm,
+  ElsewhereCard,
+  FormCard,
+  ProjectsFolderField,
+} from "@/features/settings/MoreSections";
+
+/** In-page index entries: section id → title key. */
+const SECTIONS: [string, string][] = [
+  ["general", "settings.general.title"],
+  ["web", "settings.web.title"],
+  ["php", "php.title"],
+  ["database", "settings.database.title"],
+  ["editor", "settings.editor.title"],
+  ["appearance", "settings.appearance.title"],
+  ["elsewhere", "settings.elsewhere.title"],
+  ["advanced", "settings.advanced.title"],
+  ["about", "settings.about.title"],
+];
 
 export function SettingsPage() {
   const { t } = useTranslation();
   const settings = useQuery({ queryKey: SETTINGS_KEY, queryFn: settingsGet });
+  const bootstrap = useQuery({ queryKey: BOOTSTRAP_QUERY_KEY, queryFn: bootstrapStatus });
+  const root = bootstrap.data?.dataRoot ?? "";
+  const defaultWww = root ? `${root}${root.includes("\\") ? "\\" : "/"}www` : "";
 
   return (
     <>
       <PageHeader title={t("nav.settings")} />
       <div className="max-w-2xl space-y-6 px-8 pb-8">
+        <nav aria-label={t("settings.index")} className="-mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm">
+          {SECTIONS.map(([id, key]) => (
+            <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ block: "start" }); }} className="rounded text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent">
+              {t(key)}
+            </a>
+          ))}
+        </nav>
         {settings.error ? <ErrorBox error={settings.error} /> : null}
         {settings.data && (
           <>
@@ -34,19 +66,27 @@ export function SettingsPage() {
             <GeneralForm
               key={JSON.stringify(settings.data.config.general)}
               initial={settings.data.config.general}
+              defaultWww={defaultWww}
             />
             <WebForm key={JSON.stringify(settings.data.config.web)} initial={settings.data.config.web} />
             <PhpForm key={JSON.stringify(settings.data.config.php)} initial={settings.data.config.php} />
+            <DatabaseForm
+              key={JSON.stringify([settings.data.config.database, settings.data.config.redis])}
+              database={settings.data.config.database}
+              redis={settings.data.config.redis}
+            />
             <EditorForm
               key={JSON.stringify(settings.data.config.editor)}
               initial={settings.data.config.editor}
             />
-            <p className="text-xs text-muted">
-              {t("settings.file")}:{" "}
-              <span className="font-mono" dir="ltr">
-                {settings.data.path}
-              </span>
-            </p>
+            <AppearanceCard />
+            <ElsewhereCard />
+            <AdvancedForm
+              key={JSON.stringify(settings.data.config.packages)}
+              proxy={(settings.data.config.packages as { proxy?: string } | undefined)?.proxy ?? ""}
+              path={settings.data.path}
+            />
+            <AboutCard />
           </>
         )}
       </div>
@@ -74,7 +114,7 @@ function PhpForm({ initial }: { initial: PhpSettings }) {
     setForm({ ...form, [key]: Number(e.target.value) });
 
   return (
-    <Section title={t("php.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
+    <FormCard id="php" title={t("php.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
       <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label={t("settings.php.port")} hint={t("settings.php.portHint")}>
           <NumberInput value={form.fcgi_port} onChange={num("fcgi_port")} min={1} max={65535} />
@@ -91,11 +131,11 @@ function PhpForm({ initial }: { initial: PhpSettings }) {
       </div>
       {save.isSuccess && running && <p className="text-sm text-warn">{t("settings.restartToApply")}</p>}
       <ErrorBox error={save.error} />
-    </Section>
+    </FormCard>
   );
 }
 
-function GeneralForm({ initial }: { initial: GeneralSettings }) {
+function GeneralForm({ initial, defaultWww }: { initial: GeneralSettings; defaultWww: string }) {
   const { t } = useTranslation();
   const [form, setForm] = useState(initial);
   const save = useSaveSection("general");
@@ -103,11 +143,12 @@ function GeneralForm({ initial }: { initial: GeneralSettings }) {
     setForm({ ...form, [key]: e.target.checked });
 
   return (
-    <Section title={t("settings.general.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
+    <FormCard id="general" title={t("settings.general.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
+      <ProjectsFolderField value={form.www_root} onChange={(www_root) => setForm({ ...form, www_root })} fallback={defaultWww} />
       <Checkbox label={t("settings.general.autostart")} checked={form.autostart_services} onChange={toggle("autostart_services")} />
       <Checkbox label={t("settings.general.closeToTray")} checked={form.close_to_tray} onChange={toggle("close_to_tray")} />
       <ErrorBox error={save.error} />
-    </Section>
+    </FormCard>
   );
 }
 
@@ -121,7 +162,7 @@ function WebForm({ initial }: { initial: WebSettings }) {
     setForm({ ...form, [key]: Number(e.target.value) });
 
   return (
-    <Section title={t("settings.web.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
+    <FormCard id="web" title={t("settings.web.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
       <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label={t("settings.web.httpPort")} hint={t("settings.web.portHint")}>
           <NumberInput value={form.http_port} onChange={num("http_port")} min={1} max={65535} />
@@ -132,7 +173,7 @@ function WebForm({ initial }: { initial: WebSettings }) {
       </div>
       {save.isSuccess && running && <p className="text-sm text-warn">{t("settings.restartWebToApply")}</p>}
       <ErrorBox error={save.error} />
-    </Section>
+    </FormCard>
   );
 }
 
@@ -172,7 +213,7 @@ function EditorForm({ initial }: { initial: EditorSettings }) {
   const area = "w-full rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
   return (
-    <Section title={t("settings.editor.title")} onSubmit={submit} saving={save.isPending} saved={save.isSuccess}>
+    <FormCard id="editor" title={t("settings.editor.title")} onSubmit={submit} saving={save.isPending} saved={save.isSuccess}>
       <Field label={t("editor.preset")} hint={presets.data?.length === 0 ? t("editor.noPresets") : t("editor.presetHint")}>
         <select
           className="w-full rounded-md border border-line bg-surface px-3 py-2"
@@ -208,42 +249,7 @@ function EditorForm({ initial }: { initial: EditorSettings }) {
         {t("editor.openConfigToml")}
       </button>
       <ErrorBox error={save.error ?? open.error} />
-    </Section>
-  );
-}
-
-function Section(props: {
-  title: string;
-  children: ReactNode;
-  onSubmit: () => void;
-  saving: boolean;
-  saved: boolean;
-}) {
-  const { t } = useTranslation();
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    props.onSubmit();
-  };
-  return (
-    <form onSubmit={submit} className="space-y-4 rounded-xl border border-line p-5">
-      <h2 className="text-lg font-semibold">{props.title}</h2>
-      {props.children}
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={props.saving}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-strong disabled:opacity-60"
-        >
-          {props.saving ? t("actions.saving") : t("actions.save")}
-        </button>
-        {props.saved && (
-          <span className="flex items-center gap-1 text-sm text-ok">
-            <Check className="size-4" aria-hidden />
-            {t("settings.saved")}
-          </span>
-        )}
-      </div>
-    </form>
+    </FormCard>
   );
 }
 

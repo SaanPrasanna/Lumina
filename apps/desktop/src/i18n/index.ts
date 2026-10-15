@@ -1,7 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "./locales/en/common.json";
-import si from "./locales/si/common.json";
 
 /** Must match `SUPPORTED_LANGUAGES` in crates/lumina-core/src/constants.rs. */
 export const SUPPORTED_LANGUAGES = ["en", "si"] as const;
@@ -23,10 +22,29 @@ export function isLanguage(value: string): value is Language {
   return (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
 }
 
-export const resources = {
-  en: { common: en },
-  si: { common: si },
-} as const;
+type Messages = typeof en;
+
+/**
+ * English is the source and the fallback, so it is always bundled; every other
+ * language is a separate chunk, loaded the first time it is chosen.
+ */
+const LOADERS: Record<Language, () => Promise<{ default: Messages }>> = {
+  en: () => Promise.resolve({ default: en }),
+  si: () => import("./locales/si/common.json"),
+};
+
+/** The messages of `lng` (loads them if needed). */
+export async function loadMessages(lng: Language): Promise<Messages> {
+  return (await LOADERS[lng]()).default;
+}
+
+/** Loads `lng` if needed, then switches to it. */
+export async function changeLanguage(lng: Language): Promise<void> {
+  if (!i18n.hasResourceBundle(lng, "common")) {
+    i18n.addResourceBundle(lng, "common", await loadMessages(lng), true, true);
+  }
+  await i18n.changeLanguage(lng);
+}
 
 function applyDocumentLanguage(lng: string) {
   document.documentElement.lang = lng;
@@ -37,12 +55,14 @@ function applyDocumentLanguage(lng: string) {
 i18n.on("languageChanged", applyDocumentLanguage);
 
 void i18n.use(initReactI18next).init({
-  resources,
+  resources: { en: { common: en } },
   lng: "en",
   fallbackLng: "en",
   supportedLngs: SUPPORTED_LANGUAGES,
   defaultNS: "common",
   interpolation: { escapeValue: false },
+  // Languages are added at runtime by `changeLanguage`.
+  partialBundledLanguages: true,
 });
 
 export default i18n;

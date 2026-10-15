@@ -15,4 +15,6 @@ export const bootstrapComplete = (dataRoot: string, language: string) =>
 
 export const setLanguage = (language: string) => call<void>("set_language", { language });
 
+export const appVersion = () => call<string>("app_version");
+
 export const BOOTSTRAP_QUERY_KEY = ["bootstrap"] as const;

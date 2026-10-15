@@ -19,7 +19,9 @@ export function AppShell() {
   return (
     <div className="flex h-full overflow-hidden bg-surface text-fg">
       <Sidebar />
-      <main className="min-w-0 flex-1 overflow-y-auto">
+      {/* The scroll container keeps room for its scrollbar, so pages that grow
+          past the window height do not shift sideways. */}
+      <main className="min-w-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
         <Outlet />
       </main>
     </div>
