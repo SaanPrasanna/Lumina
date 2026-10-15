@@ -367,9 +367,21 @@ fn spawn(spec: &ProcessSpec, ledger: &Ledger) -> Result<(Child, ProcessGroup)> {
     }
     process_group::configure(&mut cmd);
 
-    let mut child = tokio::process::Command::from(cmd)
-        .spawn()
-        .map_err(exe_err)?;
+    // Linux: exec fails with ETXTBSY ("Text file busy") while any process
+    // still holds the program open for writing. A program that was just
+    // written (an install, a copy) can be inherited for an instant by a child
+    // that another thread is forking; that clears up within milliseconds.
+    let mut cmd = tokio::process::Command::from(cmd);
+    let mut attempt = 0;
+    let mut child = loop {
+        match cmd.spawn() {
+            Err(e) if e.kind() == std::io::ErrorKind::ExecutableFileBusy && attempt < 5 => {
+                attempt += 1;
+                std::thread::sleep(std::time::Duration::from_millis(20 * attempt));
+            }
+            other => break other.map_err(exe_err)?,
+        }
+    };
     let Some(pid) = child.id() else {
         return Err(Error::Service(spec.id.clone(), "exited immediately".into()));
     };
