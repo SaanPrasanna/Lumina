@@ -74,8 +74,8 @@ enum Post {
     Opened(String),
     /// The agent has not connected to ngrok yet (or cannot be reached).
     NotReady,
-    /// The agent already has a tunnel by this name (asked for while it was
-    /// not ready): it opens once the agent connects.
+    /// The agent already has a tunnel by this name (e.g. left behind by a
+    /// "not ready" answer).
     Exists,
     Refused(Error),
 }
@@ -179,13 +179,27 @@ impl Ngrok {
                 let _ = self.stop_agent().await;
                 return Err(err);
             }
-            if self.list(api_port).await.is_ok() {
+            // Tunnels are asked for only once the agent is connected: asked
+            // earlier, it answers "not ready" but keeps the name, and the
+            // tunnel never starts.
+            let api_up = self.list(api_port).await.is_ok();
+            if api_up && session_established(&logs::tail(&self.log_file, 400)) {
                 return Ok(api_port);
             }
             if Instant::now() >= deadline {
                 let _ = self.stop_agent().await;
-                return Err(Error::Agent(format!(
-                    "its local API did not answer on port {api_port}"
+                if !api_up {
+                    return Err(Error::Agent(format!(
+                        "its local API did not answer on port {api_port}"
+                    )));
+                }
+                let detail = match failure_from_log(&logs::tail(&self.log_file, 400)) {
+                    Some(Error::Agent(m) | Error::Auth(m)) => m,
+                    _ => "check the internet connection".into(),
+                };
+                return Err(Error::Connect(format!(
+                    "no answer within {} seconds ({detail})",
+                    START_LIMIT.as_secs()
                 )));
             }
             tokio::time::sleep(POLL).await;
@@ -265,26 +279,6 @@ impl Ngrok {
         Post::Refused(api_error(&value, status.as_u16()))
     }
 
-    /// A tunnel the agent was asked for earlier: open once it has an address.
-    async fn get_one(&self, port: u16, name: &str) -> Post {
-        let Ok(resp) = self
-            .http
-            .get(Self::api(port, &format!("/api/tunnels/{name}")))
-            .send()
-            .await
-        else {
-            return Post::NotReady;
-        };
-        if !resp.status().is_success() {
-            return Post::NotReady;
-        }
-        let value: Value = resp.json().await.unwrap_or(Value::Null);
-        match value["public_url"].as_str() {
-            Some(url) if !url.is_empty() => Post::Opened(url.to_owned()),
-            _ => Post::NotReady,
-        }
-    }
-
     async fn delete(&self, port: u16, name: &str) {
         let _ = self
             .http
@@ -311,20 +305,21 @@ impl Ngrok {
 
         let body = tunnel_body(spec);
         let deadline = Instant::now() + START_LIMIT;
-        // Some "not ready" answers keep the tunnel, which then opens once the
-        // agent connects (asking again says it already exists): from then on,
-        // ask for that one.
-        let mut registered = false;
+        // A "not ready" answer leaves the name behind without starting the
+        // tunnel; a later attempt then hears "already exists". Remove the
+        // leftover and ask again (a few times at most).
+        let mut leftovers = 0;
         loop {
-            let answer = if registered {
-                self.get_one(api, &spec.name).await
-            } else {
-                self.post(api, &body).await
-            };
-            match answer {
+            match self.post(api, &body).await {
+                Post::Exists if leftovers < 3 => {
+                    leftovers += 1;
+                    self.delete(api, &spec.name).await;
+                }
                 Post::Exists => {
-                    registered = true;
-                    continue;
+                    return Err(Error::Api(format!(
+                        "a tunnel named `{}` already exists in the agent",
+                        spec.name
+                    )));
                 }
                 Post::Opened(public_url) => {
                     let tunnel = Tunnel {
@@ -547,6 +542,15 @@ pub fn normalize_domain(input: &str) -> Result<Option<String>> {
     Ok(Some(s.to_owned()))
 }
 
+/// Whether this run of the agent has connected to ngrok.
+pub fn session_established(log: &str) -> bool {
+    let run = log.rsplit_once(RUN_MARKER).map_or(log, |(_, run)| run);
+    run.lines().any(|line| {
+        serde_json::from_str::<Value>(line.trim())
+            .is_ok_and(|r| r["msg"] == "client session established")
+    })
+}
+
 /// Why this run of the agent failed: its last critical record, else its last
 /// error. `None` if the log does not say.
 pub fn failure_from_log(log: &str) -> Option<Error> {
@@ -726,6 +730,26 @@ mod tests {
         assert!(err.to_string().ends_with("(ERR_NGROK_105)"), "{err}");
 
         assert!(failure_from_log("===== Lumina: x =====\nnot json\n").is_none());
+    }
+
+    /// Real records from ngrok 3.39: an earlier run connected, this one not yet.
+    #[test]
+    fn the_session_is_read_from_this_run_only() {
+        let connected = r#"{"t":"2026-10-15T07:51:40+0530","lvl":"info","msg":"client session established","obj":"tunnels.session"}"#;
+        let starting = r#"{"t":"2026-10-15T07:51:38+0530","lvl":"info","msg":"starting web service","obj":"web","addr":"127.0.0.1:4040","allow_hosts":null}"#;
+        let log = format!(
+            "{RUN_MARKER}ngrok start =====
+{connected}
+
+{RUN_MARKER}ngrok start =====
+{starting}
+"
+        );
+        assert!(!session_established(&log));
+        assert!(session_established(&format!(
+            "{log}{connected}
+"
+        )));
     }
 
     #[test]

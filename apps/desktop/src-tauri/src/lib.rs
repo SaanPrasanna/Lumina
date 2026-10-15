@@ -26,6 +26,11 @@ fn log_plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             }),
         ])
         .level(level)
+        // Their debug output is per request (the ngrok agent API is polled
+        // while a share opens) and drowns everything else.
+        .level_for("hyper_util", log::LevelFilter::Info)
+        .level_for("reqwest", log::LevelFilter::Info)
+        .level_for("keyring", log::LevelFilter::Info)
         .max_file_size(5 * 1024 * 1024)
         .rotation_strategy(RotationStrategy::KeepSome(5))
         .timezone_strategy(TimezoneStrategy::UseLocal)
