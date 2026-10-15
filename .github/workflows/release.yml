@@ -59,9 +59,11 @@ jobs:
           fi
           prerelease=false
           case "$version" in *-*) prerelease=true ;; esac
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=v$version" >> "$GITHUB_OUTPUT"
-          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$version"
+            echo "tag=v$version"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
           echo "Release v$version (pre-release: $prerelease)"
       - name: Choose the targets
         id: targets
