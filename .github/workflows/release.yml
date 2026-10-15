@@ -1,10 +1,17 @@
 name: Release
 
-# Builds signed installers for a version tag and puts them in a draft GitHub
-# release (published by hand). Tags with a pre-release part (v1.0.0-beta.1)
-# become pre-releases, which only the beta update channel offers.
+# Every push to master publishes the installers as the GitHub release of the
+# version in apps/desktop/src-tauri/tauri.conf.json (tag v<version>):
+#   - a new version creates a new release;
+#   - more changes on the same version replace that release's files and move
+#     its tag to the new commit.
+# A version with a pre-release part (1.0.0-beta.1) becomes a pre-release,
+# which only the beta update channel offers.
 #
-# Secrets (each optional; without them the step is skipped and the build is
+# Note: installed copies update only to a *higher* version. Rebuilding the
+# same version refreshes the downloads, not existing installs.
+#
+# Secrets (each optional; without them that step is skipped and the build is
 # unsigned):
 #   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 #       update signatures (required for updates to install; the public key is
@@ -18,19 +25,72 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+# One release run at a time; a newer push waits instead of racing the uploads.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      release_id: ${{ steps.release.outputs.id }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read the version
+        id: version
+        run: |
+          version=$(jq -r .version apps/desktop/src-tauri/tauri.conf.json)
+          if [ -z "$version" ] || [ "$version" = "null" ]; then
+            echo "no version in tauri.conf.json" >&2
+            exit 1
+          fi
+          prerelease=false
+          case "$version" in *-*) prerelease=true ;; esac
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          echo "Release v$version (pre-release: $prerelease)"
+      - name: Create or reset the release
+        id: release
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          # The tag always points at the commit being released.
+          git tag -f "$TAG" "$GITHUB_SHA"
+          git push -f origin "refs/tags/$TAG"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG exists: replacing its files"
+            gh release view "$TAG" --json assets --jq '.assets[].name' | while IFS= read -r asset; do
+              [ -n "$asset" ] && gh release delete-asset "$TAG" "$asset" --yes
+            done
+            gh release edit "$TAG" --draft=false --prerelease="$PRERELEASE" --title "Lumina $TAG"
+          else
+            echo "Creating release $TAG"
+            flags=""
+            [ "$PRERELEASE" = "true" ] && flags="--prerelease"
+            gh release create "$TAG" --title "Lumina $TAG" --generate-notes --verify-tag $flags
+          fi
+          echo "id=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .id)" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: windows-latest
-            args: "--config src-tauri/tauri.release.conf.json --config src-tauri/tauri.release.windows.conf.json"
+            # NSIS only: the MSI would not run the VC++ runtime and uninstall hooks.
+            args: "--bundles nsis --config src-tauri/tauri.release.conf.json --config src-tauri/tauri.release.windows.conf.json"
           - platform: macos-latest
             args: "--target universal-apple-darwin --config src-tauri/tauri.release.conf.json"
           - platform: ubuntu-22.04
@@ -89,9 +149,28 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: Lumina ${{ github.ref_name }}
-          releaseDraft: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          releaseId: ${{ needs.prepare.outputs.release_id }}
           uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
           args: ${{ matrix.args }} ${{ env.SIGNING_ARGS }}
+
+  # The stable channel reads releases/latest/download/latest.json, which
+  # GitHub serves from the newest non-pre-release. The beta channel reads the
+  # rolling `beta` release, which gets the latest.json of every release.
+  beta-channel:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+    steps:
+      - name: Copy latest.json to the beta channel
+        run: |
+          gh release download "$TAG" --repo "$REPO" --pattern latest.json
+          if ! gh release view beta --repo "$REPO" > /dev/null 2>&1; then
+            gh release create beta --repo "$REPO" --prerelease \
+              --title "Beta update channel" \
+              --notes "Holds latest.json for Lumina's beta update channel. Do not delete."
+          fi
+          gh release upload beta latest.json --repo "$REPO" --clobber

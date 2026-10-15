@@ -37,17 +37,23 @@ Needs an Apple Developer account. Add:
 
 ## Every release
 
-1. Set the version in `apps/desktop/src-tauri/tauri.conf.json`,
-   `apps/desktop/src-tauri/Cargo.toml` and `apps/desktop/package.json`.
-2. Merge to `master`, tag it and push the tag:
-   `git tag v1.0.0 && git push origin v1.0.0`
-   (a tag with a pre-release part, e.g. `v1.0.0-beta.1`, becomes a pre-release
-   that only the beta channel offers).
-3. The workflow creates a **draft** release with the installers and
-   `latest.json`. Check it, then publish it.
-4. Publishing runs `.github/workflows/update-channels.yml`, which copies
-   `latest.json` to the rolling `beta` release. The stable channel reads the
-   newest published non-pre-release directly.
+Releases are made by `.github/workflows/release.yml` on every push to
+`master`; the version in `apps/desktop/src-tauri/tauri.conf.json` names it
+(`v<version>`).
+
+- **New version:** set it in `apps/desktop/src-tauri/tauri.conf.json`,
+  `apps/desktop/src-tauri/Cargo.toml` and `apps/desktop/package.json`, then
+  merge to `master`. A new release `v<version>` is created and published.
+- **More changes, same version:** merging to `master` again rebuilds the
+  installers and replaces the files of the existing `v<version>` release; its
+  tag moves to the new commit. Installed copies are only offered a *higher*
+  version, so bump the version for changes users should receive as an update.
+- A version with a pre-release part (`1.0.0-beta.1`) is published as a
+  pre-release, offered only on the beta update channel.
+- The stable channel reads the newest non-pre-release directly; the workflow
+  copies each release's `latest.json` to the rolling `beta` release for the
+  beta channel.
+- The workflow can also be started by hand (Actions → Release → Run workflow).
 
 ## What the installers do
 
