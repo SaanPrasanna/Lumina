@@ -73,7 +73,7 @@ pub fn extract(archive: &Path, release: &Release, dest: &Path) -> Result<()> {
 
     let result = match release.archive {
         Archive::Zip => unzip(archive, release, &partial),
-        Archive::TarGz => untar(archive, release, &partial),
+        Archive::TarGz | Archive::TarXz => untar(archive, release, &partial),
         Archive::File => {
             let name = release
                 .file_name
@@ -171,7 +171,14 @@ fn untar(archive: &Path, release: &Release, dest: &Path) -> Result<()> {
         path: archive.to_path_buf(),
         source,
     })?;
-    let mut tar = tar::Archive::new(flate2::read::GzDecoder::new(file));
+    let reader: Box<dyn Read> = match release.archive {
+        Archive::TarXz => Box::new(lzma_rust2::XzReader::new(
+            std::io::BufReader::new(file),
+            true,
+        )),
+        _ => Box::new(flate2::read::GzDecoder::new(file)),
+    };
+    let mut tar = tar::Archive::new(reader);
     let entries = tar.entries().map_err(|e| Error::Archive(e.to_string()))?;
     for entry in entries {
         let mut entry = entry.map_err(|e| Error::Archive(e.to_string()))?;
@@ -332,6 +339,30 @@ mod tests {
         let dest = tmp.path().join("bin/node/1");
         extract(&tgz, &release(Archive::TarGz, 1, None), &dest).expect("tar");
         assert_eq!(std::fs::read(dest.join("bin/node")).expect("node"), b"node");
+    }
+
+    #[test]
+    fn tar_xz() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let txz = tmp.path().join("mysql.tar.xz");
+        {
+            let xz = lzma_rust2::XzWriter::new(
+                std::fs::File::create(&txz).expect("c"),
+                lzma_rust2::XzOptions::with_preset(1),
+            )
+            .expect("xz");
+            let mut tar = tar::Builder::new(xz);
+            let mut header = tar::Header::new_gnu();
+            header.set_size(6);
+            header.set_mode(0o755);
+            header.set_cksum();
+            tar.append_data(&mut header, "mysql-9.7.2/bin/mysqld", &b"mysqld"[..])
+                .expect("append");
+            tar.into_inner().expect("tar").finish().expect("xz");
+        }
+        let dest = tmp.path().join("bin/mysql/9.7.2");
+        extract(&txz, &release(Archive::TarXz, 1, None), &dest).expect("tar.xz");
+        assert_eq!(std::fs::read(dest.join("bin/mysqld")).expect("mysqld"), b"mysqld");
     }
 
     #[test]

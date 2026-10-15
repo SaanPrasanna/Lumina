@@ -23,9 +23,12 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 zip = { workspace = true }
+lzma-rust2 = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
+# The tests write .tar.xz archives.
+lzma-rust2 = { workspace = true, features = ["encoder"] }
 
 [lints]
 workspace = true

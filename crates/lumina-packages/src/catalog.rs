@@ -53,6 +53,8 @@ pub enum Archive {
     Zip,
     #[serde(rename = "tar.gz")]
     TarGz,
+    #[serde(rename = "tar.xz")]
+    TarXz,
     /// A single file (e.g. `composer.phar`), saved as `file_name`.
     File,
 }
