@@ -30,7 +30,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "publisher": "Lumina Contributors",
+    "publisher": "Sandun Prasanna",
+    "copyright": "Copyright (C) 2026 Sandun Prasanna",
+    "license": "GPL-3.0-only",
     "category": "DeveloperTool",
     "shortDescription": "Local development environment",
     "icon": [

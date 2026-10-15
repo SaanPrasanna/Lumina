@@ -1,5 +1,8 @@
 # cargo-deny: license / advisory / duplicate-dependency gate used in CI.
 [licenses]
+# Lumina's own crates (publish = false) are GPL-3.0-only; this gate is about
+# the licenses of the dependencies.
+private = { ignore = true }
 allow = [
   "MIT",
   "Apache-2.0",

@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+- **License:** Lumina is now licensed under the GNU General Public License v3.0 (copyright Sandun Prasanna). Copies and modified versions must keep the copyright notice and stay open source under the same license.
 
 ## [0.2.0] - 2026-10-15
 PostgreSQL joins the stack, the tray menu grows into a full control panel, and the app gets a new look.

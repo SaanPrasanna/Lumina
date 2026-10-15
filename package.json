@@ -1,6 +1,7 @@
 {
   "name": "lumina-monorepo",
   "private": true,
+  "license": "GPL-3.0-only",
   "packageManager": "pnpm@10.15.0",
   "engines": {
     "node": ">=22"

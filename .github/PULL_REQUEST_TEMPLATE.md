@@ -10,3 +10,4 @@
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` pass
 - [ ] New UI strings added to `locales/en`
 - [ ] CHANGELOG updated (user-facing changes)
+- [ ] Commits signed off (`git commit -s`), see CONTRIBUTING.md
