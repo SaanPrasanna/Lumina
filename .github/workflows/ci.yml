@@ -1,9 +1,13 @@
 name: CI
 
+# Only master: Actions minutes are limited for this private repository, so
+# pushes to dev (and Dependabot's PRs into dev) do not start runs. A run can
+# still be started by hand (Actions -> CI -> Run workflow).
 on:
   push:
-    branches: [master, dev]
+    branches: [master]
   pull_request:
+    branches: [master]
   workflow_dispatch:
 
 env:
