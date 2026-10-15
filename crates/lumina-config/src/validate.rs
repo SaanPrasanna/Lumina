@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use serde::Serialize;
 
 use crate::defaults;
-use crate::schema::{AppConfig, Editor};
+use crate::schema::{AppConfig, Editor, UPDATE_CHANNELS};
 
 /// A config problem shown to the user. `code` is a stable i18n key
 /// (`configWarnings.<code>` in the locale files); `values` fill its placeholders.
@@ -40,6 +40,18 @@ impl Warning {
 
 pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
     let mut warnings = Vec::new();
+
+    if !UPDATE_CHANNELS.contains(&cfg.updates.channel.as_str()) {
+        let from = std::mem::replace(&mut cfg.updates.channel, "stable".to_owned());
+        warnings.push(
+            Warning::new(
+                "update_channel_reset",
+                "updates.channel",
+                format!("update channel \"{from}\" is unknown; using stable"),
+            )
+            .with("from", from),
+        );
+    }
 
     // PHP_FCGI_CHILDREN below the minimum makes PHP drop requests under load.
     if cfg.php.fcgi_children < defaults::MIN_PHP_FCGI_CHILDREN {
@@ -232,6 +244,18 @@ mod tests {
 
     fn codes(w: &[Warning]) -> Vec<&str> {
         w.iter().map(|w| w.code).collect()
+    }
+
+    #[test]
+    fn an_unknown_update_channel_falls_back_to_stable() {
+        let mut cfg = AppConfig::default();
+        cfg.updates.channel = "nightly".into();
+        let warnings = validate(&mut cfg);
+        assert_eq!(codes(&warnings), ["update_channel_reset"]);
+        assert_eq!(cfg.updates.channel, "stable");
+
+        cfg.updates.channel = "beta".into();
+        assert!(validate(&mut cfg).is_empty());
     }
 
     #[test]

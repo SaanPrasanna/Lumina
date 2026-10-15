@@ -24,6 +24,7 @@ pub struct AppConfig {
     pub redis: Redis,
     pub editor: Editor,
     pub tunnel: Tunnel,
+    pub updates: Updates,
     pub profiles: Profiles,
     pub tools: Tools,
     pub packages: Packages,
@@ -42,6 +43,7 @@ impl Default for AppConfig {
             redis: Redis::default(),
             editor: Editor::default(),
             tunnel: Tunnel::default(),
+            updates: Updates::default(),
             profiles: Profiles::default(),
             tools: Tools::default(),
             packages: Packages::default(),
@@ -270,6 +272,27 @@ impl Default for Tunnel {
         Self {
             provider: "ngrok".to_owned(),
             domain: String::new(),
+        }
+    }
+}
+
+/// App updates (signed packages from GitHub releases).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(default)]
+pub struct Updates {
+    /// `stable` or `beta` (pre-releases, earlier).
+    pub channel: String,
+    /// Look for a new version at start-up and once a day.
+    pub check: bool,
+}
+
+pub const UPDATE_CHANNELS: [&str; 2] = ["stable", "beta"];
+
+impl Default for Updates {
+    fn default() -> Self {
+        Self {
+            channel: "stable".to_owned(),
+            check: true,
         }
     }
 }

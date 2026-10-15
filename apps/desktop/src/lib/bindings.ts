@@ -157,6 +157,18 @@ export const commands = {
 	logsOpen: (id: string) => __TAURI_INVOKE<null>("logs_open", { id }),
 	/**  Opens the folder with the service logs. */
 	logsOpenFolder: () => __TAURI_INVOKE<null>("logs_open_folder"),
+	updatesStatus: () => __TAURI_INVOKE<UpdateStatus>("updates_status"),
+	updatesCheck: () => __TAURI_INVOKE<UpdateStatus>("updates_check"),
+	/**
+	 *  Saves the channel and the automatic check (`[updates]`); a new channel
+	 *  forgets what the old one offered.
+	 */
+	updatesConfigure: (channel: string, check: boolean) => __TAURI_INVOKE<UpdateStatus>("updates_configure", { channel, check }),
+	/**
+	 *  Stops everything, downloads and verifies the update, installs it and
+	 *  restarts Lumina; the services that ran are started again afterwards.
+	 */
+	updatesInstall: () => __TAURI_INVOKE<null>("updates_install"),
 };
 
 /* Types */
@@ -171,6 +183,7 @@ export type AppConfig_Deserialize = {
 	redis?: Redis,
 	editor?: Editor,
 	tunnel?: Tunnel,
+	updates?: Updates,
 	profiles?: Profiles,
 	tools?: Tools,
 	packages?: Packages,
@@ -187,6 +200,7 @@ export type AppConfig_Serialize = {
 	redis: Redis,
 	editor: Editor,
 	tunnel: Tunnel,
+	updates: Updates,
 	profiles: Profiles,
 	tools: Tools,
 	packages: Packages,
@@ -988,6 +1002,40 @@ export type TunnelView = {
 	/**  A QR code of the public URL, as an SVG document. */
 	qrSvg: string,
 } & SharedTunnel;
+
+export type UpdateInfo = {
+	version: string,
+	/**  Release notes (Markdown). */
+	notes: string | null,
+	/**  RFC 3339. */
+	date: string | null,
+};
+
+/**  Payload of `update-progress`. */
+export type UpdateProgress = {
+	received: number,
+	total: number | null,
+};
+
+export type UpdateStatus = {
+	current: string,
+	channel: string,
+	check: boolean,
+	available: UpdateInfo | null,
+	/**  Unix seconds of the last successful check. */
+	checkedAt: number | null,
+	installing: boolean,
+	/**  The last check or install failed. */
+	error: string | null,
+};
+
+/**  App updates (signed packages from GitHub releases). */
+export type Updates = {
+	/**  `stable` or `beta` (pre-releases, earlier). */
+	channel?: string,
+	/**  Look for a new version at start-up and once a day. */
+	check?: boolean,
+};
 
 /**
  *  A config problem shown to the user. `code` is a stable i18n key

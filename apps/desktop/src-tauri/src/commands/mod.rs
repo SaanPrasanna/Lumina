@@ -13,3 +13,4 @@ pub mod settings;
 pub mod sites;
 pub mod ssl;
 pub mod tunnel;
+pub mod updates;

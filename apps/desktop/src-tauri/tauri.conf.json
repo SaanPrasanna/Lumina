@@ -3,6 +3,7 @@
   "productName": "Lumina",
   "version": "0.1.0",
   "identifier": "dev.lumina.app",
+  "mainBinaryName": "lumina",
   "build": {
     "beforeDevCommand": "npm run dev:web",
     "devUrl": "http://localhost:1420",
@@ -18,7 +19,8 @@
         "height": 720,
         "minWidth": 900,
         "minHeight": 600,
-        "center": true
+        "center": true,
+        "visible": false
       }
     ],
     "security": {
@@ -41,14 +43,53 @@
     "resources": {
       "../../../resources/": "resources/"
     },
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerHooks": "../../../packaging/windows/nsis/hooks.nsh",
+        "languages": [
+          "English"
+        ],
+        "displayLanguageSelector": false
+      }
+    },
+    "macOS": {
+      "entitlements": "../../../packaging/macos/entitlements.plist",
+      "hardenedRuntime": true,
+      "minimumSystemVersion": "11.0"
+    },
+    "linux": {
+      "deb": {
+        "depends": [
+          "libnss3-tools"
+        ],
+        "files": {
+          "/usr/share/polkit-1/actions/dev.lumina.app.helper.policy": "../../../packaging/linux/dev.lumina.app.helper.policy"
+        }
+      },
+      "rpm": {
+        "depends": [
+          "nss-tools"
+        ],
+        "files": {
+          "/usr/share/polkit-1/actions/dev.lumina.app.helper.policy": "../../../packaging/linux/dev.lumina.app.helper.policy"
+        }
+      }
+    }
   },
   "plugins": {
     "updater": {
-      "pubkey": "REPLACE_WITH_TAURI_SIGNER_PUBLIC_KEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5MzA3REYyNTM3RUE0QjcKUldTM3BINVQ4bjB3eVNJQXpaeFFHbmg1WEc1TERnalBXekNsKzEzSG9pZElXTHZmSUlQaHBkRUUK",
       "endpoints": [
         "https://github.com/SaanPrasanna/Lumina/releases/latest/download/latest.json"
-      ]
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

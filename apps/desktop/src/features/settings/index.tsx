@@ -18,7 +18,6 @@ import {
   type WebSettings,
 } from "@/features/settings/api";
 import {
-  AboutCard,
   AdvancedForm,
   AppearanceCard,
   DatabaseForm,
@@ -26,6 +25,7 @@ import {
   FormCard,
   ProjectsFolderField,
 } from "@/features/settings/MoreSections";
+import { UpdatesCard } from "@/features/updates/UpdatesCard";
 
 /** In-page index entries: section id → title key. */
 const SECTIONS: [string, string][] = [
@@ -37,7 +37,7 @@ const SECTIONS: [string, string][] = [
   ["appearance", "settings.appearance.title"],
   ["elsewhere", "settings.elsewhere.title"],
   ["advanced", "settings.advanced.title"],
-  ["about", "settings.about.title"],
+  ["updates", "settings.updates.title"],
 ];
 
 export function SettingsPage() {
@@ -86,7 +86,7 @@ export function SettingsPage() {
               proxy={(settings.data.config.packages as { proxy?: string } | undefined)?.proxy ?? ""}
               path={settings.data.path}
             />
-            <AboutCard />
+            <UpdatesCard />
           </>
         )}
       </div>
@@ -139,12 +139,13 @@ function GeneralForm({ initial, defaultWww }: { initial: GeneralSettings; defaul
   const { t } = useTranslation();
   const [form, setForm] = useState(initial);
   const save = useSaveSection("general");
-  const toggle = (key: "autostart_services" | "close_to_tray") => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const toggle = (key: "autostart_services" | "close_to_tray" | "start_on_login") => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [key]: e.target.checked });
 
   return (
     <FormCard id="general" title={t("settings.general.title")} onSubmit={() => save.mutate(form)} saving={save.isPending} saved={save.isSuccess}>
       <ProjectsFolderField value={form.www_root} onChange={(www_root) => setForm({ ...form, www_root })} fallback={defaultWww} />
+      <Checkbox label={t("settings.general.startOnLogin")} checked={form.start_on_login} onChange={toggle("start_on_login")} />
       <Checkbox label={t("settings.general.autostart")} checked={form.autostart_services} onChange={toggle("autostart_services")} />
       <Checkbox label={t("settings.general.closeToTray")} checked={form.close_to_tray} onChange={toggle("close_to_tray")} />
       <ErrorBox error={save.error} />

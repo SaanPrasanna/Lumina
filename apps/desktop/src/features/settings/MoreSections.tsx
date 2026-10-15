@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Check, ChevronRight, FolderOpen } from "lucide-react";
 import { type FormEvent, type ReactNode, useState } from "react";
@@ -9,7 +9,6 @@ import { LanguageSelect } from "@/components/LanguageSelect";
 import { ThemeSelect } from "@/components/ThemeSelect";
 import { Button } from "@/components/ui";
 import { logsOpenFolder } from "@/features/logs/api";
-import { appVersion } from "@/features/onboarding/api";
 import {
   type DatabaseSettings,
   type RedisSettings,
@@ -212,16 +211,5 @@ export function AdvancedForm({ proxy, path }: { proxy: string; path: string }) {
       </Button>
       <ErrorBox error={save.error ?? folder.error} />
     </FormCard>
-  );
-}
-
-export function AboutCard() {
-  const { t } = useTranslation();
-  const version = useQuery({ queryKey: ["app", "version"], queryFn: appVersion });
-  return (
-    <Card id="about" title={t("settings.about.title")}>
-      <p className="text-sm">{t("settings.about.version", { version: version.data ?? "…" })}</p>
-      <p className="text-xs text-muted">{t("settings.about.updates")}</p>
-    </Card>
   );
 }

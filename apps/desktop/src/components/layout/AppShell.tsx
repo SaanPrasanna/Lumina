@@ -2,6 +2,7 @@ import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { UpdateBanner } from "@/features/updates/UpdatesCard";
 
 /**
  * Fixed-width sidebar + scrollable content. Fixed sizes, `min-w-0` and no layout
@@ -22,6 +23,13 @@ export function AppShell() {
       {/* The scroll container keeps room for its scrollbar, so pages that grow
           past the window height do not shift sideways. */}
       <main className="min-w-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+        <UpdateBanner
+          onOpen={() => {
+            navigate("/settings");
+            // After the page has rendered.
+            window.setTimeout(() => document.getElementById("updates")?.scrollIntoView({ block: "start" }), 100);
+          }}
+        />
         <Outlet />
       </main>
     </div>

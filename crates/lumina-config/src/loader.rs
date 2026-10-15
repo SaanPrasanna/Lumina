@@ -111,6 +111,27 @@ pub fn load_or_create(path: &Path) -> Result<Loaded> {
     finish(parse(DEFAULT_TOML)?, ConfigSource::ResetToDefaults, notices)
 }
 
+/// First start of a different Lumina version: copies config.toml to
+/// `config.toml.before-<version>.bak` before the new version reads (and maybe
+/// migrates) it. Returns the copy, or `None` when there was nothing to copy.
+pub fn backup_before_upgrade(path: &Path, version: &str) -> Result<Option<PathBuf>> {
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let mut name = path.as_os_str().to_owned();
+    name.push(format!(".before-{version}.bak"));
+    let copy = PathBuf::from(name);
+    if copy.exists() {
+        // Already taken by an earlier start of this version.
+        return Ok(Some(copy));
+    }
+    std::fs::copy(path, &copy).map_err(|source| Error::Io {
+        path: copy.clone(),
+        source,
+    })?;
+    Ok(Some(copy))
+}
+
 /// Saves `config`, keeping the previous file as `config.toml.bak`.
 pub fn save(path: &Path, config: &AppConfig) -> Result<()> {
     let text = toml::to_string_pretty(config).map_err(|e| Error::Config(e.to_string()))?;
@@ -213,6 +234,29 @@ mod tests {
         assert!(loaded.warnings.is_empty());
         let text = std::fs::read_to_string(&path).expect("read");
         assert!(text.contains("# Lumina configuration"));
+    }
+
+    #[test]
+    fn an_upgrade_keeps_the_old_config() {
+        let (_tmp, path) = setup();
+        assert_eq!(backup_before_upgrade(&path, "1.0.0").expect("none"), None);
+        std::fs::write(&path, "schema_version = 1\n# mine\n").expect("write");
+        let copy = backup_before_upgrade(&path, "1.0.0")
+            .expect("backup")
+            .expect("copied");
+        assert!(copy.ends_with("config.toml.before-1.0.0.bak"));
+        assert_eq!(
+            std::fs::read_to_string(&copy).expect("read"),
+            "schema_version = 1\n# mine\n"
+        );
+        // A second start of the same version keeps the first copy.
+        std::fs::write(&path, "changed").expect("write");
+        backup_before_upgrade(&path, "1.0.0").expect("again");
+        assert!(
+            std::fs::read_to_string(&copy)
+                .expect("read")
+                .contains("# mine")
+        );
     }
 
     #[test]

@@ -33,6 +33,26 @@ fn snapshot(runtime: &Runtime) -> Settings {
     }
 }
 
+/// Registers (or removes) Lumina as a program started at sign-in, minimized to
+/// the tray. Development builds never register themselves.
+pub fn apply_start_on_login(app: &AppHandle, enabled: bool) {
+    use tauri_plugin_autostart::ManagerExt;
+    if cfg!(debug_assertions) {
+        log::info!("start on login = {enabled}: not registered by development builds");
+        return;
+    }
+    let launcher = app.autolaunch();
+    let result = if enabled {
+        launcher.enable()
+    } else {
+        launcher.disable()
+    };
+    match result {
+        Ok(()) => log::info!("start on login: {enabled}"),
+        Err(err) => log::error!("could not change start on login: {err}"),
+    }
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn settings_get(state: State<'_, AppState>) -> CommandResult<Settings> {
@@ -67,6 +87,7 @@ pub fn settings_update(
     };
     *slot = value;
     let mut config: AppConfig = serde_json::from_value(json).map_err(bad)?;
+    let login_changed = config.general.start_on_login != runtime.config().general.start_on_login;
 
     let warnings = lumina_config::validate::validate(&mut config);
     lumina_config::save(&runtime.layout.config_file(), &config)?;
@@ -75,6 +96,9 @@ pub fn settings_update(
     *runtime.config.write().unwrap_or_else(|e| e.into_inner()) = config;
     *runtime.warnings.write().unwrap_or_else(|e| e.into_inner()) = warnings;
     let _ = app.emit(events::CONFIG_CHANGED, &section);
+    if login_changed {
+        apply_start_on_login(&app, runtime.config().general.start_on_login);
+    }
     if matches!(section.as_str(), "php" | "database" | "tools") {
         crate::commands::env_path::refresh_shims_later(&app);
     }

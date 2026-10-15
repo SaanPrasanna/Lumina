@@ -106,7 +106,10 @@ pub fn extract(archive: &Path, release: &Release, dest: &Path) -> Result<()> {
     std::fs::rename(&partial, dest).map_err(|source| Error::Io {
         path: dest.to_path_buf(),
         source,
-    })
+    })?;
+    // Verified by checksum: Gatekeeper must not block the unsigned runtimes.
+    lumina_platform::quarantine::clear(dest);
+    Ok(())
 }
 
 fn write_entry(out: &Path, reader: &mut impl Read, mode: Option<u32>) -> Result<()> {

@@ -29,6 +29,9 @@ pub enum Note<'a> {
     ProjectFailed {
         name: &'a str,
     },
+    UpdateAvailable {
+        version: &'a str,
+    },
 }
 
 /// The name shown for a supervisor process ID (`None`: not worth a notification).
@@ -88,6 +91,14 @@ pub fn text(language: &str, note: &Note<'_>) -> (String, String) {
             format!("{name} is ready"),
             "The QuickApp project was created.".into(),
         ),
+        Note::UpdateAvailable { version } if si => (
+            format!("Lumina {version} ලබා ගත හැක"),
+            "Settings → යාවත්කාලීන කිරීම් වෙතින් ස්ථාපනය කරන්න.".into(),
+        ),
+        Note::UpdateAvailable { version } => (
+            format!("Lumina {version} is available"),
+            "Install it from Settings → Updates.".into(),
+        ),
         Note::ProjectFailed { name } if si => (
             format!("{name} සෑදිය නොහැකි විය"),
             "QuickApp පිටුවේ ප්‍රතිදානය බලන්න.".into(),
@@ -102,7 +113,10 @@ pub fn text(language: &str, note: &Note<'_>) -> (String, String) {
 /// Shows `note`. Crashes always; finished tasks only while the window is in
 /// the background (in front, the page already shows the result).
 pub fn send(app: &AppHandle, note: Note<'_>) {
-    let background_only = !matches!(note, Note::Crashed { .. } | Note::Failed { .. });
+    let background_only = !matches!(
+        note,
+        Note::Crashed { .. } | Note::Failed { .. } | Note::UpdateAvailable { .. }
+    );
     if background_only
         && app
             .get_webview_window("main")

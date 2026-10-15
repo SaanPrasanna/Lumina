@@ -8,6 +8,6 @@ pub mod migrate;
 pub mod schema;
 pub mod validate;
 
-pub use loader::{ConfigSource, Loaded, load_or_create, save};
+pub use loader::{ConfigSource, Loaded, backup_before_upgrade, load_or_create, save};
 pub use schema::AppConfig;
 pub use validate::Warning;

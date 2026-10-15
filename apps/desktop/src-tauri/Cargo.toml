@@ -46,9 +46,12 @@ log = { workspace = true }
 specta = { workspace = true }
 tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
 specta-typescript = "0.0.12"
+tauri-plugin-autostart = "2"
 
 [lints]
 workspace = true
 
 [dev-dependencies]
 tempfile = { workspace = true }
+minisign-verify = "0.2"
+base64 = "0.22"

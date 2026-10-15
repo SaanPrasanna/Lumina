@@ -122,7 +122,8 @@
       "autostart": "Start PHP and the web server when Lumina opens",
       "closeToTray": "Keep running in the tray when the window is closed",
       "www": "Projects folder",
-      "wwwHint": "Every folder inside becomes a site. Empty = {{folder}}."
+      "wwwHint": "Every folder inside becomes a site. Empty = {{folder}}.",
+      "startOnLogin": "Start Lumina when I sign in (in the tray)"
     },
     "web": {
       "title": "Web server",
@@ -164,9 +165,26 @@
       "proxyHint": "For Quick Add downloads. Empty = the system's proxy settings. Applies after Lumina restarts."
     },
     "about": {
-      "title": "About",
-      "version": "Lumina {{version}}",
-      "updates": "Automatic updates arrive with the first signed release."
+      "version": "Lumina {{version}}"
+    },
+    "updates": {
+      "title": "About and updates",
+      "channel": "Update channel",
+      "stable": "Stable",
+      "beta": "Beta (earlier, less tested)",
+      "auto": "Check for updates automatically",
+      "checkNow": "Check now",
+      "available": "Lumina {{version}} is available.",
+      "install": "Install and restart…",
+      "installNow": "Install now",
+      "confirm": "Lumina stops your services, installs the update and restarts. The services that are running now start again afterwards.",
+      "starting": "Preparing the update…",
+      "downloading": "Downloading {{received}} of {{total}}…",
+      "upToDate": "Lumina is up to date (checked {{when}}).",
+      "failed": "The update check failed: {{error}}",
+      "safety": "Updates are signed and checked before they are installed. They replace only the program; your projects, databases, certificates and settings stay where they are.",
+      "view": "View",
+      "later": "Later"
     }
   },
   "configWarnings": {
@@ -178,7 +196,8 @@
     "editor_reset": "No editor command was set; using VS Code.",
     "config_restored": "config.toml was damaged and has been restored from the backup. The damaged copy is {{file}}.",
     "config_reset": "config.toml was damaged and no backup was usable, so the defaults are used. The damaged copy is {{file}}.",
-    "tld_https_only": ".{{tld}} is a real domain suffix that browsers only open over HTTPS, so these sites will not load until HTTPS is set up. Use .test instead."
+    "tld_https_only": ".{{tld}} is a real domain suffix that browsers only open over HTTPS, so these sites will not load until HTTPS is set up. Use .test instead.",
+    "update_channel_reset": "The update channel \"{{from}}\" is unknown; Lumina uses stable."
   },
   "web": {
     "title": "Web server",

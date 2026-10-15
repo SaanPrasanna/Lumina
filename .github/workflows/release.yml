@@ -1,5 +1,21 @@
 name: Release
 
+# Builds signed installers for a version tag and puts them in a draft GitHub
+# release (published by hand). Tags with a pre-release part (v1.0.0-beta.1)
+# become pre-releases, which only the beta update channel offers.
+#
+# Secrets (each optional; without them the step is skipped and the build is
+# unsigned):
+#   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+#       update signatures (required for updates to install; the public key is
+#       in tauri.conf.json)
+#   AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID,
+#   TRUSTED_SIGNING_ENDPOINT, TRUSTED_SIGNING_ACCOUNT, TRUSTED_SIGNING_PROFILE
+#       Windows Authenticode through Azure Trusted Signing
+#   APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY,
+#   APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID
+#       macOS Developer ID signing and notarization
+
 on:
   push:
     tags: ["v*"]
@@ -14,12 +30,14 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            args: ""
+            args: "--config src-tauri/tauri.release.conf.json --config src-tauri/tauri.release.windows.conf.json"
           - platform: macos-latest
-            args: "--target universal-apple-darwin"
+            args: "--target universal-apple-darwin --config src-tauri/tauri.release.conf.json"
           - platform: ubuntu-22.04
-            args: ""
+            args: "--config src-tauri/tauri.release.conf.json"
     runs-on: ${{ matrix.platform }}
+    env:
+      HAS_WINDOWS_SIGNING: ${{ secrets.AZURE_CLIENT_ID != '' && secrets.TRUSTED_SIGNING_ACCOUNT != '' }}
     steps:
       - uses: actions/checkout@v7
       - name: Linux deps
@@ -29,10 +47,23 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libwebkit2gtk-4.1-dev libxdo-dev libssl-dev \
             libayatana-appindicator3-dev librsvg2-dev patchelf
-      - name: Fetch VC++ redistributable
+      - name: Fetch the Visual C++ runtime
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/fetch-vcredist.ps1
+      - name: Windows code signing (Azure Trusted Signing)
+        if: runner.os == 'Windows' && env.HAS_WINDOWS_SIGNING == 'true'
+        shell: pwsh
+        env:
+          ENDPOINT: ${{ secrets.TRUSTED_SIGNING_ENDPOINT }}
+          ACCOUNT: ${{ secrets.TRUSTED_SIGNING_ACCOUNT }}
+          PROFILE: ${{ secrets.TRUSTED_SIGNING_PROFILE }}
+        run: |
+          cargo install trusted-signing-cli --locked
+          # Tauri signs the app, the sidecars and the installer with this command.
+          $config = @{ bundle = @{ windows = @{ signCommand = "trusted-signing-cli -e $env:ENDPOINT -a $env:ACCOUNT -c $env:PROFILE -d Lumina %1" } } }
+          $config | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 apps/desktop/src-tauri/tauri.signing.conf.json
+          "SIGNING_ARGS=--config src-tauri/tauri.signing.conf.json" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -47,10 +78,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: apps/desktop
           tagName: ${{ github.ref_name }}
           releaseName: Lumina ${{ github.ref_name }}
           releaseDraft: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
           uploadUpdaterJson: true
-          args: ${{ matrix.args }}
+          args: ${{ matrix.args }} ${{ env.SIGNING_ARGS }}

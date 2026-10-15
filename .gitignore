@@ -32,3 +32,6 @@ Thumbs.db
 # Private planning docs (not published for now)
 /docs/
 /IMPLEMENTATION_PLAN.md
+
+# Sidecars built by `cargo xtask sidecars` for release bundles
+/apps/desktop/src-tauri/binaries/

@@ -14,7 +14,7 @@ export type DatabaseSettings = Required<B.Database>;
 export type RedisSettings = Required<B.Redis>;
 export type EditorSettings = Required<B.Editor>;
 export type SiteOverride = Required<B.SiteOverride>;
-export type AppConfig = Omit<B.AppConfig_Serialize, "php" | "web" | "database" | "redis" | "editor" | "tunnel" | "tools" | "packages" | "sites"> & {
+export type AppConfig = Omit<B.AppConfig_Serialize, "php" | "web" | "database" | "redis" | "editor" | "tunnel" | "tools" | "packages" | "sites" | "updates"> & {
   php: PhpSettings;
   web: WebSettings;
   database: DatabaseSettings;
@@ -23,6 +23,7 @@ export type AppConfig = Omit<B.AppConfig_Serialize, "php" | "web" | "database" |
   tunnel: Required<B.Tunnel>;
   tools: Required<B.Tools>;
   packages: Required<B.Packages>;
+  updates: Required<B.Updates>;
   sites: Record<string, SiteOverride>;
 };
 export type Settings = Omit<B.Settings_Serialize, "config"> & { config: AppConfig };

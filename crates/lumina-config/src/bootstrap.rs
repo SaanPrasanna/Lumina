@@ -18,6 +18,10 @@ pub struct Bootstrap {
     /// UI language chosen in the first-run wizard.
     #[serde(default = "default_language")]
     pub language: String,
+    /// The Lumina version that last started with this data root; a different
+    /// version backs up config.toml before using it (see `upgraded`).
+    #[serde(default)]
+    pub last_version: String,
 }
 
 fn default_language() -> String {
@@ -39,6 +43,7 @@ impl Bootstrap {
         Ok(Self {
             data_root,
             language,
+            last_version: String::new(),
         })
     }
 }

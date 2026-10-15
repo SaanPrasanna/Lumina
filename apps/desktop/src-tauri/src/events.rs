@@ -23,6 +23,10 @@ pub const PACKAGES_CHANGED: &str = "packages-changed";
 pub const QUICKAPP_CHANGED: &str = "quickapp-changed";
 /// New QuickApp output: `{ jobId, lines, step, download }`.
 pub const QUICKAPP_OUTPUT: &str = "quickapp-output";
+/// An update check finished or an install started/failed; the UI refetches.
+pub const UPDATES_CHANGED: &str = "updates-changed";
+/// Update download: `{ received, total }`.
+pub const UPDATE_PROGRESS: &str = "update-progress";
 /// A tunnel opened or closed, or the ngrok agent stopped; the UI refetches.
 pub const TUNNELS_CHANGED: &str = "tunnels-changed";
 

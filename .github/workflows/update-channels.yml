@@ -1,0 +1,33 @@
+name: Update channels
+
+# The stable channel reads releases/latest/download/latest.json, which GitHub
+# serves from the newest published non-pre-release. The beta channel reads a
+# rolling release tagged `beta`: every published release (stable or
+# pre-release) copies its latest.json there, so beta users get whichever is
+# newest. The updater never installs an older version than the running one.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  beta:
+    if: github.event.release.tag_name != 'beta'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Copy latest.json to the beta channel
+        run: |
+          gh release download "$TAG" --repo "$REPO" --pattern latest.json
+          if ! gh release view beta --repo "$REPO" > /dev/null 2>&1; then
+            gh release create beta --repo "$REPO" --prerelease \
+              --title "Beta update channel" \
+              --notes "Holds latest.json for Lumina's beta update channel. Do not delete."
+          fi
+          gh release upload beta latest.json --repo "$REPO" --clobber

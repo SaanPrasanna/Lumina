@@ -1,6 +1,7 @@
 //! Tauri shell: wires plugins, state, tray and IPC commands. Business logic lives
 //! in `crates/*`; this crate stays a thin adapter.
 
+pub mod cli;
 #[doc(hidden)]
 pub mod commands;
 mod error;
@@ -112,7 +113,13 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::logs::logs_read,
             commands::logs::logs_open,
             commands::logs::logs_open_folder,
+            commands::updates::updates_status,
+            commands::updates::updates_check,
+            commands::updates::updates_configure,
+            commands::updates::updates_install,
         ])
+        // Event payloads (not in any command signature).
+        .typ::<commands::updates::UpdateProgress>()
         // Failed commands reject the promise, as `invoke` does.
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
         // u64 values (sizes, offsets, timestamps) stay far below 2^53.
@@ -120,21 +127,53 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
 }
 
 pub fn run() {
+    let flags = cli::Flags::parse(std::env::args().skip(1));
     let app = tauri::Builder::default()
-        // Must be registered first so a second launch focuses the existing window.
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            tray::show_main(app);
+        // Must be registered first: a second launch hands its flags to this
+        // one (no flags: show the window) and exits.
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            cli::apply(app, cli::Flags::parse(args.iter().skip(1)));
         }))
         .plugin(log_plugin())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        // Size and position are restored; visibility is decided by the flags
+        // (the window starts hidden, see tauri.conf.json).
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(
+                    tauri_plugin_window_state::StateFlags::all()
+                        & !tauri_plugin_window_state::StateFlags::VISIBLE,
+                )
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
+        // "Start Lumina when I sign in": in the tray, without the window.
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--minimized"]),
+        ))
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .setup(|app| {
+        .setup(move |app| {
+            if flags.only_stops() {
+                // First launch: nothing runs, so there is nothing to stop.
+                if flags.remove_data {
+                    use tauri::Manager;
+                    cli::remove_data(
+                        &app.path()
+                            .app_config_dir()?
+                            .join(lumina_config::bootstrap::FILE_NAME),
+                    );
+                }
+                app.handle().exit(0);
+                return Ok(());
+            }
             setup::init(app)?;
             tray::create(app.handle())?;
+            commands::updates::resume_services(app.handle());
             setup::autostart(app.handle());
+            commands::updates::check_periodically(app.handle().clone());
+            cli::apply(app.handle(), flags.clone());
             Ok(())
         })
         .on_window_event(|window, event| {

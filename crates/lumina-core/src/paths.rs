@@ -66,6 +66,36 @@ impl Layout {
         self.root.join("www")
     }
 
+    /// Deletes the whole data root (the uninstaller's "also delete my data").
+    /// Refuses anything that does not look like a Lumina data root: it must
+    /// be absolute, hold `config.toml`, `bin/` and `etc/`, and be neither a
+    /// drive or filesystem root nor the user's home folder.
+    pub fn remove(&self) -> Result<()> {
+        let refuse = |why: &str| {
+            Err(Error::Config(format!(
+                "{} was not deleted: {why}",
+                self.root.display()
+            )))
+        };
+        if !self.root.is_absolute() {
+            return refuse("not an absolute path");
+        }
+        if self.root.parent().is_none() {
+            return refuse("a drive or filesystem root");
+        }
+        let home = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME"));
+        if home.is_some_and(|h| Path::new(&h) == self.root) {
+            return refuse("the home folder");
+        }
+        if !self.config_file().is_file() || !self.bin().is_dir() || !self.etc().is_dir() {
+            return refuse("it does not look like a Lumina data folder");
+        }
+        std::fs::remove_dir_all(&self.root).map_err(|source| Error::Io {
+            path: self.root.clone(),
+            source,
+        })
+    }
+
     /// Creates the data root and every top-level directory. Idempotent.
     pub fn ensure(&self) -> Result<()> {
         for dir in DIRS {
@@ -91,6 +121,24 @@ pub fn default_data_root() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_a_lumina_data_root_is_removed() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let other = tmp.path().join("Documents");
+        std::fs::create_dir_all(other.join("bin")).expect("mkdir");
+        assert!(Layout::new(&other).remove().is_err(), "no config.toml");
+        assert!(other.exists());
+        assert!(Layout::new("relative").remove().is_err());
+
+        let layout = Layout::new(tmp.path().join("Lumina"));
+        layout.ensure().expect("ensure");
+        std::fs::write(layout.config_file(), "schema_version = 1\n").expect("config");
+        std::fs::write(layout.www().join("index.php"), "<?php").expect("project");
+        layout.remove().expect("remove");
+        assert!(!layout.root().exists());
+        assert!(other.exists(), "nothing else was touched");
+    }
 
     #[test]
     fn ensure_creates_all_dirs_and_is_idempotent() {

@@ -54,7 +54,9 @@ pub fn bootstrap_complete(
     data_root: PathBuf,
     language: String,
 ) -> CommandResult<BootstrapStatus> {
-    let bootstrap = Bootstrap::new(data_root, language)?;
+    let mut bootstrap = Bootstrap::new(data_root, language)?;
+    // A fresh data root has no older config to keep.
+    bootstrap.last_version = app.package_info().version.to_string();
     Layout::new(&bootstrap.data_root).ensure()?;
     bootstrap::save(&state.bootstrap_path, &bootstrap)?;
     log::info!(

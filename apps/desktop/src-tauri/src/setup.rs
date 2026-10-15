@@ -27,6 +27,7 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     app.manage(crate::commands::packages::Jobs::default());
     app.manage(crate::commands::quickapp::Jobs::default());
+    app.manage(crate::commands::updates::Updates::default());
     app.manage(AppState {
         bootstrap_path,
         bootstrap: RwLock::new(bootstrap.clone()),
@@ -35,8 +36,36 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     });
 
     match bootstrap {
-        Some(b) => {
+        Some(mut b) => {
             log::info!("data root: {}", b.data_root.display());
+            let version = app.package_info().version.to_string();
+            if b.last_version != version {
+                // A new (or older) version: keep the config as it was before
+                // this version reads and maybe migrates it.
+                let config = Layout::new(&b.data_root).config_file();
+                match lumina_config::backup_before_upgrade(&config, &version) {
+                    Ok(Some(copy)) => log::info!(
+                        "first start of {version} (last: {}): config saved as {}",
+                        if b.last_version.is_empty() {
+                            "unknown"
+                        } else {
+                            &b.last_version
+                        },
+                        copy.display()
+                    ),
+                    Ok(None) => {}
+                    Err(err) => log::error!("could not back up config.toml: {err}"),
+                }
+                b.last_version = version;
+                let path = app.state::<AppState>().bootstrap_path.clone();
+                if let Err(err) = bootstrap::save(&path, &b) {
+                    log::error!("could not record the version: {err}");
+                }
+                *app.state::<AppState>()
+                    .bootstrap
+                    .write()
+                    .unwrap_or_else(|e| e.into_inner()) = Some(b.clone());
+            }
             start_runtime(app.handle(), Layout::new(&b.data_root));
         }
         None => log::info!("no bootstrap file; first-run wizard will be shown"),
