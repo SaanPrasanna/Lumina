@@ -12,7 +12,7 @@ import json
 import os
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')) + os.sep
-BASE = 'https://saanprasanna.github.io/Lumina/'
+BASE = 'https://lumina.hexdev.tech/'
 REPO = 'https://github.com/SaanPrasanna/Lumina'
 LATEST = REPO + '/releases/latest'
 
@@ -388,7 +388,7 @@ def page(t):
 def not_found():
     """404.html: GitHub Pages serves it for every missing address at any depth,
     so its links are absolute. Both languages on one page."""
-    site = '/Lumina/'
+    site = '/'
     return f'''<!doctype html>
 <html lang="en">
 <head>

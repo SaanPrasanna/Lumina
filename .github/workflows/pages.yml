@@ -1,5 +1,5 @@
 # Publishes the website in site/ to GitHub Pages
-# (https://saanprasanna.github.io/Lumina/).
+# (https://lumina.hexdev.tech/, custom domain set in the repository's Pages settings).
 name: Website
 
 on:

@@ -2,15 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://saanprasanna.github.io/Lumina/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://saanprasanna.github.io/Lumina/"/>
-    <xhtml:link rel="alternate" hreflang="si" href="https://saanprasanna.github.io/Lumina/si/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://saanprasanna.github.io/Lumina/"/>
+    <loc>https://lumina.hexdev.tech/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
+    <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
   </url>
   <url>
-    <loc>https://saanprasanna.github.io/Lumina/si/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://saanprasanna.github.io/Lumina/"/>
-    <xhtml:link rel="alternate" hreflang="si" href="https://saanprasanna.github.io/Lumina/si/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://saanprasanna.github.io/Lumina/"/>
+    <loc>https://lumina.hexdev.tech/si/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
+    <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
   </url>
 </urlset>

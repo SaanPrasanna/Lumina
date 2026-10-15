@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://saanprasanna.github.io/Lumina/sitemap.xml
+Sitemap: https://lumina.hexdev.tech/sitemap.xml
