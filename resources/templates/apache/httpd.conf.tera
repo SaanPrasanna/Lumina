@@ -81,6 +81,14 @@ ProxyFCGIBackendType GENERIC
 ProxyFCGISetEnvIf "reqenv('SCRIPT_FILENAME') =~ m#^/([A-Za-z]:/.*)$#" SCRIPT_FILENAME "$1"
 {%- endif %}
 
+# A request shared through a Lumina tunnel (the tunnel adds X-Lumina-Tunnel)
+# reaches PHP with the public host and HTTPS, so links, assets and redirects
+# point at the public address. Other requests are unchanged.
+ProxyFCGISetEnvIf "-n %{req:X-Lumina-Tunnel} && -n %{req:X-Forwarded-Host}" HTTP_HOST "%{req:X-Forwarded-Host}"
+ProxyFCGISetEnvIf "-n %{req:X-Lumina-Tunnel}" HTTPS "on"
+ProxyFCGISetEnvIf "-n %{req:X-Lumina-Tunnel}" REQUEST_SCHEME "https"
+ProxyFCGISetEnvIf "-n %{req:X-Lumina-Tunnel}" SERVER_PORT "443"
+
 <FilesMatch "\.php$">
     <If "-f %{REQUEST_FILENAME}">
         SetHandler "proxy:fcgi://127.0.0.1:{{ php_port }}/"

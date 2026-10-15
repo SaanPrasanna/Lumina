@@ -10,6 +10,8 @@ import { openWww } from "@/features/services/api";
 import { HttpsCard } from "@/features/sites/HttpsCard";
 import { formatDate, SSL_KEY, sslStatus } from "@/features/sites/ssl";
 import { type AppConfig, SETTINGS_KEY, settingsGet, settingsUpdate } from "@/features/settings/api";
+import { ShareButton, SharePanel, useSiteShare } from "@/features/tunnel";
+import { TUNNEL_KEY, type TunnelOverview, tunnelOverview } from "@/features/tunnel/api";
 import {
   type HostsReport,
   type Site,
@@ -201,6 +203,7 @@ export function HostsStatus(props: { hosts: HostsReport; webRunning: boolean; bu
 
 function SiteList({ data, config }: { data: SitesOverview; config: AppConfig }) {
   const { t } = useTranslation();
+  const tunnels = useQuery({ queryKey: TUNNEL_KEY, queryFn: tunnelOverview });
   if (data.sites.length === 0 && data.skipped.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-line p-6 text-sm text-muted">
@@ -213,7 +216,7 @@ function SiteList({ data, config }: { data: SitesOverview; config: AppConfig }) 
       {!data.webRunning && data.sites.length > 0 && <p className="text-sm text-muted">{t("sites.startWeb")}</p>}
       <ul className="divide-y divide-line rounded-xl border border-line" aria-label={t("nav.sites")}>
         {data.sites.map((site) => (
-          <SiteRow key={site.name} site={site} config={config} webRunning={data.webRunning} />
+          <SiteRow key={site.name} site={site} config={config} webRunning={data.webRunning} tunnels={tunnels.data} />
         ))}
       </ul>
       {data.skipped.length > 0 && <SkippedList skipped={data.skipped} config={config} />}
@@ -227,8 +230,10 @@ function docrootLabel(t: (k: string) => string, site: Site): string {
   return site.docrootSource.subdir ? `${site.docrootSource.subdir}/` : t("sites.docrootFolder");
 }
 
-function SiteRow({ site, config, webRunning }: { site: Site; config: AppConfig; webRunning: boolean }) {
+function SiteRow(props: { site: Site; config: AppConfig; webRunning: boolean; tunnels: TunnelOverview | undefined }) {
+  const { site, config, webRunning } = props;
   const { t, i18n } = useTranslation();
+  const share = useSiteShare(site.name, props.tunnels);
   const ssl = useQuery({ queryKey: SSL_KEY, queryFn: sslStatus });
   const cert = ssl.data?.enabled ? ssl.data.sites.find((c) => c.domain === site.domain) : undefined;
   const [editing, setEditing] = useState(false);
@@ -273,11 +278,13 @@ function SiteRow({ site, config, webRunning }: { site: Site; config: AppConfig; 
           <Button onClick={() => action.mutate(() => siteOpenFolder(site.name))} icon={<FolderOpen />}>
             {t("sites.folder")}
           </Button>
+          <ShareButton share={share} disabled={!site.docrootExists} />
           <Button onClick={() => setEditing(!editing)} aria-expanded={editing} icon={<Pencil />}>
             {t("sites.edit")}
           </Button>
         </div>
       </div>
+      <SharePanel share={share} />
       {editing && (
         <form
           className="mt-3 flex flex-wrap items-end gap-3"

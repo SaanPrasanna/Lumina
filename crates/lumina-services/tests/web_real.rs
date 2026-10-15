@@ -399,6 +399,87 @@ async fn apache_serves_https_with_the_local_ca() {
     https_with_the_local_ca(WebServer::Apache).await;
 }
 
+/// A request the way an ngrok tunnel sends it (to the HTTP port, `Host`
+/// rewritten to the site, the public host in X-Forwarded-Host, marked with
+/// X-Lumina-Tunnel): PHP sees the public host and HTTPS, so the links it
+/// builds work from the phone, and "Force HTTPS" does not redirect it to
+/// blog.test. Other requests are unchanged.
+async fn tunnel_requests_see_the_public_host(server: WebServer) {
+    let Some(mut env) = setup(server) else { return };
+    let www = env.layout.www();
+    std::fs::create_dir_all(www.join("blog").join("public")).expect("mkdir");
+    std::fs::write(
+        www.join("blog").join("public").join("index.php"),
+        r#"<?php echo $_SERVER['HTTP_HOST'], '|', $_SERVER['HTTPS'] ?? '', '|', $_SERVER['SERVER_PORT'], '|', $_SERVER['REQUEST_SCHEME'] ?? '';"#,
+    )
+    .expect("write");
+    env.cfg.general.force_https = true;
+    env.start_web().await.expect("start");
+
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .expect("client");
+    let resp = client
+        .get(env.url("/"))
+        .header("Host", "blog.test")
+        .header("X-Forwarded-Host", "abc123.ngrok-free.app")
+        .header("X-Forwarded-Proto", "https")
+        .header("X-Lumina-Tunnel", "1")
+        .send()
+        .await
+        .expect("request");
+    let status = resp.status().as_u16();
+    let body = resp.text().await.expect("body");
+    assert_eq!(
+        (status, body.as_str()),
+        (200, "abc123.ngrok-free.app|on|443|https"),
+        "{}",
+        env.logs()
+    );
+
+    // Without the marker, X-Forwarded-Host is ignored and HTTP is redirected.
+    let resp = client
+        .get(env.url("/"))
+        .header("Host", "blog.test")
+        .header("X-Forwarded-Host", "evil.example")
+        .send()
+        .await
+        .expect("request");
+    assert_eq!(resp.status().as_u16(), 301);
+    let https = env.cfg.web.https_port;
+    let location = resp
+        .headers()
+        .get("location")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or_default()
+        .to_owned();
+    assert_eq!(location, format!("https://blog.test:{https}/"));
+
+    env.cfg.general.force_https = false;
+    env.stack.sync_sites(&env.cfg).await.expect("sync");
+    // (The Host header here has no port; Apache then reports port 80.)
+    let (status, body) = get_host(&env, "blog.test", "/").await;
+    assert_eq!(status, 200);
+    assert!(
+        body.starts_with("blog.test||") && body.ends_with("|http"),
+        "{body}"
+    );
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[tokio::test]
+async fn nginx_tunnel_requests_see_the_public_host() {
+    tunnel_requests_see_the_public_host(WebServer::Nginx).await;
+}
+
+#[tokio::test]
+async fn apache_tunnel_requests_see_the_public_host() {
+    tunnel_requests_see_the_public_host(WebServer::Apache).await;
+}
+
 /// A stand-in phpMyAdmin: `index.php` prints its name and the PHP version;
 /// `.lumina-package.json` carries the PHP requirement, as Quick Add writes it.
 fn fake_db_ui(env: &Env, version: &str, requires_php: &str) {

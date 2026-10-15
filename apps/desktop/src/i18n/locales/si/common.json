@@ -46,7 +46,13 @@
     "unknown": "යම් දෙයක් වැරදී ඇත.",
     "port_in_use": "පෝට් එක දැනටමත් භාවිතයේ ඇත.",
     "service": "සේවාව ආරම්භ කිරීමට හෝ නැවැත්වීමට නොහැකි විය.",
-    "elevation_required": "පරිපාලක අවසර අවශ්‍යයි."
+    "elevation_required": "පරිපාලක අවසර අවශ්‍යයි.",
+    "tunnel_not_installed": "ngrok ස්ථාපනය කර නැත. එය Sharing පිටුවෙන් ස්ථාපනය කරන්න.",
+    "tunnel_no_token": "බෙදාගැනීමට ඔබේ ngrok authtoken එක අවශ්‍යයි. එය Sharing පිටුවේ එක් කරන්න.",
+    "tunnel_invalid_token": "මෙය ngrok authtoken එකක් නොවේ.",
+    "tunnel_auth": "ngrok විසින් authtoken එක පිළිගත්තේ නැත.",
+    "tunnel": "අඩවිය බෙදාගත නොහැකි විය.",
+    "keychain": "පද්ධතියේ keychain එක භාවිත කළ නොහැකි විය."
   },
   "status": {
     "stopped": "නැවතී ඇත",
@@ -381,5 +387,52 @@
       "vite": "අඩවිය පෙන්වන ලෙස එක් වරක් ගොඩනඟන ලද Vite ඉදිරිපස ව්‍යාපෘතියක්; වැඩ කරන අතරතුර `npm run dev` ධාවනය කරන්න."
     },
     "warning": "ව්‍යාපෘතිය සූදානම්, නමුත් එහි අඩවිය තවම විවෘත කළ නොහැක:"
+  },
+  "tunnel": {
+    "intro": "අඩවියක් දුරකථනයකින් විවෘත කිරීමට හෝ වෙනත් අයෙකුට පෙන්වීමට, එය පොදු HTTPS ලිපිනයකින් බෙදාගන්න. Lumina මේ සඳහා ngrok භාවිත කරයි; ඒ සඳහා නොමිලේ ලැබෙන ngrok ගිණුමක් අවශ්‍යයි.",
+    "share": "බෙදාගන්න",
+    "shared": "බෙදාගෙන ඇත",
+    "opening": "පොදු ලිපිනයක් විවෘත කරමින්…",
+    "setUp": "බෙදාගැනීම සකසන්න",
+    "sharedSite": "{{host}}, බෙදාගෙන ඇත",
+    "sharing": "{{host}} ඕනෑම තැනක සිට මෙම ලිපිනයෙන් විවෘත කළ හැක:",
+    "qr": "{{url}} සඳහා QR කේතය",
+    "copy": "පිටපත් කරන්න",
+    "copied": "පිටපත් කළා",
+    "openPublic": "විවෘත කරන්න",
+    "stop": "බෙදාගැනීම නවත්වන්න",
+    "stopAll": "සියල්ල නවත්වන්න",
+    "openLog": "ngrok ලොගය විවෘත කරන්න",
+    "phoneHint": "දුරකථනයේ කැමරාවෙන් කේතය ස්කෑන් කරන්න. නොමිලේ ngrok ගිණුමක නම්, පැමිණෙන්නන්ට මුලින් එක් වරක් ngrok දැනුම්දීමේ පිටුවක් පෙනේ.",
+    "stopped": "ngrok agent එක නතර වූ නිසා බෙදාගැනීම නතර විය:",
+    "sharedTitle": "බෙදාගත් අඩවි",
+    "none": "කිසිදු අඩවියක් බෙදාගෙන නැත. Sites පිටුවේ අඩවියක් අසල ඇති බෙදාගන්න බොත්තම භාවිත කරන්න.",
+    "agent": {
+      "title": "ngrok",
+      "installed": "ngrok {{version}} ස්ථාපනය කර ඇත.",
+      "missing": "ngrok තවම ස්ථාපනය කර නැත.",
+      "install": "ngrok {{version}} ස්ථාපනය කරන්න",
+      "installing": "ස්ථාපනය කරමින්…",
+      "installingPercent": "ස්ථාපනය කරමින්… {{percent}}%",
+      "unavailable": "මෙම පද්ධතිය සඳහා Quick Add හි ngrok නොමැත."
+    },
+    "token": {
+      "title": "ngrok ගිණුම",
+      "saved": "ඔබේ authtoken එක පද්ධතියේ keychain එකේ සුරකින ලදී.",
+      "replace": "ප්‍රතිස්ථාපනය කරන්න",
+      "remove": "ඉවත් කරන්න",
+      "help": "ඔබේ ngrok dashboard එකෙන් authtoken එක මෙහි අලවන්න.",
+      "signup": "නොමිලේ ගිණුමක් සාදන්න",
+      "get": "ඔබේ authtoken එක ලබාගන්න",
+      "label": "Authtoken",
+      "privacy": "Lumina එය config.toml හි නොව පද්ධතියේ keychain එකේ (Windows Credential Manager, macOS Keychain) තබා ගනී.",
+      "keychainError": "පද්ධතියේ keychain එක කියවිය නොහැකි විය: {{error}}"
+    },
+    "domain": {
+      "title": "වෙන් කළ ඩොමේනය (අත්‍යවශ්‍ය නොවේ)",
+      "help": "එකක් නැතිනම්, එක් එක් බෙදාගැනීමට නව අහඹු ලිපිනයක් ලැබේ. නොමිලේ ngrok ගිණුමකට ස්ථිර ඩොමේනයක් එකක් ලැබේ.",
+      "find": "ඔබේ ඩොමේනය සොයන්න",
+      "label": "ඩොමේනය"
+    }
   }
 }

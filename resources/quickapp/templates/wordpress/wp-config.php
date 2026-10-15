@@ -32,6 +32,14 @@ $table_prefix = 'wp_';
 define( 'WP_ENVIRONMENT_TYPE', 'local' );
 define( 'WP_DEBUG', false );
 
+// Shared through a Lumina tunnel (Sites → Share): the web server passes the
+// public address as the host, so links and redirects lead there instead of
+// {domain}, which only this computer can open.
+if ( ! empty( $_SERVER['HTTP_X_LUMINA_TUNNEL'] ) && ! empty( $_SERVER['HTTP_HOST'] ) ) {
+	define( 'WP_HOME', 'https://' . $_SERVER['HTTP_HOST'] );
+	define( 'WP_SITEURL', WP_HOME );
+}
+
 /* That's all, stop editing! Happy publishing. */
 
 /** Absolute path to the WordPress directory. */

@@ -46,7 +46,13 @@
     "unknown": "Something went wrong.",
     "port_in_use": "The port is already in use.",
     "service": "The service could not be started or stopped.",
-    "elevation_required": "Administrator rights are required."
+    "elevation_required": "Administrator rights are required.",
+    "tunnel_not_installed": "ngrok is not installed. Install it on the Sharing page.",
+    "tunnel_no_token": "Sharing needs your ngrok authtoken. Add it on the Sharing page.",
+    "tunnel_invalid_token": "This is not an ngrok authtoken.",
+    "tunnel_auth": "ngrok did not accept the authtoken.",
+    "tunnel": "The site could not be shared.",
+    "keychain": "The system keychain could not be used."
   },
   "status": {
     "stopped": "Stopped",
@@ -381,5 +387,52 @@
       "vite": "A Vite front-end project, built once so the site shows it; run `npm run dev` while you work."
     },
     "warning": "The project is ready, but its site cannot be opened yet:"
+  },
+  "tunnel": {
+    "intro": "Share a site on a public HTTPS address, to open it on a phone or show it to someone. Lumina uses ngrok, which needs a free ngrok account.",
+    "share": "Share",
+    "shared": "Shared",
+    "opening": "Opening a public address…",
+    "setUp": "Set up sharing",
+    "sharedSite": "{{host}}, shared",
+    "sharing": "{{host}} is reachable from anywhere at:",
+    "qr": "QR code for {{url}}",
+    "copy": "Copy",
+    "copied": "Copied",
+    "openPublic": "Open",
+    "stop": "Stop sharing",
+    "stopAll": "Stop all",
+    "openLog": "Open ngrok log",
+    "phoneHint": "Scan the code with a phone's camera. On a free ngrok account, visitors first see an ngrok notice page once.",
+    "stopped": "Sharing stopped because the ngrok agent exited:",
+    "sharedTitle": "Shared sites",
+    "none": "No site is shared. Use Share next to a site on the Sites page.",
+    "agent": {
+      "title": "ngrok",
+      "installed": "ngrok {{version}} is installed.",
+      "missing": "ngrok is not installed yet.",
+      "install": "Install ngrok {{version}}",
+      "installing": "Installing…",
+      "installingPercent": "Installing… {{percent}}%",
+      "unavailable": "ngrok is not available for this system in Quick Add."
+    },
+    "token": {
+      "title": "ngrok account",
+      "saved": "Your authtoken is saved in the system keychain.",
+      "replace": "Replace",
+      "remove": "Remove",
+      "help": "Paste the authtoken from your ngrok dashboard.",
+      "signup": "Create a free account",
+      "get": "Get your authtoken",
+      "label": "Authtoken",
+      "privacy": "Lumina keeps it in the system keychain (Windows Credential Manager, macOS Keychain), never in config.toml.",
+      "keychainError": "The system keychain could not be read: {{error}}"
+    },
+    "domain": {
+      "title": "Reserved domain (optional)",
+      "help": "Without one, each share gets a new random address. A free ngrok account includes one static domain.",
+      "find": "Find yours",
+      "label": "Domain"
+    }
   }
 }

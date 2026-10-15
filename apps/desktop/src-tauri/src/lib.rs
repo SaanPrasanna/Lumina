@@ -114,6 +114,14 @@ pub fn run() {
             commands::quickapp::quickapp_cancel,
             commands::quickapp::quickapp_dismiss,
             commands::quickapp::quickapp_delete_partial,
+            commands::tunnel::tunnel_overview,
+            commands::tunnel::tunnel_set_token,
+            commands::tunnel::tunnel_clear_token,
+            commands::tunnel::tunnel_set_domain,
+            commands::tunnel::tunnel_start,
+            commands::tunnel::tunnel_stop,
+            commands::tunnel::tunnel_stop_all,
+            commands::tunnel::tunnel_open_log,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Lumina");
@@ -137,6 +145,12 @@ fn stop_services(app: &tauri::AppHandle) {
         return;
     };
     log::info!("stopping services before exit");
+    // Tunnels first: they forward to the web server.
+    if let Err(err) =
+        tauri::async_runtime::block_on(lumina_tunnel::TunnelProvider::shutdown(&runtime.tunnels))
+    {
+        log::error!("could not stop the ngrok agent on exit: {err}");
+    }
     let failures = tauri::async_runtime::block_on(runtime.stack.stop_all());
     for (kind, err) in failures {
         log::error!("could not stop {kind:?} on exit: {err}");

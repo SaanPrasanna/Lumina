@@ -13,8 +13,9 @@
     DocumentRoot "{{ root }}"
 {%- if ssl and force_https %}
 
-    # "Force HTTPS" is on: plain HTTP is redirected.
+    # "Force HTTPS" is on: plain HTTP is redirected (tunnels are already HTTPS).
     RewriteEngine On
+    RewriteCond %{HTTP:X-Lumina-Tunnel} ^$
     RewriteRule ^ https://%{SERVER_NAME}{{ https_suffix }}%{REQUEST_URI} [R=301,L]
 {%- endif %}
 

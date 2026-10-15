@@ -120,6 +120,7 @@ fn selected(cfg: &AppConfig, id: &str) -> Option<String> {
         "python" => cfg.tools.python.clone(),
         "composer" => cfg.tools.composer.clone(),
         "phpmyadmin" => cfg.tools.phpmyadmin.clone(),
+        "ngrok" => cfg.tools.ngrok.clone(),
         _ => return None,
     })
 }
@@ -136,6 +137,7 @@ fn set_selected(cfg: &mut AppConfig, id: &str, version: String) -> lumina_core::
         "python" => &mut cfg.tools.python,
         "composer" => &mut cfg.tools.composer,
         "phpmyadmin" => &mut cfg.tools.phpmyadmin,
+        "ngrok" => &mut cfg.tools.ngrok,
         other => return Err(Error::Other(format!("unknown package `{other}`"))),
     };
     *slot = version;

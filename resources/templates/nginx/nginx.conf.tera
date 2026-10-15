@@ -49,5 +49,26 @@ http {
         server  127.0.0.1:{{ php_port }} max_fails=0;
     }
 
+    # A request shared through a Lumina tunnel (the tunnel adds
+    # X-Lumina-Tunnel) reaches PHP with the public host and HTTPS, so links,
+    # assets and redirects point at the public address. Other requests are
+    # unchanged (see fastcgi_params).
+    map $http_x_lumina_tunnel $lumina_host {
+        ""       $http_host;
+        default  $http_x_forwarded_host;
+    }
+    map $http_x_lumina_tunnel $lumina_scheme {
+        ""       $scheme;
+        default  https;
+    }
+    map $http_x_lumina_tunnel $lumina_https {
+        ""       $https;
+        default  on;
+    }
+    map $http_x_lumina_tunnel $lumina_port {
+        ""       $server_port;
+        default  443;
+    }
+
     include "{{ sites_dir }}/*.conf";
 }

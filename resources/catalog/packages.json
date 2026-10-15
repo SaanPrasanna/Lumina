@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-14",
+  "updated": "2026-10-15",
   "packages": [
     {
       "id": "php",
@@ -528,6 +528,105 @@
           "file_name": "composer.phar",
           "channel": "LTS",
           "checksum_source": "getcomposer.org .sha256sum"
+        }
+      ]
+    },
+    {
+      "id": "ngrok",
+      "name": "ngrok",
+      "kind": "tool",
+      "homepage": "https://ngrok.com/",
+      "description": "Shares local sites on a public HTTPS address; needs a free ngrok account.",
+      "versions": [
+        {
+          "version": "3.39.11",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://bin.equinox.io/a/P2eJimSQ97/ngrok-v3-3.39.11-windows-amd64.zip",
+          "sha256": "699bbf1932ec43a573b764bd03e6568efa2c4e45955eb3cc2089c19bb4be4464",
+          "archive": "zip",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.11",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://bin.equinox.io/a/6nG16rF52TE/ngrok-v3-3.39.11-darwin-arm64.tar.gz",
+          "sha256": "cdf75135a6a7962dd368c0d4ec1bad2312420d933a41296a146fffcc6be13ee8",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.11",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://bin.equinox.io/a/jPvqdBYWoCy/ngrok-v3-3.39.11-darwin-amd64.tar.gz",
+          "sha256": "098a72a436276227f71ea6a57f3560d47e15135b4c5c6ba605cd63edba386987",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.11",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://bin.equinox.io/a/5Mrhp7gRDVb/ngrok-v3-3.39.11-linux-amd64.tar.gz",
+          "sha256": "cec0b4997fcc5f529dfc74bac89050354d11a915f968720600039738fdf330cf",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.11",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://bin.equinox.io/a/dg26hrkwY2F/ngrok-v3-3.39.11-linux-arm64.tar.gz",
+          "sha256": "3b6ba05a9d9585c34157fa0819fa95cdb13839f5b506b9e63204705cf7f79e29",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.10",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://bin.equinox.io/a/4L7aVh5HPND/ngrok-v3-3.39.10-windows-amd64.zip",
+          "sha256": "34a62ff5869c6d217502432475419a43c79ca3d8264ae0332a1f02a4bf35dd31",
+          "archive": "zip",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.10",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://bin.equinox.io/a/d4y6xywa8vd/ngrok-v3-3.39.10-darwin-arm64.tar.gz",
+          "sha256": "2729dcfd0b4263c87c5bf63d75f54098dcd993d78ab8892a93626f7c9f6163d5",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.10",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://bin.equinox.io/a/ikK4V9Njqke/ngrok-v3-3.39.10-darwin-amd64.tar.gz",
+          "sha256": "9a55f7edbe0f356659a404231357ee230e8fd50773346c9d313ec022b72ac3ae",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.10",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://bin.equinox.io/a/9sRAW6esxUB/ngrok-v3-3.39.10-linux-amd64.tar.gz",
+          "sha256": "9dfbe1a914e69cc7e980d61e6bd5a642025918102c5bc69905d1c57703aca3e8",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
+        },
+        {
+          "version": "3.39.10",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://bin.equinox.io/a/hqQ7mubGtHu/ngrok-v3-3.39.10-linux-arm64.tar.gz",
+          "sha256": "7176f5e5d5a2f6c332ff911ef895741f13168f1f0c225492c4412bde8b2f9a0d",
+          "archive": "tar.gz",
+          "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         }
       ]
     }

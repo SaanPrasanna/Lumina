@@ -61,6 +61,10 @@ pub struct Runtime {
     pub recipes: lumina_quickapp::RecipeFile,
     /// Watches the projects folder (and which folder it watches).
     pub watcher: Mutex<Option<(PathBuf, Watcher)>>,
+    /// Ngrok tunnels ("Share" on the Sites page).
+    pub tunnels: lumina_tunnel::ngrok::Ngrok,
+    /// The ngrok authtoken in the system keychain.
+    pub tunnel_token: lumina_tunnel::token::TokenStore,
 }
 
 /// `lumina-helper` and `lumina-shim` sit next to the app executable, in
@@ -137,7 +141,14 @@ impl Runtime {
             lumina_platform::hosts::system_hosts_path(),
             layout.tmp(),
         );
+        let tunnels = lumina_tunnel::ngrok::Ngrok::new(
+            supervisor.clone(),
+            &layout.etc().join("ngrok"),
+            &layout.logs(),
+        );
         Ok(Self {
+            tunnels,
+            tunnel_token: lumina_tunnel::token::TokenStore::ngrok(),
             hosts,
             helper,
             shim_exe: sibling("lumina-shim"),

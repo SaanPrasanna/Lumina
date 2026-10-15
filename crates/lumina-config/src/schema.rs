@@ -198,6 +198,7 @@ pub struct Tools {
     pub python: String,
     pub composer: String,
     pub phpmyadmin: String,
+    pub ngrok: String,
 }
 
 /// Quick Add (downloads).
@@ -257,12 +258,17 @@ impl Default for Editor {
 #[serde(default)]
 pub struct Tunnel {
     pub provider: String,
+    /// A reserved ngrok domain (`my-app.ngrok-free.app`) offered when sharing;
+    /// empty = a random address each time. The authtoken is in the system
+    /// keychain, never here.
+    pub domain: String,
 }
 
 impl Default for Tunnel {
     fn default() -> Self {
         Self {
             provider: "ngrok".to_owned(),
+            domain: String::new(),
         }
     }
 }

@@ -19,8 +19,8 @@ server {
     index        index.php index.html index.htm;
 {%- if ssl and force_https %}
 
-    # "Force HTTPS" is on: plain HTTP is redirected.
-    if ($scheme = http) {
+    # "Force HTTPS" is on: plain HTTP is redirected (tunnels are already HTTPS).
+    if ($lumina_scheme = http) {
         return  301 https://$host{{ https_suffix }}$request_uri;
     }
 {%- endif %}

@@ -10,6 +10,7 @@ import { QuickAppPage } from "@/features/quickapp";
 import { ServicesPage } from "@/features/services";
 import { SettingsPage } from "@/features/settings";
 import { SitesPage } from "@/features/sites";
+import { TunnelPage } from "@/features/tunnel";
 
 /** Implemented pages; every other nav item shows a placeholder for now. */
 const PAGES: Record<string, React.ReactNode> = {
@@ -18,6 +19,7 @@ const PAGES: Record<string, React.ReactNode> = {
   "/packages": <PackagesPage />,
   "/profiles": <ProfilesPage />,
   "/quickapp": <QuickAppPage />,
+  "/tunnel": <TunnelPage />,
   "/env-path": <EnvPathPage />,
   "/settings": <SettingsPage />,
 };

@@ -8,15 +8,17 @@ export type BackendEvent =
   | "config-changed"
   | "sites-changed"
   | "packages-changed"
-  | "quickapp-changed";
+  | "quickapp-changed"
+  | "tunnels-changed";
 
 /** Query keys refetched when each backend event arrives. */
 const INVALIDATES: Record<BackendEvent, readonly (readonly string[])[]> = {
   "service-status": [["services"], ["sites"], ["profiles"]],
-  "config-changed": [["settings"], ["services"], ["sites"], ["profiles"]],
+  "config-changed": [["settings"], ["services"], ["sites"], ["profiles"], ["tunnel"]],
   "sites-changed": [["sites"]],
-  "packages-changed": [["packages"], ["php"], ["web"], ["db"], ["redis"], ["services"], ["profiles"], ["quickapp"]],
+  "packages-changed": [["packages"], ["php"], ["web"], ["db"], ["redis"], ["services"], ["profiles"], ["quickapp"], ["tunnel"]],
   "quickapp-changed": [["quickapp"], ["sites"], ["services"]],
+  "tunnels-changed": [["tunnel"]],
 };
 
 /** Keeps React Query data fresh by listening to backend events. Mount once. */

@@ -50,6 +50,7 @@ args_line = ["--goto", "{path}:{line}"]
 
 [tunnel]
 provider = "ngrok"           # the auth token is stored in the OS keychain, not here
+domain = ""                  # a reserved ngrok domain to share with; empty = a random address
 
 [profiles]
 active = "default"
@@ -68,6 +69,7 @@ node = ""
 python = ""
 composer = ""
 phpmyadmin = ""              # empty = newest that runs on the active PHP
+ngrok = ""
 
 [packages]
 proxy = ""                   # e.g. "http://proxy:8080" for Quick Add downloads; empty = system settings

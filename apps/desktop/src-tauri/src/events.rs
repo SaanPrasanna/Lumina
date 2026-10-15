@@ -23,6 +23,8 @@ pub const PACKAGES_CHANGED: &str = "packages-changed";
 pub const QUICKAPP_CHANGED: &str = "quickapp-changed";
 /// New QuickApp output: `{ jobId, lines, step, download }`.
 pub const QUICKAPP_OUTPUT: &str = "quickapp-output";
+/// A tunnel opened or closed, or the ngrok agent stopped; the UI refetches.
+pub const TUNNELS_CHANGED: &str = "tunnels-changed";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -58,6 +60,9 @@ pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
                 E::Failed { id, reason } => (id, "failed", Some(reason.clone())),
             };
             crate::tray::refresh(app.clone());
+            if event.id() == lumina_tunnel::ngrok::PROCESS_ID {
+                let _ = app.emit(TUNNELS_CHANGED, ());
+            }
             // A web server came up (start, restart, Apache's restart-reload):
             // make sure the hosts file has its sites.
             if let E::Started { id, .. } = &event
