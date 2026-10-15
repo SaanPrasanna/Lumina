@@ -97,6 +97,14 @@ fn sidecars(args: &[String]) -> Result<()> {
         let arm = build(&root, "aarch64-apple-darwin")?;
         let intel = build(&root, "x86_64-apple-darwin")?;
         for ((name, a), i) in SIDECARS.iter().zip(arm).zip(intel) {
+            // `tauri build --target universal-apple-darwin` compiles the app
+            // once per architecture, and each compile looks for its own
+            // `<name>-<arch triple>`; the bundle then takes the joined one.
+            for (from, arch) in [(&a, "aarch64-apple-darwin"), (&i, "x86_64-apple-darwin")] {
+                let per_arch = out.join(format!("{name}-{arch}"));
+                std::fs::copy(from, &per_arch)
+                    .map_err(|e| format!("{} -> {}: {e}", from.display(), per_arch.display()))?;
+            }
             let dest = out.join(format!("{name}-{triple}"));
             run(Command::new("lipo")
                 .arg("-create")
