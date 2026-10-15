@@ -40,6 +40,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
+      version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
       release_id: ${{ steps.release.outputs.id }}
       matrix: ${{ steps.targets.outputs.matrix }}
@@ -57,6 +58,7 @@ jobs:
           fi
           prerelease=false
           case "$version" in *-*) prerelease=true ;; esac
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
           echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
           echo "Release v$version (pre-release: $prerelease)"
@@ -190,20 +192,44 @@ jobs:
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }} ${{ env.SIGNING_ARGS }}
 
-  # The stable channel reads releases/latest/download/latest.json, which
-  # GitHub serves from the newest non-pre-release. The beta channel reads the
-  # rolling `beta` release, which gets the latest.json of every release.
-  beta-channel:
+  # Release notes and the beta update channel, once the installers are up.
+  # Runs even if one build failed, so the notes list what is there.
+  publish:
     needs: [prepare, build]
+    if: ${{ !cancelled() && needs.prepare.result == 'success' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
       TAG: ${{ needs.prepare.outputs.tag }}
+      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
+      - uses: actions/checkout@v7
+      - name: Write the release notes
+        run: |
+          gh release view "$TAG" --repo "$REPO" --json assets > assets.json
+          # Checksums of the installers people download.
+          mkdir -p files
+          jq -r '.assets[].name' assets.json \
+            | grep -Ev '(\.sig|\.tar\.gz|\.zip|latest\.json)$' \
+            | while IFS= read -r name; do
+                gh release download "$TAG" --repo "$REPO" --pattern "$name" --dir files
+              done
+          (cd files && sha256sum -- * 2> /dev/null) > checksums.txt || true
+          # Merged changes, used when packaging/release-notes/<version>.md is missing.
+          gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body > generated.md || true
+          python3 scripts/release_notes.py "$VERSION" "$REPO" assets.json checksums.txt generated.md > notes.md
+          gh release edit "$TAG" --repo "$REPO" --notes-file notes.md
+          cat notes.md
+      # The stable channel reads releases/latest/download/latest.json, which
+      # GitHub serves from the newest non-pre-release. The beta channel reads
+      # the rolling `beta` release, which gets the latest.json of every release.
       - name: Copy latest.json to the beta channel
         run: |
-          gh release download "$TAG" --repo "$REPO" --pattern latest.json
+          if ! gh release download "$TAG" --repo "$REPO" --pattern latest.json; then
+            echo "no latest.json in $TAG (a build failed?); beta channel unchanged"
+            exit 0
+          fi
           if ! gh release view beta --repo "$REPO" > /dev/null 2>&1; then
             gh release create beta --repo "$REPO" --prerelease \
               --title "Beta update channel" \
