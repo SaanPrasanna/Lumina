@@ -91,6 +91,7 @@ impl Redis {
     pub async fn versions(&self) -> Vec<Install> {
         install::discover(
             &self.root(),
+            "redis",
             &["redis-server", "bin/redis-server", "src/redis-server"],
             &["--version"],
             parse_version,

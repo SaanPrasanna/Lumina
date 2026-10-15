@@ -428,6 +428,17 @@ export type General_Serialize = {
 	close_to_tray: boolean,
 };
 
+/**
+ *  How to get a server with Homebrew on macOS and Linux, where its project
+ *  publishes no download Lumina can install: the standard way there.
+ */
+export type HomebrewView = {
+	/**  Whether Homebrew is installed on this computer. */
+	found: boolean,
+	/**  `brew install …` for the newest version. */
+	installCommand: string,
+};
+
 /**  What the Sites page shows about the hosts file. */
 export type HostsReport = {
 	file: string,
@@ -451,15 +462,22 @@ export type Install = {
 	dir: string,
 	/**  The main executable. */
 	exe: string,
+	/**
+	 *  The Homebrew formula it comes from (`php@8.3`); `None` for a version
+	 *  under Lumina's data folder.
+	 */
+	homebrew: string | null,
 };
 
 export type InstalledVersion = {
 	version: string,
 	/**  Why it cannot be removed right now, if it cannot. */
 	inUse: string | null,
-	/**  Installed by Quick Add (otherwise unpacked by hand). */
+	/**  Installed by Quick Add (otherwise unpacked by hand or from Homebrew). */
 	managed: boolean,
 	requiresPhp: string | null,
+	/**  The Homebrew formula it comes from; Homebrew removes it, not Quick Add. */
+	homebrew: string | null,
 };
 
 export type JobState = "running" | "succeeded" | "failed" | "cancelled";
@@ -534,6 +552,8 @@ export type PackageView = {
 	installed: InstalledVersion[],
 	available: AvailableVersion[],
 	jobs: PackageJob[],
+	/**  macOS and Linux: installing it with Homebrew (servers only). */
+	homebrew: HomebrewView | null,
 };
 
 /**  Quick Add (downloads). */

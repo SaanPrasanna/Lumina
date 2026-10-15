@@ -391,6 +391,28 @@
           "checksum_source": "computed from the EDB download"
         },
         {
+          "version": "18.6",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-18.6-5-osx-binaries.zip",
+          "sha256": "a4147b2b9476a9d64f0b3ecc0112ca5ed3dc8eb217331e5b519fbdc608f7d30b",
+          "size": 448233137,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "computed from the EDB download (universal build: Apple silicon and Intel)"
+        },
+        {
+          "version": "18.6",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-18.6-5-osx-binaries.zip",
+          "sha256": "a4147b2b9476a9d64f0b3ecc0112ca5ed3dc8eb217331e5b519fbdc608f7d30b",
+          "size": 448233137,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "computed from the EDB download (universal build: Apple silicon and Intel)"
+        },
+        {
           "version": "17.11",
           "os": "windows",
           "arch": "x86_64",
@@ -400,6 +422,28 @@
           "archive": "zip",
           "strip": 1,
           "checksum_source": "computed from the EDB download"
+        },
+        {
+          "version": "17.11",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-17.11-5-osx-binaries.zip",
+          "sha256": "b03ce3cad02625acd1d4e1929e38822446cdcf7596e2f49f337ff97851289714",
+          "size": 437679230,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "computed from the EDB download (universal build: Apple silicon and Intel)"
+        },
+        {
+          "version": "17.11",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-17.11-5-osx-binaries.zip",
+          "sha256": "b03ce3cad02625acd1d4e1929e38822446cdcf7596e2f49f337ff97851289714",
+          "size": 437679230,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "computed from the EDB download (universal build: Apple silicon and Intel)"
         }
       ]
     },

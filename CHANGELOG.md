@@ -5,6 +5,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [S
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-15
+Lumina now sets up a stack on macOS and Linux, using official downloads and Homebrew, the standard way on those systems.
+
+- **macOS and Linux downloads:** Quick Add installs MySQL (macOS and Linux), PostgreSQL (macOS) and Python (macOS and Linux) straight from their official downloads, each checked against its SHA-256.
+- **Homebrew:** PHP, nginx, Apache, MariaDB and Redis publish no downloads for macOS and Linux. Quick Add shows the `brew install` command for them, and Lumina finds the Homebrew versions on its own and runs them with its own settings, sites and HTTPS. Homebrew versions carry a Homebrew badge and can be chosen like any other.
+- **Clearer messages:** Quick Add explains how to get a server instead of only saying that no download exists.
+- **Fixes:** On macOS the window no longer scrolls or bounces past its edges. Quick Add unpacks `.tar.xz` archives (MySQL for Linux).
+
 ## [0.2.0] - 2026-10-15
 PostgreSQL joins the stack, the tray menu grows into a full control panel, and the app gets a new look.
 

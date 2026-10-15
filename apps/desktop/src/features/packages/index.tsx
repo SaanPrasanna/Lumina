@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listen } from "@tauri-apps/api/event";
-import { Check, Download, Play, RotateCw, Trash2, X } from "lucide-react";
+import { Check, Copy, Download, Play, RefreshCw, RotateCw, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui";
 import {
   type AvailableVersion,
   formatBytes,
+  type HomebrewView,
   type Job,
   PACKAGES_KEY,
   type PackagesOverview,
@@ -143,7 +144,8 @@ function PackagePanel(props: { pkg: PackageView; overview: PackagesOverview; pro
                     </span>
                     {active && <Badge tone="ok">{pkg.running === v.version ? t("packages.running") : t("packages.inUse")}</Badge>}
                     {pkg.selected === v.version && <Badge>{t("packages.pinned")}</Badge>}
-                    {!v.managed && <Badge>{t("packages.manual")}</Badge>}
+                    {v.homebrew && <Badge>{t("packages.homebrew.badge")}</Badge>}
+                    {!v.managed && !v.homebrew && <Badge>{t("packages.manual")}</Badge>}
                     {v.requiresPhp && <span className="text-xs text-muted">PHP {v.requiresPhp}</span>}
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -152,14 +154,20 @@ function PackagePanel(props: { pkg: PackageView; overview: PackagesOverview; pro
                         {t("packages.use")}
                       </Button>
                     )}
-                    <Button
-                      onClick={() => action.mutate(() => packageUninstall(pkg.id, v.version))}
-                      disabled={busy || v.inUse !== null}
-                      title={v.inUse ? t(`packages.inUseReason.${v.inUse}`) : undefined}
-                      icon={<Trash2 />}
-                    >
-                      {t("packages.remove")}
-                    </Button>
+                    {v.homebrew ? (
+                      <span className="self-center text-xs text-muted">
+                        {t("packages.homebrew.removeHint", { command: `brew uninstall ${v.homebrew}`, interpolation: { escapeValue: false } })}
+                      </span>
+                    ) : (
+                      <Button
+                        onClick={() => action.mutate(() => packageUninstall(pkg.id, v.version))}
+                        disabled={busy || v.inUse !== null}
+                        title={v.inUse ? t(`packages.inUseReason.${v.inUse}`) : undefined}
+                        icon={<Trash2 />}
+                      >
+                        {t("packages.remove")}
+                      </Button>
+                    )}
                   </div>
                 </li>
               );
@@ -180,7 +188,9 @@ function PackagePanel(props: { pkg: PackageView; overview: PackagesOverview; pro
 
       <div>
         <h3 className="mb-2 text-sm font-semibold">{t("packages.available")}</h3>
-        {pkg.available.length === 0 ? (
+        {pkg.available.length === 0 && pkg.homebrew ? (
+          <HomebrewBox brew={pkg.homebrew} busy={busy} onCheck={() => action.mutate(async () => {})} />
+        ) : pkg.available.length === 0 ? (
           <p className="text-sm text-muted">{t("packages.noneForPlatform")}</p>
         ) : (
           <ul className="divide-y divide-line rounded-lg border border-line">
@@ -198,6 +208,39 @@ function PackagePanel(props: { pkg: PackageView; overview: PackagesOverview; pro
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * macOS and Linux: a server whose project publishes no download Lumina can
+ * install comes from Homebrew, the standard way there. Lumina then finds and
+ * runs it like its own.
+ */
+function HomebrewBox(props: { brew: HomebrewView; busy: boolean; onCheck: () => void }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    void navigator.clipboard.writeText(props.brew.installCommand).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <div className="space-y-3 rounded-lg border border-line p-4 text-sm">
+      <p>{t(props.brew.found ? "packages.homebrew.intro" : "packages.homebrew.notFound")}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <code dir="ltr" className="rounded-md border border-line bg-hover px-3 py-1.5 font-mono">
+          {props.brew.installCommand}
+        </code>
+        <Button onClick={copy} icon={copied ? <Check /> : <Copy />}>
+          {t(copied ? "packages.homebrew.copied" : "packages.homebrew.copy")}
+        </Button>
+      </div>
+      <p className="text-muted">{t("packages.homebrew.after")}</p>
+      <Button onClick={props.onCheck} disabled={props.busy} icon={<RefreshCw />}>
+        {t("packages.homebrew.check")}
+      </Button>
+    </div>
   );
 }
 

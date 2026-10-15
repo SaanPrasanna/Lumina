@@ -38,7 +38,7 @@ export function AppShell() {
       <Sidebar />
       {/* The scroll container keeps room for its scrollbar, so pages that grow
           past the window height do not shift sideways. */}
-      <main className="min-w-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+      <main className="min-w-0 flex-1 overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
         <UpdateBanner
           onOpen={() => {
             navigate("/settings");

@@ -14,6 +14,7 @@ use lumina_config::schema::DatabaseEngine;
 use lumina_core::Error;
 use lumina_core::types::ServiceKind;
 use lumina_packages::{Kind, Progress, Stage};
+use lumina_services::install::Install;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_opener::OpenerExt;
@@ -61,9 +62,22 @@ pub struct InstalledVersion {
     pub version: String,
     /// Why it cannot be removed right now, if it cannot.
     pub in_use: Option<String>,
-    /// Installed by Quick Add (otherwise unpacked by hand).
+    /// Installed by Quick Add (otherwise unpacked by hand or from Homebrew).
     pub managed: bool,
     pub requires_php: Option<String>,
+    /// The Homebrew formula it comes from; Homebrew removes it, not Quick Add.
+    pub homebrew: Option<String>,
+}
+
+/// How to get a server with Homebrew on macOS and Linux, where its project
+/// publishes no download Lumina can install: the standard way there.
+#[derive(Debug, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct HomebrewView {
+    /// Whether Homebrew is installed on this computer.
+    pub found: bool,
+    /// `brew install …` for the newest version.
+    pub install_command: String,
 }
 
 #[derive(Debug, Serialize, specta::Type)]
@@ -96,6 +110,8 @@ pub struct PackageView {
     pub installed: Vec<InstalledVersion>,
     pub available: Vec<AvailableVersion>,
     pub jobs: Vec<Job>,
+    /// macOS and Linux: installing it with Homebrew (servers only).
+    pub homebrew: Option<HomebrewView>,
 }
 
 #[derive(Debug, Serialize, specta::Type)]
@@ -215,7 +231,21 @@ async fn view(
 ) -> PackageView {
     let pm = &rt.packages;
     let installed = pm.installed(&package.id);
-    let versions: Vec<String> = installed.iter().map(|i| i.version.clone()).collect();
+    let formula = homebrew_formula(&package.id);
+    // Homebrew versions Lumina uses in place (not already in its own folder).
+    let brewed: Vec<Install> = if formula.is_some() {
+        service_installs(rt, &package.id)
+            .await
+            .into_iter()
+            .filter(|i| {
+                i.homebrew.is_some() && !installed.iter().any(|own| own.version == i.version)
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let mut versions: Vec<String> = installed.iter().map(|i| i.version.clone()).collect();
+    versions.extend(brewed.iter().map(|i| i.version.clone()));
     let selected = selected(cfg, &package.id).unwrap_or_default();
     let running = running_version(rt, &package.id).await;
     let active = if package.id == "phpmyadmin" {
@@ -241,8 +271,16 @@ async fn view(
                 in_use,
                 managed: i.meta.is_some(),
                 requires_php: i.meta.as_ref().and_then(|m| m.requires.php.clone()),
+                homebrew: None,
             }
         })
+        .chain(brewed.iter().map(|i| InstalledVersion {
+            version: i.version.clone(),
+            in_use: None,
+            managed: false,
+            requires_php: None,
+            homebrew: i.homebrew.clone(),
+        }))
         .collect();
 
     let (os, arch) = lumina_packages::catalog::platform();
@@ -282,6 +320,42 @@ async fn view(
         installed: installed_views,
         available,
         jobs,
+        homebrew: formula.map(|formula| HomebrewView {
+            found: !lumina_services::install::homebrew_prefixes().is_empty(),
+            install_command: format!("brew install {formula}"),
+        }),
+    }
+}
+
+/// The Homebrew formula of a server, on macOS and Linux.
+fn homebrew_formula(id: &str) -> Option<&'static str> {
+    if cfg!(windows) {
+        return None;
+    }
+    Some(match id {
+        "php" => "php",
+        "nginx" => "nginx",
+        "apache" => "httpd",
+        "mysql" => "mysql",
+        "mariadb" => "mariadb",
+        "redis" => "redis",
+        "postgresql" => "postgresql@18",
+        _ => return None,
+    })
+}
+
+/// Every version of a server that Lumina can run, from any source.
+async fn service_installs(rt: &Runtime, id: &str) -> Vec<Install> {
+    let stack = &rt.stack;
+    match id {
+        "php" => stack.php().versions().await,
+        "nginx" => stack.nginx().versions().await,
+        "apache" => stack.apache().versions().await,
+        "mysql" => stack.database(DatabaseEngine::Mysql).versions().await,
+        "mariadb" => stack.database(DatabaseEngine::Mariadb).versions().await,
+        "redis" => stack.redis().versions().await,
+        "postgresql" => stack.postgresql().versions().await,
+        _ => Vec::new(),
     }
 }
 

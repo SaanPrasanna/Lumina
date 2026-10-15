@@ -108,6 +108,7 @@ impl Apache {
     pub async fn versions(&self) -> Vec<Install> {
         install::discover(
             &self.root(),
+            "httpd",
             &["bin/httpd", "sbin/httpd"],
             &["-v"],
             parse_version,
@@ -122,7 +123,20 @@ impl Apache {
             path: sites.clone(),
             source,
         })?;
-        let modules_dir = install.dir.join("modules");
+        // Apache Lounge and source builds: modules/; Homebrew: lib/httpd/modules.
+        let modules_dir = ["modules", "lib/httpd/modules"]
+            .iter()
+            .map(|rel| install.dir.join(rel))
+            .find(|d| d.is_dir())
+            .unwrap_or_else(|| install.dir.join("modules"));
+        // Homebrew keeps the config files (mime.types) in <prefix>/etc/httpd.
+        let mime_types = std::iter::once(install.dir.join("conf/mime.types"))
+            .chain(
+                install::homebrew_prefix_of(&install.dir)
+                    .map(|prefix| prefix.join("etc/httpd/mime.types")),
+            )
+            .find(|p| p.is_file())
+            .unwrap_or_else(|| install.dir.join("conf/mime.types"));
         let modules: Vec<&str> = MODULES
             .iter()
             .copied()
@@ -142,6 +156,8 @@ impl Apache {
         c.insert("windows", &cfg!(windows));
         c.insert("server_root", &forward_slashes(&install.dir));
         c.insert("modules", &modules);
+        c.insert("modules_dir", &forward_slashes(&modules_dir));
+        c.insert("mime_types", &forward_slashes(&mime_types));
         c.insert("logs_dir", &forward_slashes(&self.inner.layout.logs()));
         c.insert("sites_dir", &forward_slashes(&sites));
         c.insert(
@@ -388,6 +404,7 @@ mod tests {
             version: "2.4.69".into(),
             dir: install_dir,
             exe: PathBuf::from("httpd"),
+            homebrew: None,
         };
         let templates = Templates::new(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/templates"),
@@ -410,7 +427,11 @@ mod tests {
         apache.prepare(&install, &ctx).expect("prepare");
 
         let conf = std::fs::read_to_string(apache.conf()).expect("httpd.conf");
-        assert!(conf.contains("LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so"));
+        assert!(
+            conf.contains("LoadModule proxy_fcgi_module \"")
+                && conf.contains("/apache/modules/mod_proxy_fcgi.so\""),
+            "{conf}"
+        );
         assert!(!conf.contains("rewrite_module"), "not shipped → not loaded");
         assert!(conf.contains("fcgi://127.0.0.1:10987/"));
         assert!(conf.contains("Listen 127.0.0.1:80"));
@@ -426,5 +447,51 @@ mod tests {
             )),
             "{site}"
         );
+    }
+
+    #[test]
+    fn uses_homebrew_modules_and_mime_types() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let layout = Layout::new(tmp.path().join("Lumina"));
+        // <prefix>/Cellar/httpd/<version> with its config in <prefix>/etc/httpd.
+        let prefix = tmp.path().join("homebrew");
+        let keg = prefix.join("Cellar/httpd/2.4.69");
+        let modules = keg.join("lib/httpd/modules");
+        std::fs::create_dir_all(&modules).expect("mkdir");
+        for m in ["mime", "proxy", "proxy_fcgi"] {
+            std::fs::write(modules.join(format!("mod_{m}.so")), b"").expect("w");
+        }
+        std::fs::create_dir_all(prefix.join("etc/httpd")).expect("mkdir");
+        std::fs::write(prefix.join("etc/httpd/mime.types"), b"").expect("w");
+        let install = Install {
+            version: "2.4.69".into(),
+            dir: keg,
+            exe: PathBuf::from("httpd"),
+            homebrew: Some("httpd".into()),
+        };
+        let apache = Apache::new(
+            Supervisor::new(lumina_process::ledger::Ledger::disabled()),
+            layout.clone(),
+            Templates::new(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/templates"),
+            ),
+        );
+        let ctx = WebContext {
+            http_port: 80,
+            php_port: 10987,
+            www_root: layout.www(),
+            sites: Vec::new(),
+            tls: None,
+            db_ui: None,
+        };
+
+        apache.prepare(&install, &ctx).expect("prepare");
+
+        let conf = std::fs::read_to_string(apache.conf()).expect("httpd.conf");
+        assert!(
+            conf.contains("/Cellar/httpd/2.4.69/lib/httpd/modules/mod_proxy_fcgi.so\""),
+            "{conf}"
+        );
+        assert!(conf.contains("/homebrew/etc/httpd/mime.types\""), "{conf}");
     }
 }

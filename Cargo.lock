@@ -2562,7 +2562,7 @@ checksum = "4050469837a6ff301cd14c1f8f24f88549e6d548f24f64e2148eb0f72cebc51f"
 
 [[package]]
 name = "lumina-config"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-core",
  "serde",
@@ -2574,7 +2574,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "directories",
  "serde",
@@ -2585,7 +2585,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-desktop"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "base64 0.22.1",
  "log",
@@ -2622,7 +2622,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-helper"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-platform",
  "lumina-ssl",
@@ -2634,7 +2634,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-packages"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "flate2",
  "lumina-core",
@@ -2656,7 +2656,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-platform"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-core",
  "nix 0.31.3",
@@ -2669,7 +2669,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-process"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-core",
  "lumina-platform",
@@ -2684,7 +2684,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-quickapp"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-core",
  "lumina-packages",
@@ -2704,7 +2704,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-services"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-config",
  "lumina-core",
@@ -2726,7 +2726,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-shim"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "tempfile",
  "windows-sys 0.61.2",
@@ -2734,7 +2734,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-ssl"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-core",
  "lumina-platform",
@@ -2751,7 +2751,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-tunnel"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "keyring",
  "lumina-core",
@@ -2770,7 +2770,7 @@ dependencies = [
 
 [[package]]
 name = "lumina-vhost"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "lumina-config",
  "lumina-core",

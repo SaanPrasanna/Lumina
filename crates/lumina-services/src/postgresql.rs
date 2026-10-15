@@ -97,6 +97,7 @@ impl Postgresql {
     pub async fn versions(&self) -> Vec<Install> {
         install::discover(
             &self.root(),
+            "postgresql",
             &["bin/postgres"],
             &["--version"],
             parse_version,

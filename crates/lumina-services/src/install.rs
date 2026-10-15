@@ -1,5 +1,6 @@
-//! Installed tool versions under `<data-root>/bin/<tool>/<version>/`, shared by
-//! PHP, nginx and Apache.
+//! Installed server versions, shared by every service: the ones Quick Add put
+//! under `<data-root>/bin/<tool>/<version>/`, plus on macOS and Linux the ones
+//! installed with Homebrew (`brew install php`), which Lumina uses in place.
 
 use std::path::{Path, PathBuf};
 use std::process::Output;
@@ -17,24 +18,34 @@ pub struct Install {
     pub dir: PathBuf,
     /// The main executable.
     pub exe: PathBuf,
+    /// The Homebrew formula it comes from (`php@8.3`); `None` for a version
+    /// under Lumina's data folder.
+    pub homebrew: Option<String>,
 }
 
-/// Every install under `root` that has one of `exe_candidates` (paths relative
-/// to the install folder, without `.exe`). The version comes from running the
-/// executable with `version_args` and `parse` on its stdout + stderr, or the
-/// folder name if that fails. Newest first.
+/// Every install under `root`, plus the Homebrew kegs of `homebrew` (a
+/// formula name, `""` for none), that has one of `exe_candidates` (paths
+/// relative to the install folder, without `.exe`). The version comes from
+/// running the executable with `version_args` and `parse` on its stdout +
+/// stderr, or the folder name if that fails. Newest first; for a version found
+/// in both places, Lumina's own install.
 pub async fn discover(
     root: &Path,
+    homebrew: &str,
     exe_candidates: &[&str],
     version_args: &[&str],
     parse: fn(&str) -> Option<String>,
 ) -> Vec<Install> {
-    let Ok(entries) = std::fs::read_dir(root) else {
-        return Vec::new();
-    };
+    let mut dirs: Vec<(PathBuf, Option<String>)> = std::fs::read_dir(root)
+        .map(|entries| entries.flatten().map(|e| (e.path(), None)).collect())
+        .unwrap_or_default();
+    dirs.extend(
+        homebrew_kegs(homebrew)
+            .into_iter()
+            .map(|(formula, dir)| (dir, Some(formula))),
+    );
     let mut installs = Vec::new();
-    for entry in entries.flatten() {
-        let dir = entry.path();
+    for (dir, homebrew) in dirs {
         let Some(exe) = exe_candidates
             .iter()
             .map(|rel| dir.join(format!("{rel}{}", std::env::consts::EXE_SUFFIX)))
@@ -57,11 +68,92 @@ pub async fn discover(
                 version
             }
         };
-        let version = reported.unwrap_or_else(|| entry.file_name().to_string_lossy().into_owned());
-        installs.push(Install { version, dir, exe });
+        let version = reported.unwrap_or_else(|| {
+            dir.file_name()
+                .map(|n| n.to_string_lossy().into_owned())
+                .unwrap_or_default()
+        });
+        installs.push(Install {
+            version,
+            dir,
+            exe,
+            homebrew,
+        });
     }
-    installs.sort_by_key(|i| std::cmp::Reverse(version_key(&i.version)));
+    installs.sort_by_key(|i| {
+        (
+            std::cmp::Reverse(version_key(&i.version)),
+            i.homebrew.is_some(),
+        )
+    });
+    installs.dedup_by(|later, kept| later.version == kept.version);
     installs
+}
+
+/// Homebrew's install prefixes on this computer (Apple silicon, Intel Macs
+/// and Linux), where `brew` exists. None on Windows.
+pub fn homebrew_prefixes() -> Vec<PathBuf> {
+    if cfg!(windows) {
+        return Vec::new();
+    }
+    let mut candidates: Vec<PathBuf> = std::env::var_os("HOMEBREW_PREFIX")
+        .map(PathBuf::from)
+        .into_iter()
+        .collect();
+    candidates.extend(
+        ["/opt/homebrew", "/usr/local", "/home/linuxbrew/.linuxbrew"]
+            .into_iter()
+            .map(PathBuf::from),
+    );
+    if let Some(home) = std::env::var_os("HOME") {
+        candidates.push(PathBuf::from(home).join(".linuxbrew"));
+    }
+    let mut prefixes = Vec::new();
+    for prefix in candidates {
+        if prefix.join("bin/brew").is_file() && !prefixes.contains(&prefix) {
+            prefixes.push(prefix);
+        }
+    }
+    prefixes
+}
+
+/// The installed kegs of `formula` and its versioned formulas (`php`,
+/// `php@8.3`) as (formula, folder), with the `opt/` links resolved.
+pub fn homebrew_kegs(formula: &str) -> Vec<(String, PathBuf)> {
+    kegs_in(&homebrew_prefixes(), formula)
+}
+
+fn kegs_in(prefixes: &[PathBuf], formula: &str) -> Vec<(String, PathBuf)> {
+    if formula.is_empty() {
+        return Vec::new();
+    }
+    let versioned = format!("{formula}@");
+    let mut kegs: Vec<(String, PathBuf)> = Vec::new();
+    for prefix in prefixes {
+        let Ok(entries) = std::fs::read_dir(prefix.join("opt")) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name != formula && !name.starts_with(&versioned) {
+                continue;
+            }
+            if let Ok(dir) = std::fs::canonicalize(entry.path())
+                && !kegs.iter().any(|(_, d)| *d == dir)
+            {
+                kegs.push((name, dir));
+            }
+        }
+    }
+    kegs
+}
+
+/// The Homebrew prefix an install folder belongs to (the parent of `Cellar`).
+pub fn homebrew_prefix_of(dir: &Path) -> Option<PathBuf> {
+    dir.ancestors()
+        .find(|a| a.file_name().is_some_and(|n| n == "Cellar"))
+        .and_then(Path::parent)
+        .map(Path::to_path_buf)
 }
 
 /// What identifies an executable's build: path, size and modification time.
@@ -162,6 +254,7 @@ mod tests {
             version: v.into(),
             dir: PathBuf::from(v),
             exe: PathBuf::from(v),
+            homebrew: None,
         }
     }
 
@@ -201,5 +294,34 @@ mod tests {
         assert_eq!(select(&installs, "8.2"), None);
         // "8.3" must not match "8.30.x".
         assert_eq!(select(&[install("8.30.1")], "8.3"), None);
+    }
+
+    #[test]
+    fn finds_a_formula_and_its_versioned_formulas() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let prefix = tmp.path().join("homebrew");
+        for name in ["php", "php@8.3", "php-cs-fixer", "phpmyadmin", "nginx"] {
+            std::fs::create_dir_all(prefix.join("opt").join(name)).expect("mkdir");
+        }
+        let mut found: Vec<String> = kegs_in(std::slice::from_ref(&prefix), "php")
+            .into_iter()
+            .map(|(formula, _)| formula)
+            .collect();
+        found.sort();
+        assert_eq!(found, ["php", "php@8.3"]);
+        assert!(kegs_in(&[prefix], "").is_empty());
+    }
+
+    #[test]
+    fn knows_the_prefix_of_a_keg() {
+        let keg = Path::new("/opt/homebrew/Cellar/httpd/2.4.69");
+        assert_eq!(
+            homebrew_prefix_of(keg),
+            Some(PathBuf::from("/opt/homebrew"))
+        );
+        assert_eq!(
+            homebrew_prefix_of(Path::new("/Lumina/bin/apache/2.4.69")),
+            None
+        );
     }
 }

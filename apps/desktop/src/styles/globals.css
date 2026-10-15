@@ -131,9 +131,16 @@ body,
   height: 100%;
 }
 
+/* The window itself never scrolls: each screen scrolls inside its own area
+   (the main content, the sidebar, the first-run page). Without this, macOS
+   lets the whole page scroll and bounce past the window's edges. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 html {
-  /* Avoid UI shake while resizing: no scrollbar toggling, no layout transitions. */
-  scrollbar-gutter: stable;
   background: var(--color-surface);
   color-scheme: light;
 }

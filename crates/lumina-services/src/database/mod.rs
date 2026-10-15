@@ -145,6 +145,8 @@ impl Database {
     pub async fn versions(&self) -> Vec<Install> {
         install::discover(
             &self.root(),
+            // The Homebrew formulas are named like the engines.
+            self.inner.engine.id,
             self.inner.engine.server,
             &["--version"],
             engine::parse_version,
@@ -444,6 +446,7 @@ mod tests {
             version: "8.4.11".into(),
             dir: tmp.path().join("mysql"),
             exe: tmp.path().join("mysqld"),
+            homebrew: None,
         };
         let sup = Supervisor::new(lumina_process::ledger::Ledger::disabled());
 

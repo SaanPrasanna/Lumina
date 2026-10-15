@@ -353,7 +353,17 @@
     },
     "cancelled": "Cancelled. Install again to resume the download.",
     "failed": "Not installed: {{error}}",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "homebrew": {
+      "badge": "Homebrew",
+      "intro": "Its project publishes no download for this system. Install it with Homebrew, the standard way on macOS and Linux, by running this in Terminal:",
+      "notFound": "Its project publishes no download for this system. Install Homebrew first (see brew.sh), then run this in Terminal:",
+      "copy": "Copy",
+      "copied": "Copied",
+      "after": "Lumina finds Homebrew versions on its own and runs them with its own settings. For another version, use the formula with the version, for example brew install php@8.3.",
+      "check": "Check again",
+      "removeHint": "Remove with {{command}}"
+    }
   },
   "profiles": {
     "intro": "Save whole stacks and switch between them in one click. Only the services that differ are restarted; if anything fails, the previous stack is restored.",

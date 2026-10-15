@@ -3,6 +3,7 @@ import { commands } from "@/lib/bindings";
 
 export type {
   AvailableVersion,
+  HomebrewView,
   InstalledVersion,
   Kind as PackageKind,
   PackageJob as Job,

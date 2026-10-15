@@ -1,4 +1,0 @@
-# Runner labels newer than the actionlint release used in CI.
-self-hosted-runner:
-  labels:
-    - macos-15-intel

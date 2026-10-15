@@ -143,6 +143,7 @@ mod tests {
             version: "8.4.26".into(),
             dir: PathBuf::from("php"),
             exe: PathBuf::from("php/php-cgi"),
+            homebrew: None,
         };
         let env = fcgi_env(&install, Path::new("ini"), 1, 500);
         let get = |k: &str| env.iter().find(|(key, _)| key == k).map(|(_, v)| v.clone());
@@ -171,6 +172,7 @@ mod tests {
             version: "8.4.26".into(),
             dir: php.clone(),
             exe: php.join("php-cgi"),
+            homebrew: None,
         };
 
         let ini = ensure_ini(&layout, &templates(), &install).expect("render");

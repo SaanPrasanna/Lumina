@@ -12,7 +12,7 @@ ServerName localhost:{{ http_port }}
 PidFile "{{ pid_file }}"
 
 {% for module in modules -%}
-LoadModule {{ module }}_module modules/mod_{{ module }}.so
+LoadModule {{ module }}_module "{{ modules_dir }}/mod_{{ module }}.so"
 {% endfor %}
 {%- if ssl %}
 # HTTPS for localhost and every site (certificates from Lumina's local CA).
@@ -33,7 +33,7 @@ LogLevel warn
 LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
 CustomLog "{{ logs_dir }}/apache_access.log" combined
 
-TypesConfig "${SRVROOT}/conf/mime.types"
+TypesConfig "{{ mime_types }}"
 AddDefaultCharset UTF-8
 AddType application/x-compress .Z
 AddType application/x-gzip .gz .tgz

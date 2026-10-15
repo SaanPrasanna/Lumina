@@ -22,6 +22,7 @@ pub fn ext_dir(install: &PhpInstall) -> PathBuf {
 pub async fn discover(php_root: &Path) -> Vec<PhpInstall> {
     install::discover(
         php_root,
+        "php",
         &["php-cgi", "bin/php-cgi"],
         &["-v"],
         parse_version,

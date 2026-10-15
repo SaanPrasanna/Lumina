@@ -362,7 +362,10 @@ mod tests {
         }
         let dest = tmp.path().join("bin/mysql/9.7.2");
         extract(&txz, &release(Archive::TarXz, 1, None), &dest).expect("tar.xz");
-        assert_eq!(std::fs::read(dest.join("bin/mysqld")).expect("mysqld"), b"mysqld");
+        assert_eq!(
+            std::fs::read(dest.join("bin/mysqld")).expect("mysqld"),
+            b"mysqld"
+        );
     }
 
     #[test]

@@ -97,7 +97,8 @@ impl Nginx {
     pub async fn versions(&self) -> Vec<Install> {
         install::discover(
             &self.root(),
-            &["nginx", "sbin/nginx"],
+            "nginx",
+            &["nginx", "sbin/nginx", "bin/nginx"],
             &["-v"],
             parse_version,
         )
