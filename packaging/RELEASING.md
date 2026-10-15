@@ -55,17 +55,35 @@ Releases are made by `.github/workflows/release.yml` on every push to
   beta channel.
 - The workflow can also be started by hand (Actions → Release → Run workflow).
 
-## What the installers do
+## What each release contains
 
-- Windows (NSIS, per user): installs the Visual C++ runtime (14.50+, needed by
-  the VS18 builds of Apache and PHP) only when it is missing or older; the
-  WebView2 bootstrapper is embedded. Uninstalling runs `lumina --quit` first
-  and asks whether to also delete the data folder (default: keep; never asked
-  during updates or silent uninstalls).
-- macOS: universal binary, hardened runtime, entitlements from
-  `packaging/macos/entitlements.plist`, DMG.
-- Linux: `.deb` (needs `libnss3-tools`), `.rpm` (`nss-tools`) and AppImage;
-  the deb/rpm install the polkit action for `lumina-helper`.
+| System | Files | Notes |
+|---|---|---|
+| Windows x64 | `.exe` (NSIS, per user), `.msi` (per machine) | |
+| Windows ARM64 | `.exe` (NSIS), `.msi` | Lumina runs natively; the servers from Quick Add are x64 builds, which Windows on ARM runs under emulation |
+| macOS | `.dmg`, `.app.tar.gz` (updates) | one universal build for Apple Silicon and Intel |
+| Linux x64 | `.deb`, `.rpm`, `.AppImage` | |
+| Linux ARM64 | `.deb`, `.rpm`, `.AppImage` | only when the repository variable `LINUX_ARM64` is `true` (needs arm64 runners: free for public repositories) |
+
+Not built: 32-bit Windows and 32-bit Linux. The catalog's servers (PHP,
+nginx, Apache, MySQL, MariaDB, Redis) exist only as 64-bit builds, so a
+32-bit Lumina could not run any of them; 32-bit Linux also has no WebKitGTK
+4.1 for Tauri. macOS has had no 32-bit apps since 10.15.
+
+Installers:
+- NSIS: installs the Visual C++ runtime (14.50+, needed by the VS18 builds
+  of Apache and PHP) only when it is missing or older; uninstalling runs
+  `lumina --quit` first and asks whether to also delete the data folder
+  (default: keep; never asked during updates or silent uninstalls).
+- MSI: runs the bundled runtime installer (it does nothing when the same or
+  a newer runtime is there) and `lumina --quit` before removing files; it
+  always keeps the data folder (`packaging/windows/wix/lumina-hooks.wxs`).
+- Both: WebView2 bootstrapper embedded; the C runtime is linked into Lumina
+  itself, so the ARM64 build needs no ARM64 runtime.
+- Updates use the same kind of installer the app was installed with.
+- macOS: hardened runtime, entitlements from `packaging/macos/entitlements.plist`.
+- Linux: deb needs `libnss3-tools`, rpm `nss-tools`; both install the polkit
+  action for `lumina-helper`.
 - `lumina-helper` and `lumina-shim` are bundled next to the app
   (`cargo xtask sidecars`, run by `beforeBuildCommand` in
   `tauri.release.conf.json`).
@@ -77,5 +95,5 @@ Releases are made by `.github/workflows/release.yml` on every push to
 cd apps/desktop
 $env:TAURI_SIGNING_PRIVATE_KEY = Get-Content -Raw $HOME\.tauri\lumina-updater.key
 $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = Get-Content -Raw $HOME\.tauri\lumina-updater.key.password
-pnpm tauri build --config src-tauri/tauri.release.conf.json --config src-tauri/tauri.release.windows.conf.json --bundles nsis
+pnpm tauri build --bundles nsis,msi --config src-tauri/tauri.release.conf.json --config src-tauri/tauri.release.windows.conf.json
 ```

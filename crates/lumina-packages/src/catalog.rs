@@ -100,7 +100,18 @@ pub struct Release {
 
 impl Release {
     /// Whether this release runs on `os`/`arch` (`any` matches everything).
+    /// Windows on ARM also runs x64 programs (emulation), so x86_64 builds
+    /// fit there too; [`Catalog::release`] prefers a native build.
     pub fn fits(&self, os: &str, arch: &str) -> bool {
+        self.fits_natively(os, arch)
+            || (os == "windows"
+                && arch == "aarch64"
+                && self.os == "windows"
+                && self.arch == "x86_64")
+    }
+
+    /// Built for exactly this `os`/`arch` (or for any).
+    pub fn fits_natively(&self, os: &str, arch: &str) -> bool {
         (self.os == "any" || self.os == os) && (self.arch == "any" || self.arch == arch)
     }
 
@@ -153,13 +164,19 @@ impl Catalog {
         self.packages.iter().find(|p| p.id == id)
     }
 
-    /// The release of `id` `version` for this machine.
+    /// The release of `id` `version` for this machine (a native build first).
     pub fn release(&self, id: &str, version: &str) -> Option<&Release> {
         let (os, arch) = platform();
-        self.package(id)?
-            .versions
-            .iter()
-            .find(|r| r.version == version && r.fits(os, arch))
+        self.release_for(id, version, os, arch)
+    }
+
+    pub fn release_for(&self, id: &str, version: &str, os: &str, arch: &str) -> Option<&Release> {
+        let versions = &self.package(id)?.versions;
+        let mut matching = versions.iter().filter(|r| r.version == version);
+        matching
+            .clone()
+            .find(|r| r.fits_natively(os, arch))
+            .or_else(|| matching.find(|r| r.fits(os, arch)))
     }
 }
 
@@ -207,6 +224,33 @@ mod tests {
         let composer = &catalog.package("composer").expect("composer").versions[0];
         assert_eq!(composer.archive, Archive::File);
         assert_eq!(composer.file_name.as_deref(), Some("composer.phar"));
+    }
+
+    #[test]
+    fn windows_on_arm_uses_x64_builds_and_prefers_native_ones() {
+        let catalog = bundled();
+        // Only x64 PHP exists: it runs on Windows on ARM under emulation.
+        let php = &catalog.package("php").expect("php").versions[0];
+        assert!(php.fits("windows", "aarch64"));
+        assert!(!php.fits_natively("windows", "aarch64"));
+        assert!(!php.fits("linux", "aarch64"));
+        assert!(
+            catalog
+                .release_for("php", &php.version, "windows", "aarch64")
+                .is_some()
+        );
+
+        // ngrok has no Windows ARM build either; Linux ARM gets its own.
+        let ngrok = catalog.package("ngrok").expect("ngrok");
+        let v = &ngrok.versions[0].version;
+        let linux_arm = catalog
+            .release_for("ngrok", v, "linux", "aarch64")
+            .expect("linux arm64");
+        assert_eq!(linux_arm.arch, "aarch64");
+        let win_arm = catalog
+            .release_for("ngrok", v, "windows", "aarch64")
+            .expect("x64 on arm");
+        assert_eq!(win_arm.arch, "x86_64");
     }
 
     #[test]

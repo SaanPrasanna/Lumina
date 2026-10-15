@@ -42,6 +42,7 @@ jobs:
     outputs:
       tag: ${{ steps.version.outputs.tag }}
       release_id: ${{ steps.release.outputs.id }}
+      matrix: ${{ steps.targets.outputs.matrix }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -59,6 +60,35 @@ jobs:
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
           echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
           echo "Release v$version (pre-release: $prerelease)"
+      - name: Choose the targets
+        id: targets
+        env:
+          # Repository variable: set LINUX_ARM64=true once arm64 runners are
+          # available to this repository (free for public repositories).
+          LINUX_ARM64: ${{ vars.LINUX_ARM64 }}
+        run: |
+          release="--config src-tauri/tauri.release.conf.json"
+          windows="$release --config src-tauri/tauri.release.windows.conf.json"
+          matrix=$(jq -nc \
+            --arg release "$release" --arg windows "$windows" --arg arm "$LINUX_ARM64" '
+            [
+              {name: "Windows x64",   runner: "windows-latest", rust_targets: "",
+               args: ("--bundles nsis,msi " + $windows)},
+              {name: "Windows ARM64", runner: "windows-latest", rust_targets: "aarch64-pc-windows-msvc",
+               args: ("--target aarch64-pc-windows-msvc --bundles nsis,msi " + $windows)},
+              {name: "macOS (Apple Silicon + Intel)", runner: "macos-latest",
+               rust_targets: "aarch64-apple-darwin,x86_64-apple-darwin",
+               args: ("--target universal-apple-darwin " + $release)},
+              {name: "Linux x64", runner: "ubuntu-22.04", rust_targets: "",
+               args: ("--bundles deb,rpm,appimage " + $release)}
+            ]
+            + (if $arm == "true" then
+                [{name: "Linux ARM64", runner: "ubuntu-22.04-arm", rust_targets: "",
+                  args: ("--bundles deb,rpm,appimage " + $release)}]
+              else [] end)
+            | {include: .}')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "$matrix" | jq .
       - name: Create or reset the release
         id: release
         env:
@@ -83,21 +113,18 @@ jobs:
           echo "id=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .id)" >> "$GITHUB_OUTPUT"
 
   build:
+    name: ${{ matrix.name }}
     needs: prepare
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - platform: windows-latest
-            # NSIS only: the MSI would not run the VC++ runtime and uninstall hooks.
-            args: "--bundles nsis --config src-tauri/tauri.release.conf.json --config src-tauri/tauri.release.windows.conf.json"
-          - platform: macos-latest
-            args: "--target universal-apple-darwin --config src-tauri/tauri.release.conf.json"
-          - platform: ubuntu-22.04
-            args: "--config src-tauri/tauri.release.conf.json"
-    runs-on: ${{ matrix.platform }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
     env:
       HAS_WINDOWS_SIGNING: ${{ secrets.AZURE_CLIENT_ID != '' && secrets.TRUSTED_SIGNING_ACCOUNT != '' }}
+      # Windows: the C runtime is linked in, so Lumina itself needs no VC++
+      # runtime (the ARM64 build would need an ARM64 one); the bundled x64
+      # runtime is for the x64 servers (PHP, Apache), also on Windows on ARM.
+      RUSTFLAGS: ${{ runner.os == 'Windows' && '-C target-feature=+crt-static' || '' }}
     steps:
       - uses: actions/checkout@v7
       - name: Linux deps
@@ -131,7 +158,7 @@ jobs:
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.rust_targets }}
       - run: pnpm install --frozen-lockfile
       - uses: tauri-apps/tauri-action@v1
         env:

@@ -55,6 +55,14 @@
           "English"
         ],
         "displayLanguageSelector": false
+      },
+      "wix": {
+        "fragmentPaths": [
+          "../../../packaging/windows/wix/lumina-hooks.wxs"
+        ],
+        "componentGroupRefs": [
+          "LuminaHooks"
+        ]
       }
     },
     "macOS": {

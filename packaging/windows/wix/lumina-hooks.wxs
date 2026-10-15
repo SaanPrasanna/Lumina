@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSI counterpart of packaging/windows/nsis/hooks.nsh, linked into Tauri's MSI
+  through bundle.windows.wix (fragmentPaths + componentGroupRefs).
+
+  Install: runs the bundled Visual C++ runtime installer (14.50+, needed by the
+  VS18 builds of Apache and PHP). Microsoft's installer does nothing when the
+  same or a newer runtime is present, so it is safe to run every time.
+  Uninstall: `lumina` with the quit flag stops the services and closes Lumina first, so no
+  file is in use. The data folder is always kept by the MSI.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <CustomAction Id="LuminaInstallVcRuntime"
+                  Directory="INSTALLDIR"
+                  ExeCommand="&quot;[INSTALLDIR]vcredist\vc_redist.x64.exe&quot; /install /quiet /norestart"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+    <CustomAction Id="LuminaQuit"
+                  Directory="INSTALLDIR"
+                  ExeCommand="&quot;[INSTALLDIR]lumina.exe&quot; --quit"
+                  Execute="immediate"
+                  Return="ignore" />
+    <InstallExecuteSequence>
+      <Custom Action="LuminaQuit" Before="InstallValidate">REMOVE="ALL"</Custom>
+      <Custom Action="LuminaInstallVcRuntime" After="InstallFiles">NOT REMOVE</Custom>
+    </InstallExecuteSequence>
+    <!-- Referenced from tauri.conf.json so this fragment is linked in. -->
+    <ComponentGroup Id="LuminaHooks" />
+  </Fragment>
+</Wix>
