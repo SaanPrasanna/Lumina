@@ -4,7 +4,6 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
-- **License:** Lumina is now licensed under the GNU General Public License v3.0 (copyright Sandun Prasanna). Copies and modified versions must keep the copyright notice and stay open source under the same license.
 
 ## [0.2.0] - 2026-10-15
 PostgreSQL joins the stack, the tray menu grows into a full control panel, and the app gets a new look.
@@ -15,6 +14,7 @@ PostgreSQL joins the stack, the tray menu grows into a full control panel, and t
 - **New look:** A graphite dark theme and a clean light theme with an amber accent, the Manrope and Roboto Mono fonts, Noto Sans Sinhala for Sinhala text, and short, quiet animations (switched off when your system asks for reduced motion). Focused fields show an amber border.
 - **Notepad++ by default:** New installs on Windows open projects and config files in Notepad++, found even when it is not on PATH. macOS and Linux keep VS Code. Choose any editor in Settings.
 - **Fixes:** The tray follows a language change at once, and its version lists follow installs, settings and new projects.
+- **License:** Lumina is now licensed under the GNU General Public License v3.0 (copyright Sandun Prasanna). Copies and modified versions must keep the copyright notice and stay open source under the same license.
 
 ## [0.1.0] - 2026-10-15
 The first release of Lumina: a local development environment for PHP for Windows, macOS and Linux.
