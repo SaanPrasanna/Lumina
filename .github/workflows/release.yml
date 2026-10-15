@@ -26,6 +26,11 @@ name: Release
 on:
   push:
     branches: [master]
+    # The website (site/, published by pages.yml) is not part of the app.
+    paths-ignore:
+      - "site/**"
+      - "scripts/build_site.py"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
