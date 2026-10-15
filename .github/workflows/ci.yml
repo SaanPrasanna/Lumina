@@ -103,6 +103,17 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
 
+  # A workflow file GitHub cannot parse fails silently until it is needed
+  # (release.yml only runs on master), so check them on every push.
+  workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: actionlint
+        uses: docker://rhysd/actionlint:1.7.7
+        with:
+          args: -color
+
   deny:
     runs-on: ubuntu-latest
     steps:

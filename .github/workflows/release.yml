@@ -70,20 +70,21 @@ jobs:
           release="--config src-tauri/tauri.release.conf.json"
           windows="$release --config src-tauri/tauri.release.windows.conf.json"
           matrix=$(jq -nc \
-            --arg release "$release" --arg windows "$windows" --arg arm "$LINUX_ARM64" '
+            --arg release "$release" --arg windows "$windows" --arg arm "$LINUX_ARM64" \
+            --arg crt "-C target-feature=+crt-static" '
             [
-              {name: "Windows x64",   runner: "windows-latest", rust_targets: "",
+              {name: "Windows x64",   runner: "windows-latest", rust_targets: "", rustflags: $crt,
                args: ("--bundles nsis,msi " + $windows)},
-              {name: "Windows ARM64", runner: "windows-latest", rust_targets: "aarch64-pc-windows-msvc",
+              {name: "Windows ARM64", runner: "windows-latest", rust_targets: "aarch64-pc-windows-msvc", rustflags: $crt,
                args: ("--target aarch64-pc-windows-msvc --bundles nsis,msi " + $windows)},
-              {name: "macOS (Apple Silicon + Intel)", runner: "macos-latest",
+              {name: "macOS (Apple Silicon + Intel)", runner: "macos-latest", rustflags: "",
                rust_targets: "aarch64-apple-darwin,x86_64-apple-darwin",
                args: ("--target universal-apple-darwin " + $release)},
-              {name: "Linux x64", runner: "ubuntu-22.04", rust_targets: "",
+              {name: "Linux x64", runner: "ubuntu-22.04", rust_targets: "", rustflags: "",
                args: ("--bundles deb,rpm,appimage " + $release)}
             ]
             + (if $arm == "true" then
-                [{name: "Linux ARM64", runner: "ubuntu-22.04-arm", rust_targets: "",
+                [{name: "Linux ARM64", runner: "ubuntu-22.04-arm", rust_targets: "", rustflags: "",
                   args: ("--bundles deb,rpm,appimage " + $release)}]
               else [] end)
             | {include: .}')
@@ -124,7 +125,7 @@ jobs:
       # Windows: the C runtime is linked in, so Lumina itself needs no VC++
       # runtime (the ARM64 build would need an ARM64 one); the bundled x64
       # runtime is for the x64 servers (PHP, Apache), also on Windows on ARM.
-      RUSTFLAGS: ${{ runner.os == 'Windows' && '-C target-feature=+crt-static' || '' }}
+      RUSTFLAGS: ${{ matrix.rustflags }}
     steps:
       - uses: actions/checkout@v7
       - name: Linux deps
