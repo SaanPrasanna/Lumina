@@ -43,6 +43,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
       release_id: ${{ steps.release.outputs.id }}
+      started: ${{ steps.release.outputs.started }}
       matrix: ${{ steps.targets.outputs.matrix }}
     env:
       GH_TOKEN: ${{ github.token }}
@@ -109,17 +110,20 @@ jobs:
               -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" > /dev/null
           fi
           echo "Tag $TAG -> $GITHUB_SHA"
+          # Files uploaded before this moment belong to an older build.
+          echo "started=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
           if gh release view "$TAG" > /dev/null 2>&1; then
-            echo "Release $TAG exists: replacing its files"
-            gh release view "$TAG" --json assets --jq '.assets[].name' | while IFS= read -r asset; do
-              [ -n "$asset" ] && gh release delete-asset "$TAG" "$asset" --yes
-            done
+            # Same version again: the old downloads stay until each new file
+            # replaces its namesake (tauri-action deletes it right before the
+            # upload); leftovers are removed once every build succeeded.
+            echo "Release $TAG exists: its files are replaced as the builds finish"
             gh release edit "$TAG" --draft=false --prerelease="$PRERELEASE" --title "Lumina $TAG"
           else
             echo "Creating release $TAG"
             flags=""
             [ "$PRERELEASE" = "true" ] && flags="--prerelease"
-            gh release create "$TAG" --title "Lumina $TAG" --generate-notes --verify-tag $flags
+            printf '%s\n' "The installers are being built; the downloads and release notes appear here in about 30 minutes." > building.md
+            gh release create "$TAG" --title "Lumina $TAG" --notes-file building.md --verify-tag $flags
           fi
           echo "id=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .id)" >> "$GITHUB_OUTPUT"
 
@@ -203,8 +207,20 @@ jobs:
       REPO: ${{ github.repository }}
       TAG: ${{ needs.prepare.outputs.tag }}
       VERSION: ${{ needs.prepare.outputs.version }}
+      STARTED: ${{ needs.prepare.outputs.started }}
     steps:
       - uses: actions/checkout@v7
+      - name: Remove files from older builds
+        # Only when every platform was rebuilt: a failed build keeps its
+        # previous downloads rather than leaving the system without one.
+        if: ${{ needs.build.result == 'success' }}
+        run: |
+          gh api "repos/$REPO/releases/${{ needs.prepare.outputs.release_id }}/assets" --paginate \
+            --jq ".[] | select(.updated_at < \"$STARTED\") | \"\(.id) \(.name)\"" \
+            | while read -r id name; do
+                echo "removing stale $name"
+                gh api -X DELETE "repos/$REPO/releases/assets/$id"
+              done
       - name: Write the release notes
         run: |
           gh release view "$TAG" --repo "$REPO" --json assets > assets.json
