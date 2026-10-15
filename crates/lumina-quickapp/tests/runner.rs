@@ -314,10 +314,26 @@ async fn cancel_kills_the_whole_tree() {
         .trim_start_matches('\u{feff}')
         .parse()
         .expect("pid number");
+    // A killed process can stay listed for a moment while Windows tears it
+    // down (seen on a busy CI runner). One that escaped the kill would still
+    // run its 60-second ping, so a few seconds of grace cannot hide that.
+    // Matching the name also ignores a reused PID.
+    let alive = |system: &mut sysinfo::System| {
+        system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+        system
+            .process(sysinfo::Pid::from_u32(pid))
+            .is_some_and(|p| {
+                let name = p.name().to_string_lossy().to_ascii_lowercase();
+                name.starts_with("ping") || name.starts_with("sleep")
+            })
+    };
     let mut system = sysinfo::System::new();
-    system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
-    assert!(
-        system.process(sysinfo::Pid::from_u32(pid)).is_none(),
-        "grandchild {pid} survived the cancel"
-    );
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while alive(&mut system) {
+        assert!(
+            Instant::now() < deadline,
+            "grandchild {pid} survived the cancel"
+        );
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
 }
