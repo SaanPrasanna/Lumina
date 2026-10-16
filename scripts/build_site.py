@@ -1,6 +1,7 @@
 """Generates the website pages from the texts below, so both languages keep
 the same layout: site/index.html (English), site/si/index.html (Sinhala) and
-site/404.html.
+site/404.html, plus the sitemaps (sitemap.xml lists page-sitemap.xml) and
+site/sitemap.xsl, which shows them as a readable page in a browser.
 
     python scripts/build_site.py
 
@@ -10,11 +11,17 @@ The styles are in site/assets/style.css, the download links in site/assets/site.
 import html
 import json
 import os
+import re
+import subprocess
+from datetime import datetime, timezone
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')) + os.sep
 BASE = 'https://lumina.hexdev.tech/'
 REPO = 'https://github.com/SaanPrasanna/Lumina'
 LATEST = REPO + '/releases/latest'
+AUTHOR = 'Sandun Prasanna'
+AUTHOR_URL = 'https://github.com/SaanPrasanna'
+PUBLISHED = '2026-10-15'  # the website's first release
 
 ICONS = {
     'stack': '<path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/>',
@@ -52,6 +59,9 @@ T = {
                         'Run nginx or Apache, MySQL, MariaDB, PostgreSQL and Redis, with automatic '
                         '.test sites and trusted HTTPS, on Windows, macOS and Linux.'),
         'og_title': 'Lumina – local PHP development, one click away',
+        'og_alt': 'Lumina – local PHP development, one click away. Free and open source for Windows, macOS and Linux, '
+                  'with PHP, nginx, MySQL, PostgreSQL and Redis.',
+        'app_kind': 'Local PHP development environment',
         'nav_features': 'Features', 'nav_download': 'Download', 'nav_faq': 'FAQ',
         'switch_label': 'සිංහල', 'switch_title': 'සිංහලෙන් කියවන්න',
         'skip': 'Skip to content',
@@ -119,6 +129,9 @@ T = {
                         'nginx හෝ Apache, MySQL, MariaDB, PostgreSQL සහ Redis ධාවනය කරන්න; ස්වයංක්‍රීය '
                         '.test අඩවි සහ විශ්වාසනීය HTTPS සමඟ, Windows, macOS සහ Linux මත.'),
         'og_title': 'Lumina – ඔබේ PHP පරිසරය, එක ක්ලික් එකකින්',
+        'og_alt': 'Lumina – ඔබේ PHP පරිසරය, එක ක්ලික් එකකින්. Windows, macOS සහ Linux සඳහා නොමිලේ සහ විවෘත මූලාශ්‍ර; '
+                  'PHP, nginx, MySQL, PostgreSQL සහ Redis සමඟ.',
+        'app_kind': 'දේශීය PHP සංවර්ධන පරිසරය',
         'nav_features': 'විශේෂාංග', 'nav_download': 'බාගන්න', 'nav_faq': 'ප්‍රශ්න',
         'switch_label': 'English', 'switch_title': 'Read in English',
         'skip': 'අන්තර්ගතයට යන්න',
@@ -187,28 +200,89 @@ def page(t):
     up = '../' if t['path'] else ''
     url = BASE + t['path']
     other_url = BASE + T[other]['path']
+    og_image = BASE + 'assets/' + t['og']
+    # One linked graph: the website and its author, this page (also the FAQ), its image,
+    # its breadcrumb and the app itself. Nodes refer to each other by @id.
     ld = {
         '@context': 'https://schema.org',
-        '@type': 'SoftwareApplication',
-        'name': 'Lumina',
-        'description': t['description'],
-        'url': url,
-        'inLanguage': t['lang'],
-        'applicationCategory': 'DeveloperApplication',
-        'operatingSystem': 'Windows 10, Windows 11, macOS 11+, Linux',
-        'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'USD'},
-        'license': 'https://www.gnu.org/licenses/gpl-3.0.html',
-        'downloadUrl': LATEST,
-        'codeRepository': REPO,
-        'image': BASE + 'assets/icon-512.png',
-        'author': {'@type': 'Person', 'name': 'Sandun Prasanna', 'url': 'https://github.com/SaanPrasanna'},
-    }
-    faq_ld = {
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        'mainEntity': [{'@type': 'Question', 'name': q,
-                        'acceptedAnswer': {'@type': 'Answer', 'text': a.replace('<code>', '').replace('</code>', '')}}
-                       for q, a in t['faq']],
+        '@graph': [
+            {
+                '@type': 'Person',
+                '@id': BASE + '#/schema/person',
+                'name': AUTHOR,
+                'url': AUTHOR_URL,
+                'sameAs': [AUTHOR_URL],
+            },
+            {
+                '@type': 'WebSite',
+                '@id': BASE + '#website',
+                'url': BASE,
+                'name': 'Lumina',
+                'description': T['en']['description'],
+                'inLanguage': [p['lang'] for p in T.values()],
+                'publisher': {'@id': BASE + '#/schema/person'},
+            },
+            {
+                '@type': ['WebPage', 'FAQPage'],
+                '@id': url + '#webpage',
+                'url': url,
+                'name': t['title'],
+                'description': t['description'],
+                'inLanguage': t['lang'],
+                'isPartOf': {'@id': BASE + '#website'},
+                'about': {'@id': BASE + '#software'},
+                'mainEntity': [{'@type': 'Question', 'name': q,
+                                'acceptedAnswer': {'@type': 'Answer', 'text': re.sub('<[^>]+>', '', a)}}
+                               for q, a in t['faq']],
+                'primaryImageOfPage': {'@id': url + '#primaryimage'},
+                'image': {'@id': url + '#primaryimage'},
+                'breadcrumb': {'@id': url + '#breadcrumb'},
+                'author': {'@id': BASE + '#/schema/person'},
+                'datePublished': PUBLISHED,
+                'potentialAction': [{'@type': 'ReadAction', 'target': [url]}],
+            },
+            {
+                '@type': 'ImageObject',
+                '@id': url + '#primaryimage',
+                'url': og_image,
+                'contentUrl': og_image,
+                'width': 1200,
+                'height': 630,
+                'caption': t['og_alt'],
+                'inLanguage': t['lang'],
+            },
+            {
+                '@type': 'BreadcrumbList',
+                '@id': url + '#breadcrumb',
+                'itemListElement': [{'@type': 'ListItem', 'position': 1, 'name': 'Lumina', 'item': url}],
+            },
+            {
+                '@type': 'SoftwareApplication',
+                '@id': BASE + '#software',
+                'name': 'Lumina',
+                'alternateName': t['app_kind'],
+                'description': t['description'],
+                'url': BASE,
+                'image': BASE + 'assets/icon-512.png',
+                'screenshot': {'@id': url + '#primaryimage'},
+                'applicationCategory': 'DeveloperApplication',
+                'applicationSubCategory': T['en']['app_kind'],
+                'operatingSystem': 'Windows 10, Windows 11, macOS 11+, Linux',
+                'processorRequirements': 'x64, ARM64 (Windows), Apple silicon',
+                'inLanguage': [p['lang'] for p in T.values()],
+                'featureList': [h for _, h, _ in t['features']],
+                'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'USD',
+                           'availability': 'https://schema.org/InStock', 'url': url + '#download'},
+                'isAccessibleForFree': True,
+                'license': 'https://www.gnu.org/licenses/gpl-3.0.html',
+                'downloadUrl': LATEST,
+                'installUrl': url + '#download',
+                'releaseNotes': REPO + '/blob/master/CHANGELOG.md',
+                'sameAs': [REPO],
+                'author': {'@id': BASE + '#/schema/person'},
+                'publisher': {'@id': BASE + '#/schema/person'},
+            },
+        ],
     }
     esc = html.escape
     features = '\n'.join(
@@ -255,6 +329,11 @@ def page(t):
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{esc(t['title'])}</title>
   <meta name="description" content="{esc(t['description'])}">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="author" content="{AUTHOR}">
+  <meta name="application-name" content="Lumina">
+  <meta name="apple-mobile-web-app-title" content="Lumina">
+  <meta name="format-detection" content="telephone=no">
   <link rel="canonical" href="{url}">
   <link rel="alternate" hreflang="en" href="{BASE}">
   <link rel="alternate" hreflang="si" href="{BASE}si/">
@@ -265,24 +344,29 @@ def page(t):
   <link rel="icon" href="{up}assets/icon.svg" type="image/svg+xml">
   <link rel="icon" href="{up}assets/icon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="{up}assets/icon-180.png">
+  <link rel="manifest" href="{up}site.webmanifest">
+  <link rel="author" href="{AUTHOR_URL}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Lumina">
   <meta property="og:title" content="{esc(t['og_title'])}">
   <meta property="og:description" content="{esc(t['description'])}">
   <meta property="og:url" content="{url}">
-  <meta property="og:image" content="{BASE}assets/{t['og']}">
+  <meta property="og:image" content="{og_image}">
+  <meta property="og:image:secure_url" content="{og_image}">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{esc(t['og_alt'])}">
   <meta property="og:locale" content="{'en_US' if t['lang'] == 'en' else 'si_LK'}">
   <meta property="og:locale:alternate" content="{'si_LK' if t['lang'] == 'en' else 'en_US'}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{esc(t['og_title'])}">
   <meta name="twitter:description" content="{esc(t['description'])}">
-  <meta name="twitter:image" content="{BASE}assets/{t['og']}">
+  <meta name="twitter:image" content="{og_image}">
+  <meta name="twitter:image:alt" content="{esc(t['og_alt'])}">
   <link rel="preload" href="{up}assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 {'  <link rel="preload" href="../assets/fonts/noto-sans-sinhala.woff2" as="font" type="font/woff2" crossorigin>' + chr(10) if t['lang'] == 'si' else ''}  <link rel="stylesheet" href="{up}assets/style.css">
-  <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
-  <script type="application/ld+json">{json.dumps(faq_ld, ensure_ascii=False)}</script>
+  <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False).replace('</', '<\\/')}</script>
   <script src="{up}assets/site.js" defer></script>
 </head>
 <body class="lang-{t['lang']}">
@@ -442,11 +526,225 @@ def not_found():
 '''
 
 
+def git_date(path):
+    """Last commit time of a file as a UTC datetime, or None."""
+    try:
+        out = subprocess.run(['git', 'log', '-1', '--format=%cI', '--', path], cwd=ROOT,
+                             capture_output=True, text=True, check=True).stdout.strip()
+        return datetime.fromisoformat(out).astimezone(timezone.utc) if out else None
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return None
+
+
+def iso(d):
+    return d.strftime('%Y-%m-%dT%H:%M:%S+00:00')
+
+
+def write(path, text):
+    """Writes the file and returns True when its contents changed."""
+    try:
+        changed = open(path, encoding='utf8').read() != text
+    except FileNotFoundError:
+        changed = True
+    if changed:
+        open(path, 'w', encoding='utf8', newline='\n').write(text)
+    print('wrote' if changed else 'unchanged', path)
+    return changed
+
+
+def old_lastmods():
+    """loc -> lastmod from the page sitemap already on disk."""
+    try:
+        xml = open(ROOT + 'page-sitemap.xml', encoding='utf8').read()
+    except FileNotFoundError:
+        return {}
+    return dict(re.findall(r'<loc>([^<]+)</loc>\s*<lastmod>([^<]+)</lastmod>', xml))
+
+
+def page_sitemap(lastmods):
+    """Every page with its last change, its language versions and its images."""
+    alternates = ''.join(
+        f'\n    <xhtml:link rel="alternate" hreflang="{lang}" href="{BASE + p["path"]}"/>'
+        for lang, p in T.items()) + f'\n    <xhtml:link rel="alternate" hreflang="x-default" href="{BASE}"/>'
+    urls = '\n'.join(f'''  <url>
+    <loc>{BASE + t['path']}</loc>
+    <lastmod>{lastmods[BASE + t['path']]}</lastmod>{alternates}
+    <image:image>
+      <image:loc>{BASE}assets/{t['og']}</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>{BASE}assets/icon-512.png</image:loc>
+    </image:image>
+  </url>''' for t in T.values())
+    return f'''<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+{urls}
+</urlset>
+'''
+
+
+def sitemap_index(lastmod):
+    return f'''<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>{BASE}page-sitemap.xml</loc>
+    <lastmod>{lastmod}</lastmod>
+  </sitemap>
+</sitemapindex>
+'''
+
+
+SITEMAP_XSL = '''<?xml version="1.0" encoding="UTF-8"?>
+<!-- Shows the sitemaps as a readable page in a browser. Search engines read the XML itself. -->
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xhtml="http://www.w3.org/1999/xhtml"
+    xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+    exclude-result-prefixes="s xhtml image">
+  <xsl:output method="html" encoding="UTF-8" indent="yes" doctype-system="about:legacy-compat"/>
+
+  <xsl:template name="date">
+    <xsl:param name="d"/>
+    <xsl:value-of select="concat(substring($d, 1, 10), ' ', substring($d, 12, 5), ' UTC')"/>
+  </xsl:template>
+
+  <xsl:template match="/">
+    <html lang="en">
+      <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="robots" content="noindex, follow"/>
+        <meta name="color-scheme" content="dark light"/>
+        <title>XML Sitemap · Lumina</title>
+        <link rel="icon" href="/assets/icon.svg" type="image/svg+xml"/>
+        <style>
+          @font-face { font-family: "Manrope"; src: url("/assets/fonts/manrope-latin.woff2") format("woff2"); font-weight: 200 800; font-display: swap; }
+          :root { --surface: #ffffff; --raised: #f7f7f5; --fg: #1d1d1f; --muted: #6a6a6f; --line: #e4e4e1;
+                  --accent-soft: #fdf3e3; --accent-ink: #a8530a; color-scheme: light; }
+          @media (prefers-color-scheme: dark) {
+            :root { --surface: #1b1e20; --raised: #202325; --fg: #eae7e2; --muted: #959a9f; --line: #2b2f33;
+                    --accent-soft: #33291a; --accent-ink: #d8a44c; color-scheme: dark; }
+          }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: var(--surface); color: var(--fg);
+                 font: 15px/1.6 "Manrope", system-ui, "Segoe UI", -apple-system, sans-serif; }
+          .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 16px 64px; }
+          .brand { display: inline-flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; font-weight: 700; font-size: 18px; }
+          h1 { margin: 28px 0 8px; font-size: clamp(26px, 4vw, 34px); line-height: 1.2; letter-spacing: -0.01em; }
+          .intro { margin: 0 0 6px; color: var(--muted); max-width: 70ch; }
+          a { color: var(--accent-ink); }
+          .count { display: inline-block; margin: 18px 0 14px; padding: 4px 12px; border-radius: 999px;
+                   background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; font-size: 13px; }
+          .table { border: 1px solid var(--line); border-radius: 11px; overflow-x: auto; background: var(--raised); }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { padding: 12px 16px; text-align: left; vertical-align: top; }
+          th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--line); white-space: nowrap; }
+          tr + tr td { border-top: 1px solid var(--line); }
+          td a { text-decoration: none; word-break: break-all; font-weight: 600; }
+          td a:hover { text-decoration: underline; }
+          .num, .date { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
+          .langs { display: flex; flex-wrap: wrap; gap: 6px; }
+          .langs a { padding: 1px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; word-break: normal; }
+          .foot { margin-top: 24px; color: var(--muted); font-size: 13px; }
+          @media (max-width: 640px) { .hide-sm { display: none; } th, td { padding: 10px 12px; } }
+        </style>
+      </head>
+      <body>
+        <main class="wrap">
+          <a class="brand" href="/"><img src="/assets/icon.svg" alt="" width="28" height="28"/><span>Lumina</span></a>
+          <h1>XML Sitemap</h1>
+          <p class="intro">This sitemap lists the pages of this website for search engines such as Google and Bing,
+            so they can find every page and see when it last changed.</p>
+          <xsl:choose>
+            <xsl:when test="s:sitemapindex">
+              <span class="count"><xsl:value-of select="count(s:sitemapindex/s:sitemap)"/> sitemap(s)</span>
+              <div class="table">
+                <table>
+                  <thead><tr><th>Sitemap</th><th>Last modified</th></tr></thead>
+                  <tbody>
+                    <xsl:for-each select="s:sitemapindex/s:sitemap">
+                      <tr>
+                        <td><a href="{s:loc}"><xsl:value-of select="s:loc"/></a></td>
+                        <td class="date"><xsl:call-template name="date"><xsl:with-param name="d" select="s:lastmod"/></xsl:call-template></td>
+                      </tr>
+                    </xsl:for-each>
+                  </tbody>
+                </table>
+              </div>
+            </xsl:when>
+            <xsl:otherwise>
+              <p class="intro"><a href="/sitemap.xml">← Sitemap index</a></p>
+              <span class="count"><xsl:value-of select="count(s:urlset/s:url)"/> URL(s)</span>
+              <div class="table">
+                <table>
+                  <thead><tr><th>URL</th><th class="hide-sm">Languages</th><th class="hide-sm">Images</th><th>Last modified</th></tr></thead>
+                  <tbody>
+                    <xsl:for-each select="s:urlset/s:url">
+                      <tr>
+                        <td><a href="{s:loc}"><xsl:value-of select="s:loc"/></a></td>
+                        <td class="hide-sm">
+                          <div class="langs">
+                            <xsl:for-each select="xhtml:link[@rel='alternate']">
+                              <a href="{@href}" title="{@href}"><xsl:value-of select="@hreflang"/></a>
+                            </xsl:for-each>
+                          </div>
+                        </td>
+                        <td class="num hide-sm"><xsl:value-of select="count(image:image)"/></td>
+                        <td class="date"><xsl:call-template name="date"><xsl:with-param name="d" select="s:lastmod"/></xsl:call-template></td>
+                      </tr>
+                    </xsl:for-each>
+                  </tbody>
+                </table>
+              </div>
+            </xsl:otherwise>
+          </xsl:choose>
+          <p class="foot">Learn more about sitemaps at <a href="https://www.sitemaps.org/">sitemaps.org</a>.</p>
+        </main>
+      </body>
+    </html>
+  </xsl:template>
+</xsl:stylesheet>
+'''
+
+
 os.makedirs(ROOT + 'si', exist_ok=True)
+now = iso(datetime.now(timezone.utc))
+first_run = not os.path.exists(ROOT + 'page-sitemap.xml')
+previous = old_lastmods()
+lastmods = {}
 for lang, t in T.items():
     out = ROOT + t['path'] + 'index.html'
-    open(out, 'w', encoding='utf8', newline='\n').write(page(t))
-    print('wrote', out)
+    loc = BASE + t['path']
+    changed = write(out, page(t))
+    if loc in previous and not changed:
+        lastmods[loc] = previous[loc]
+    else:
+        # A change is dated now; on the first run the page's last commit is used.
+        known = git_date(out) if first_run and not changed else None
+        lastmods[loc] = iso(known) if known else now
 
-open(ROOT + '404.html', 'w', encoding='utf8', newline='\n').write(not_found())
-print('wrote', ROOT + '404.html')
+write(ROOT + '404.html', not_found())
+write(ROOT + 'page-sitemap.xml', page_sitemap(lastmods))
+write(ROOT + 'sitemap.xml', sitemap_index(max(lastmods.values())))
+write(ROOT + 'sitemap.xsl', SITEMAP_XSL)
+write(ROOT + 'site.webmanifest', json.dumps({
+    'name': 'Lumina',
+    'short_name': 'Lumina',
+    'description': T['en']['description'],
+    'start_url': '/',
+    'scope': '/',
+    'display': 'browser',
+    'lang': 'en',
+    'background_color': '#1b1e20',
+    'theme_color': '#1b1e20',
+    'icons': [
+        {'src': '/assets/icon-180.png', 'sizes': '180x180', 'type': 'image/png'},
+        {'src': '/assets/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
+        {'src': '/assets/icon.svg', 'sizes': 'any', 'type': 'image/svg+xml'},
+    ],
+}, indent=2) + '\n')
