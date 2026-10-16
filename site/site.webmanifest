@@ -1,0 +1,28 @@
+{
+  "name": "Lumina",
+  "short_name": "Lumina",
+  "description": "Lumina is a free, open-source local development environment for PHP. Run nginx or Apache, MySQL, MariaDB, PostgreSQL and Redis, with automatic .test sites and trusted HTTPS, on Windows, macOS and Linux.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "lang": "en",
+  "background_color": "#1b1e20",
+  "theme_color": "#1b1e20",
+  "icons": [
+    {
+      "src": "/assets/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

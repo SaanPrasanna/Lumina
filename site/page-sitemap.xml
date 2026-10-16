@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://lumina.hexdev.tech/</loc>
+    <lastmod>2026-10-16T01:56:31+00:00</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
+    <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/icon-512.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/si/</loc>
+    <lastmod>2026-10-16T01:56:31+00:00</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
+    <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-si.png</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/icon-512.png</image:loc>
+    </image:image>
+  </url>
+</urlset>
