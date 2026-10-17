@@ -65,6 +65,8 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::services::db_versions,
             commands::services::redis_versions,
             commands::services::postgresql_versions,
+            commands::services::mailpit_versions,
+            commands::services::mailpit_open,
             commands::services::php_set_version,
             commands::services::service_open_log,
             commands::services::open_localhost,

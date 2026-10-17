@@ -239,6 +239,9 @@ async fn running(rt: &Runtime) -> Vec<ServiceKind> {
     if s.redis.runtime.is_some() {
         out.push(ServiceKind::Redis);
     }
+    if s.mailpit.runtime.is_some() {
+        out.push(ServiceKind::Mailpit);
+    }
     out
 }
 

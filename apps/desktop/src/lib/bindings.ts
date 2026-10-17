@@ -32,6 +32,9 @@ export const commands = {
 	dbVersions: (engine: DatabaseEngine) => __TAURI_INVOKE<Install[]>("db_versions", { engine }),
 	redisVersions: () => __TAURI_INVOKE<Install[]>("redis_versions"),
 	postgresqlVersions: () => __TAURI_INVOKE<Install[]>("postgresql_versions"),
+	mailpitVersions: () => __TAURI_INVOKE<Install[]>("mailpit_versions"),
+	/**  Opens Mailpit's inbox in the default browser. */
+	mailpitOpen: () => __TAURI_INVOKE<null>("mailpit_open"),
 	/**
 	 *  Saves `version` ("" = newest) as the PHP version and, if PHP is running,
 	 *  switches to it: the old pool is stopped and verified gone before the new
@@ -185,6 +188,7 @@ export type AppConfig_Deserialize = {
 	database?: Database,
 	redis?: Redis,
 	postgresql?: Postgresql,
+	mailpit?: Mailpit,
 	editor?: Editor,
 	tunnel?: Tunnel,
 	updates?: Updates,
@@ -203,6 +207,7 @@ export type AppConfig_Serialize = {
 	database: Database,
 	redis: Redis,
 	postgresql: Postgresql,
+	mailpit: Mailpit,
 	editor: Editor,
 	tunnel: Tunnel,
 	updates: Updates,
@@ -483,7 +488,7 @@ export type InstalledVersion = {
 export type JobState = "running" | "succeeded" | "failed" | "cancelled";
 
 export type Kind = 
-/**  Run by Lumina (PHP, web servers, databases, Redis). */
+/**  Run by Lumina (PHP, web servers, databases, Redis, Mailpit). */
 "service" | 
 /**  Runtimes for the terminal (Node.js, Python). */
 "runtime" | 
@@ -500,6 +505,37 @@ export type LogSource = {
 	size: number,
 	/**  Unix seconds of the last change. */
 	modified: number,
+};
+
+/**  Mailpit, which catches the mail PHP and your apps send (`[mailpit]`). */
+export type Mailpit = {
+	/**  Start Mailpit with "Start All". */
+	enabled?: boolean,
+	/**  Empty = newest installed. */
+	version?: string,
+	/**  Where apps send mail (SMTP). */
+	smtp_port?: number,
+	/**  The inbox in the browser. */
+	ui_port?: number,
+	/**
+	 *  Send PHP's `mail()` to Mailpit instead of the `SMTP` / `sendmail_path`
+	 *  in php.ini.
+	 */
+	php_mail?: boolean,
+};
+
+export type MailpitRuntime = {
+	version: string,
+	smtpPort: number,
+	uiPort: number,
+};
+
+export type MailpitStatus = {
+	status: ServiceStatus,
+	runtime: MailpitRuntime | null,
+	pid: number | null,
+	error: string | null,
+	logFile: string,
 };
 
 /**  What a recipe needs before it can run. */
@@ -858,7 +894,7 @@ export type Scan = {
 export type SectionValue = unknown;
 
 /**  Every service Lumina can manage. */
-export type ServiceKind = "php-fcgi" | "nginx" | "apache" | "mysql" | "mariadb" | "redis" | "postgresql";
+export type ServiceKind = "php-fcgi" | "nginx" | "apache" | "mysql" | "mariadb" | "redis" | "postgresql" | "mailpit";
 
 /**  Lifecycle state reported to the UI. */
 export type ServiceStatus = "stopped" | "starting" | "running" | "stopping" | "failed";
@@ -998,6 +1034,7 @@ export type StackStatus = {
 	database: DbStatus,
 	redis: RedisStatus,
 	postgresql: PgStatus,
+	mailpit: MailpitStatus,
 };
 
 export type Stage = "downloading" | "verifying" | "extracting";

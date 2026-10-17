@@ -96,6 +96,18 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
         5432,
         &mut warnings,
     );
+    reset_zero_port(
+        &mut cfg.mailpit.smtp_port,
+        "mailpit.smtp_port",
+        1025,
+        &mut warnings,
+    );
+    reset_zero_port(
+        &mut cfg.mailpit.ui_port,
+        "mailpit.ui_port",
+        8025,
+        &mut warnings,
+    );
 
     if cfg.php.fcgi_fallback_port == cfg.php.fcgi_port {
         warnings.push(
@@ -124,6 +136,10 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
     }
     if cfg.postgresql.enabled {
         ports.push(("postgresql.port", cfg.postgresql.port));
+    }
+    if cfg.mailpit.enabled {
+        ports.push(("mailpit.smtp_port", cfg.mailpit.smtp_port));
+        ports.push(("mailpit.ui_port", cfg.mailpit.ui_port));
     }
     for (i, (field_a, port_a)) in ports.iter().enumerate() {
         for (field_b, port_b) in &ports[i + 1..] {

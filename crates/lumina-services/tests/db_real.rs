@@ -6,6 +6,7 @@
 //! $env:LUMINA_TEST_MARIADB_DIR  = "C:\Lumina\bin\mariadb\12.3.3"
 //! $env:LUMINA_TEST_REDIS_DIR    = "C:\Lumina\bin\redis\8.10.2"
 //! $env:LUMINA_TEST_POSTGRES_DIR = "C:\Lumina\bin\postgresql\18.6"
+//! $env:LUMINA_TEST_MAILPIT_DIR  = "C:\Lumina\bin\mailpit\1.31.6"
 //! cargo test -p lumina-services --test db_real -- --nocapture --test-threads=1
 //! ```
 //!
@@ -245,6 +246,94 @@ async fn starting_one_engine_stops_the_other() {
     assert!(env.layout.data().read_dir().expect("data").count() >= 2);
     env.stack.stop_all().await;
     assert!(processes_under(&env.layout.bin()).is_empty());
+}
+
+#[tokio::test]
+async fn mailpit_catches_smtp_and_php_mail() {
+    let Some(mut env) = setup(&[("LUMINA_TEST_MAILPIT_DIR", "mailpit")]) else {
+        return;
+    };
+    env.cfg.mailpit.smtp_port = free_port();
+    env.cfg.mailpit.ui_port = free_port();
+    env.stack
+        .start(ServiceKind::Mailpit, &env.cfg)
+        .await
+        .expect("start");
+    let smtp = env.cfg.mailpit.smtp_port;
+
+    // A plain SMTP client with a login, as Laravel or WordPress SMTP plugins send.
+    {
+        use std::io::{BufRead, BufReader, Write};
+        let stream = std::net::TcpStream::connect(("127.0.0.1", smtp)).expect("connect");
+        let mut reader = BufReader::new(stream.try_clone().expect("clone"));
+        let mut writer = stream;
+        let mut expect = |code: &str| loop {
+            let mut line = String::new();
+            reader.read_line(&mut line).expect("read");
+            assert!(line.starts_with(code), "expected {code}, got {line:?}");
+            if line.as_bytes().get(3) != Some(&b'-') {
+                break;
+            }
+        };
+        expect("220");
+        for (command, code) in [
+            ("EHLO lumina.test", "250"),
+            ("AUTH PLAIN AHVzZXIAc2VjcmV0", "235"), // user / secret: any login works
+            ("MAIL FROM:<app@lumina.test>", "250"),
+            ("RCPT TO:<someone@example.com>", "250"),
+            ("DATA", "354"),
+            ("Subject: From SMTP\r\n\r\nHello.\r\n.", "250"),
+            ("QUIT", "221"),
+        ] {
+            write!(writer, "{command}\r\n").expect("write");
+            expect(code);
+        }
+    }
+
+    // PHP's mail(), with the settings Lumina gives php-cgi and the `php` command.
+    if let Some(php_dir) =
+        std::env::var_os("LUMINA_TEST_PHP_DIRS").and_then(|v| std::env::split_paths(&v).next())
+    {
+        let php = php_dir.join(format!("php{}", std::env::consts::EXE_SUFFIX));
+        let ini = lumina_services::php_fcgi::ini_args(&env.stack.php_mail_ini(&env.cfg).await);
+        let out = Command::new(php)
+            .arg("-n")
+            .args(&ini)
+            .args([
+                "-r",
+                "var_export(mail('someone@example.com', 'From PHP', 'Hello.', 'From: app@lumina.test'));",
+            ])
+            .output()
+            .expect("run php");
+        assert_eq!(
+            String::from_utf8_lossy(&out.stdout),
+            "true",
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    let api = format!(
+        "http://127.0.0.1:{}/api/v1/messages",
+        env.cfg.mailpit.ui_port
+    );
+    let inbox = reqwest::get(api)
+        .await
+        .expect("api")
+        .text()
+        .await
+        .expect("body");
+    assert!(inbox.contains("From SMTP"), "{inbox}");
+    if std::env::var_os("LUMINA_TEST_PHP_DIRS").is_some() {
+        assert!(inbox.contains("From PHP"), "{inbox}");
+    }
+
+    env.stack.stop(ServiceKind::Mailpit).await.expect("stop");
+    assert!(
+        processes_under(&env.layout.bin().join("mailpit")).is_empty(),
+        "leftovers"
+    );
+    assert!(env.layout.data().join("mailpit/mailpit.db").is_file());
 }
 
 #[tokio::test]

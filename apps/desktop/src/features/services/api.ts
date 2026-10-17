@@ -7,6 +7,7 @@ export type {
   DbRuntime,
   DbStatus,
   Install,
+  MailpitStatus,
   PhpRuntime,
   PgStatus,
   PhpStatus,
@@ -27,6 +28,7 @@ export const dbKind = (engine: DatabaseEngine): ServiceKind => engine;
 export const dbVersionsKey = (engine: DatabaseEngine) => ["db", "versions", engine] as const;
 export const REDIS_VERSIONS_KEY = ["redis", "versions"] as const;
 export const POSTGRESQL_VERSIONS_KEY = ["postgresql", "versions"] as const;
+export const MAILPIT_VERSIONS_KEY = ["mailpit", "versions"] as const;
 
 export const servicesStatus = () => commands.servicesStatus();
 export const serviceStart = (kind: ServiceKind) => commands.serviceStart(kind);
@@ -41,6 +43,8 @@ export const webVersions = (server: WebServer) => commands.webVersions(server);
 export const dbVersions = (engine: DatabaseEngine) => commands.dbVersions(engine);
 export const redisVersions = () => commands.redisVersions();
 export const postgresqlVersions = () => commands.postgresqlVersions();
+export const mailpitVersions = () => commands.mailpitVersions();
+export const mailpitOpen = () => commands.mailpitOpen();
 export const phpSetVersion = (version: string) => commands.phpSetVersion(version);
 export const openLocalhost = () => commands.openLocalhost();
 export const openWww = () => commands.openWww();

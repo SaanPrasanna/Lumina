@@ -11,6 +11,7 @@ import { Button } from "@/components/ui";
 import { logsOpenFolder } from "@/features/logs/api";
 import {
   type DatabaseSettings,
+  type MailpitSettings,
   type PostgresqlSettings,
   type RedisSettings,
   SETTINGS_KEY,
@@ -160,6 +161,36 @@ export function DatabaseForm({
         {t("settings.database.postgresqlEnabled")}
       </label>
       <p className="text-xs text-muted">{t("settings.database.restart")}</p>
+      <ErrorBox error={save.error} />
+    </FormCard>
+  );
+}
+
+/** Mailpit's ports, Start All and whether PHP's mail() goes to it. */
+export function MailForm({ initial }: { initial: MailpitSettings }) {
+  const { t } = useTranslation();
+  const [mail, setMail] = useState(initial);
+  const save = useSaveSections();
+  const port = "w-full rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
+  return (
+    <FormCard id="mail" title={t("settings.mail.title")} onSubmit={() => save.mutate([["mailpit", mail]])} saving={save.isPending} saved={save.isSuccess}>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        <Field label={t("settings.mail.smtpPort")} hint={t("settings.mail.smtpPortHint")}>
+          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={mail.smtp_port} onChange={(e) => setMail({ ...mail, smtp_port: Number(e.target.value) })} />
+        </Field>
+        <Field label={t("settings.mail.uiPort")}>
+          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={mail.ui_port} onChange={(e) => setMail({ ...mail, ui_port: Number(e.target.value) })} />
+        </Field>
+      </div>
+      <label className="flex items-center gap-2.5 text-sm">
+        <input type="checkbox" className="size-4 accent-accent" checked={mail.enabled} onChange={(e) => setMail({ ...mail, enabled: e.target.checked })} />
+        {t("mailpit.enabled")}
+      </label>
+      <label className="flex items-center gap-2.5 text-sm">
+        <input type="checkbox" className="size-4 accent-accent" checked={mail.php_mail} onChange={(e) => setMail({ ...mail, php_mail: e.target.checked })} />
+        {t("mailpit.phpMail")}
+      </label>
+      <p className="text-xs text-muted">{t("settings.mail.restart")}</p>
       <ErrorBox error={save.error} />
     </FormCard>
   );

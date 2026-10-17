@@ -21,6 +21,7 @@ import {
   AdvancedForm,
   AppearanceCard,
   DatabaseForm,
+  MailForm,
   ElsewhereCard,
   FormCard,
   ProjectsFolderField,
@@ -33,6 +34,7 @@ const SECTIONS: [string, string][] = [
   ["web", "settings.web.title"],
   ["php", "php.title"],
   ["database", "settings.database.title"],
+  ["mail", "settings.mail.title"],
   ["editor", "settings.editor.title"],
   ["appearance", "settings.appearance.title"],
   ["elsewhere", "settings.elsewhere.title"],
@@ -76,6 +78,7 @@ export function SettingsPage() {
               redis={settings.data.config.redis}
               postgresql={settings.data.config.postgresql}
             />
+            <MailForm key={JSON.stringify(settings.data.config.mailpit)} initial={settings.data.config.mailpit} />
             <EditorForm
               key={JSON.stringify(settings.data.config.editor)}
               initial={settings.data.config.editor}

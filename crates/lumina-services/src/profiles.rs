@@ -148,7 +148,7 @@ pub fn plan(running: &Running, old: &AppConfig, new: &AppConfig) -> Plan {
     let order = |k: &ServiceKind| match k {
         ServiceKind::Nginx | ServiceKind::Apache => 0,
         ServiceKind::PhpFcgi => 1,
-        ServiceKind::Redis => 2,
+        ServiceKind::Redis | ServiceKind::Mailpit => 2,
         ServiceKind::Postgresql | ServiceKind::Mysql | ServiceKind::Mariadb => 3,
     };
     stop.sort_by_key(order);

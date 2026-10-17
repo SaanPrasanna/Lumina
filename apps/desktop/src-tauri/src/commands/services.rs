@@ -109,6 +109,28 @@ pub async fn postgresql_versions(state: State<'_, AppState>) -> CommandResult<Ve
     Ok(state.runtime()?.stack.postgresql().versions().await)
 }
 
+#[tauri::command]
+#[specta::specta]
+pub async fn mailpit_versions(state: State<'_, AppState>) -> CommandResult<Vec<Install>> {
+    Ok(state.runtime()?.stack.mailpit().versions().await)
+}
+
+/// Opens Mailpit's inbox in the default browser.
+#[tauri::command]
+#[specta::specta]
+pub fn mailpit_open(app: AppHandle) -> CommandResult<()> {
+    mailpit_open_for(&app)
+}
+
+/// Shared with the tray menu.
+pub fn mailpit_open_for(app: &AppHandle) -> CommandResult<()> {
+    let port = app.state::<AppState>().runtime()?.config().mailpit.ui_port;
+    app.opener()
+        .open_url(format!("http://127.0.0.1:{port}/"), None::<&str>)
+        .map_err(|e| Error::Other(e.to_string()))?;
+    Ok(())
+}
+
 /// Saves `version` ("" = newest) as the PHP version and, if PHP is running,
 /// switches to it: the old pool is stopped and verified gone before the new
 /// one starts, and a running web server is pointed at the new pool.
@@ -157,6 +179,7 @@ pub fn open_log_for(
         ServiceKind::Mariadb => rt.stack.database(DatabaseEngine::Mariadb).log_file(),
         ServiceKind::Redis => rt.stack.redis().log_file(),
         ServiceKind::Postgresql => rt.stack.postgresql().log_file(),
+        ServiceKind::Mailpit => rt.stack.mailpit().log_file(),
     };
     if !log.exists() {
         return Err(Error::Other(format!("{} does not exist yet", log.display())).into());

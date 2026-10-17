@@ -13,6 +13,7 @@ pub enum ServiceKind {
     Mariadb,
     Redis,
     Postgresql,
+    Mailpit,
 }
 
 /// Lifecycle state reported to the UI.

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { dbConflictRequest } from "@/features/services/DatabaseCard";
+import { mailpitConflictRequest } from "@/features/services/MailpitCard";
 import type { PortConflictRequest } from "@/features/services/PortConflictDialog";
 import { postgresConflictRequest } from "@/features/services/PostgresCard";
 import { redisConflictRequest } from "@/features/services/RedisCard";
@@ -29,6 +30,10 @@ export function useStartAll(config: AppConfig | undefined) {
         else if (db) setConflict(dbConflictRequest(db, config.database));
         else if (pg) setConflict(postgresConflictRequest(pg, config.postgresql));
         else if (redis) setConflict(redisConflictRequest(redis, config.redis));
+        else {
+          const mail = mailpitConflictRequest(err, config.mailpit);
+          if (mail) setConflict(mail);
+        }
       },
     });
 

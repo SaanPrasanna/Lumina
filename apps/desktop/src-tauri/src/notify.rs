@@ -48,6 +48,7 @@ pub fn service_name(id: &str) -> Option<&'static str> {
         "mariadb" => "MariaDB",
         "redis" => "Redis",
         "postgresql" => "PostgreSQL",
+        "mailpit" => "Mailpit",
         // The tunnel agent's exits are shown on the Sharing page.
         _ => return None,
     })

@@ -144,6 +144,13 @@
       "postgresqlEnabled": "Start All සමඟ PostgreSQL ආරම්භ කරන්න",
       "restart": "ධාවනය වන සේවාදායකයක් නව port එක භාවිත කරන්නේ නැවත ආරම්භ කළ පසුවය."
     },
+    "mail": {
+      "title": "තැපෑල",
+      "smtpPort": "Mailpit SMTP පෝට්",
+      "smtpPortHint": "ඔබේ යෙදුම් මෙතැනට යොමු කරන්න, උදා. Laravel හි MAIL_HOST=127.0.0.1 සහ MAIL_PORT.",
+      "uiPort": "Mailpit එන ලිපි පෝට්",
+      "restart": "ධාවනය වන Mailpit නැවත ආරම්භ කළ පසු නව පෝට් භාවිත කරයි; PHP තනිවම නැවත ආරම්භ වේ."
+    },
     "appearance": {
       "title": "භාෂාව සහ පෙනුම",
       "hint": "Tray මෙනුව සහ දැනුම්දීම් ද භාෂාව අනුගමනය කරයි."
@@ -250,6 +257,18 @@
     "newest": "නවතම ස්ථාපිත ({{version}})",
     "port": "පෝට්",
     "notInstalled": "Redis තවම ස්ථාපනය කර නැත. එය {{path}} තුළට දමන්න."
+  },
+  "mailpit": {
+    "title": "Mailpit",
+    "enabled": "සියල්ල ආරම්භ කරන විට Mailpit ද ආරම්භ කරන්න",
+    "phpMail": "PHP හි mail() Mailpit වෙත යවන්න",
+    "version": "සංස්කරණය",
+    "newest": "නවතම ස්ථාපිත ({{version}})",
+    "smtpPort": "SMTP පෝට්",
+    "uiPort": "එන ලිපි පෝට්",
+    "openInbox": "එන ලිපි විවෘත කරන්න",
+    "notInstalled": "Mailpit තවම ස්ථාපනය කර නැත. එය ඉක්මන් එකතුව වෙතින් ස්ථාපනය කරන්න.",
+    "connectHint": "යෙදුම් ඕනෑම පරිශීලක නාමයක් සහ මුරපදයක් සමඟ (හෝ නැතිව) 127.0.0.1:{{port}} වෙත ලිපි යවයි; කිසිවක් ඔබේ පරිගණකයෙන් පිටතට නොයයි."
   },
   "sites": {
     "syncNow": "දැන් සමමුහුර්ත කරන්න",

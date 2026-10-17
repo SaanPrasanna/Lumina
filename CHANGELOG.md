@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [S
 
 ## [Unreleased]
 
+- **Mailpit:** Install Mailpit from Quick Add and every mail your sites send lands in a local inbox instead of a real mailbox. Apps send to `127.0.0.1:1025` with any login; the inbox opens from its card on the Services page or from the tray. PHP's `mail()` goes there too (switch it off in Settings › Mail), and new Laravel projects from QuickApp are set up to use it. Start it with Start All like Redis.
 
 - **Sleep and resume:** When the computer wakes up, Lumina checks that every running service still answers and restarts any that does not, renews certificates that came due while it slept, and refreshes the Sharing page.
 

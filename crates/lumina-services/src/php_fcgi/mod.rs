@@ -134,15 +134,21 @@ impl PhpFcgi {
         versions::select(&installs, &cfg.version).map(|i| i.version.clone())
     }
 
-    /// Starts the pool with `cfg`. Fails if it is already running.
-    pub async fn start(&self, cfg: &PhpConfig) -> Result<PhpRuntime> {
+    /// Starts the pool with `cfg`, plus `ini` settings that override php.ini
+    /// (passed as `-d name="value"`). Fails if it is already running.
+    pub async fn start(&self, cfg: &PhpConfig, ini: &[(String, String)]) -> Result<PhpRuntime> {
         let mut state = self.inner.state.lock().await;
-        let result = self.start_locked(&mut state, cfg).await;
+        let result = self.start_locked(&mut state, cfg, ini).await;
         state.last_error = result.as_ref().err().map(ToString::to_string);
         result
     }
 
-    async fn start_locked(&self, state: &mut State, cfg: &PhpConfig) -> Result<PhpRuntime> {
+    async fn start_locked(
+        &self,
+        state: &mut State,
+        cfg: &PhpConfig,
+        ini_overrides: &[(String, String)],
+    ) -> Result<PhpRuntime> {
         if let Some(info) = self.inner.supervisor.info(PROCESS_ID).await
             && info.state != ProcessState::Failed
         {
@@ -170,7 +176,11 @@ impl PhpFcgi {
         let spec = ProcessSpec {
             id: PROCESS_ID.into(),
             program: install.exe.clone(),
-            args: vec!["-b".into(), format!("127.0.0.1:{}", choice.port).into()],
+            args: ini_args(ini_overrides)
+                .into_iter()
+                .map(Into::into)
+                .chain(["-b".into(), format!("127.0.0.1:{}", choice.port).into()])
+                .collect(),
             env: env::fcgi_env(install, &ini_dir, children, cfg.fcgi_max_requests),
             cwd: Some(install.dir.clone()),
             log_file: self.log_file(),
@@ -233,10 +243,10 @@ impl PhpFcgi {
     }
 
     /// Stop, verify, start: used for restarts and PHP version switches.
-    pub async fn restart(&self, cfg: &PhpConfig) -> Result<PhpRuntime> {
+    pub async fn restart(&self, cfg: &PhpConfig, ini: &[(String, String)]) -> Result<PhpRuntime> {
         let mut state = self.inner.state.lock().await;
         self.stop_locked(&mut state).await?;
-        let result = self.start_locked(&mut state, cfg).await;
+        let result = self.start_locked(&mut state, cfg, ini).await;
         state.last_error = result.as_ref().err().map(ToString::to_string);
         result
     }
@@ -262,6 +272,13 @@ impl PhpFcgi {
         let members = self.inner.supervisor.members(PROCESS_ID).await;
         crate::web::named(&members, "php-cgi")
     }
+}
+
+/// `-d name="value"` for each setting, in order.
+pub fn ini_args(ini: &[(String, String)]) -> Vec<String> {
+    ini.iter()
+        .flat_map(|(name, value)| ["-d".to_owned(), format!("{name}=\"{value}\"")])
+        .collect()
 }
 
 /// Restarts the pool when fewer php-cgi processes are alive than the minimum

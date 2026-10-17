@@ -6,6 +6,7 @@ import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
 import { openLocalhost, openWww, SERVICES_KEY, servicesStatus, servicesStopAll } from "@/features/services/api";
+import { MailpitCard } from "@/features/services/MailpitCard";
 import { PhpCard } from "@/features/services/PhpCard";
 import { DatabaseCard } from "@/features/services/DatabaseCard";
 import { PortConflictDialog } from "@/features/services/PortConflictDialog";
@@ -25,7 +26,7 @@ export function ServicesPage() {
     // Process counts change without events (workers recycling); poll while up.
     refetchInterval: (q) => {
       const d = q.state.data;
-      return d && (d.php.runtime || d.web.runtime || d.database.runtime || d.redis.runtime || d.postgresql.runtime) ? 5000 : false;
+      return d && (d.php.runtime || d.web.runtime || d.database.runtime || d.redis.runtime || d.postgresql.runtime || d.mailpit.runtime) ? 5000 : false;
     },
   });
   const config = settings.data?.config;
@@ -35,7 +36,8 @@ export function ServicesPage() {
     stack.data?.web.runtime ||
     stack.data?.database.runtime ||
     stack.data?.redis.runtime ||
-    stack.data?.postgresql.runtime
+    stack.data?.postgresql.runtime ||
+    stack.data?.mailpit.runtime
   );
 
   return (
@@ -72,6 +74,7 @@ export function ServicesPage() {
             <DatabaseCard status={stack.data.database} config={config?.database} onPortConflict={setConflict} />
             <PostgresCard status={stack.data.postgresql} config={config?.postgresql} onPortConflict={setConflict} />
             <RedisCard status={stack.data.redis} config={config?.redis} onPortConflict={setConflict} />
+            <MailpitCard status={stack.data.mailpit} config={config?.mailpit} onPortConflict={setConflict} />
           </>
         )}
       </div>

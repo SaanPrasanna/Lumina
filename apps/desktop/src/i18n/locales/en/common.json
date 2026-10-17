@@ -144,6 +144,13 @@
       "postgresqlEnabled": "Start PostgreSQL with Start All",
       "restart": "A running server uses a new port after it is restarted."
     },
+    "mail": {
+      "title": "Mail",
+      "smtpPort": "Mailpit SMTP port",
+      "smtpPortHint": "Point your apps here, e.g. MAIL_HOST=127.0.0.1 and MAIL_PORT in Laravel.",
+      "uiPort": "Mailpit inbox port",
+      "restart": "A running Mailpit uses new ports after it is restarted; PHP restarts by itself."
+    },
     "appearance": {
       "title": "Language and appearance",
       "hint": "The tray menu and notifications follow the language too."
@@ -250,6 +257,18 @@
     "newest": "Newest installed ({{version}})",
     "port": "Port",
     "notInstalled": "Redis is not installed yet. Put it in {{path}}."
+  },
+  "mailpit": {
+    "title": "Mailpit",
+    "enabled": "Start Mailpit with Start All",
+    "phpMail": "Send PHP's mail() to Mailpit",
+    "version": "Version",
+    "newest": "Newest installed ({{version}})",
+    "smtpPort": "SMTP port",
+    "uiPort": "Inbox port",
+    "openInbox": "Open inbox",
+    "notInstalled": "Mailpit is not installed yet. Install it from Quick Add.",
+    "connectHint": "Apps send mail to 127.0.0.1:{{port}} with any username and password (or none); nothing leaves your computer."
   },
   "sites": {
     "syncNow": "Sync now",

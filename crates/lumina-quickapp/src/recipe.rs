@@ -5,7 +5,8 @@
 //! order. Strings in steps may use placeholders, expanded by [`Vars`]:
 //!
 //! - `{name}`, `{dir}`, `{www}`, `{domain}`, `{url}`, `{db}`, `{db_host}`,
-//!   `{db_port}`, `{db_user}`, `{db_password}`, `{composer_home}`, ... — the
+//!   `{db_port}`, `{db_user}`, `{db_password}`, `{mail_port}`,
+//!   `{composer_home}`, ... — the
 //!   values the app provides for this project;
 //! - `{kit}` — the value chosen for option `kit`; `{kit.flag}` — a variable
 //!   of that choice;

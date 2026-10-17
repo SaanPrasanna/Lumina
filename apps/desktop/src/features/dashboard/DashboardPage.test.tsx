@@ -35,6 +35,7 @@ const stack = {
   database: { engine: "mysql", status: "stopped", runtime: null, error: null },
   redis: { status: "failed", runtime: null, error: "port 6379 is already in use" },
   postgresql: { status: "stopped", runtime: null, error: null },
+  mailpit: { status: "stopped", runtime: null, error: null },
 } as unknown as services.StackStatus;
 
 describe("DashboardPage", () => {

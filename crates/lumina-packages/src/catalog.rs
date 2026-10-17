@@ -24,7 +24,7 @@ pub struct Catalog {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind {
-    /// Run by Lumina (PHP, web servers, databases, Redis).
+    /// Run by Lumina (PHP, web servers, databases, Redis, Mailpit).
     Service,
     /// Runtimes for the terminal (Node.js, Python).
     Runtime,
@@ -215,6 +215,7 @@ mod tests {
             "mariadb",
             "redis",
             "postgresql",
+            "mailpit",
             "phpmyadmin",
             "node",
             "python",

@@ -38,7 +38,7 @@ export function DashboardPage() {
   const tunnels = useQuery({ queryKey: TUNNEL_KEY, queryFn: tunnelOverview });
   const { action, startAll, conflict, setConflict } = useStartAll(settings.data?.config);
   const data = stack.data;
-  const anyRunning = !!(data?.php.runtime || data?.web.runtime || data?.database.runtime || data?.redis.runtime || data?.postgresql.runtime);
+  const anyRunning = !!(data?.php.runtime || data?.web.runtime || data?.database.runtime || data?.redis.runtime || data?.postgresql.runtime || data?.mailpit.runtime);
 
   return (
     <>
@@ -121,6 +121,7 @@ function rows(data: StackStatus): Row[] {
     { kind: dbKind(data.database.engine), name: db, status: data.database.status, version: data.database.runtime?.version ?? null, port: data.database.runtime?.port ?? null, error: data.database.error },
     { kind: "postgresql", name: "PostgreSQL", status: data.postgresql.status, version: data.postgresql.runtime?.version ?? null, port: data.postgresql.runtime?.port ?? null, error: data.postgresql.error },
     { kind: "redis", name: "Redis", status: data.redis.status, version: data.redis.runtime?.version ?? null, port: data.redis.runtime?.port ?? null, error: data.redis.error },
+    { kind: "mailpit", name: "Mailpit", status: data.mailpit.status, version: data.mailpit.runtime?.version ?? null, port: data.mailpit.runtime?.smtpPort ?? null, error: data.mailpit.error },
   ];
 }
 

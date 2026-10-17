@@ -135,6 +135,7 @@ pub(crate) fn selected(cfg: &AppConfig, id: &str) -> Option<String> {
         "mariadb" => cfg.database.mariadb_version.clone(),
         "redis" => cfg.redis.version.clone(),
         "postgresql" => cfg.postgresql.version.clone(),
+        "mailpit" => cfg.mailpit.version.clone(),
         "node" => cfg.tools.node.clone(),
         "python" => cfg.tools.python.clone(),
         "composer" => cfg.tools.composer.clone(),
@@ -153,6 +154,7 @@ fn set_selected(cfg: &mut AppConfig, id: &str, version: String) -> lumina_core::
         "mariadb" => &mut cfg.database.mariadb_version,
         "redis" => &mut cfg.redis.version,
         "postgresql" => &mut cfg.postgresql.version,
+        "mailpit" => &mut cfg.mailpit.version,
         "node" => &mut cfg.tools.node,
         "python" => &mut cfg.tools.python,
         "composer" => &mut cfg.tools.composer,
@@ -174,6 +176,7 @@ fn service(id: &str) -> Option<ServiceKind> {
         "mariadb" => ServiceKind::Mariadb,
         "redis" => ServiceKind::Redis,
         "postgresql" => ServiceKind::Postgresql,
+        "mailpit" => ServiceKind::Mailpit,
         _ => return None,
     })
 }
@@ -206,6 +209,7 @@ async fn running_version(rt: &Runtime, id: &str) -> Option<String> {
             .map(|r| r.version),
         "redis" => stack.redis().status().await.runtime.map(|r| r.version),
         "postgresql" => stack.postgresql().status().await.runtime.map(|r| r.version),
+        "mailpit" => stack.mailpit().status().await.runtime.map(|r| r.version),
         _ => None,
     }
 }
@@ -340,6 +344,7 @@ fn homebrew_formula(id: &str) -> Option<&'static str> {
         "mariadb" => "mariadb",
         "redis" => "redis",
         "postgresql" => "postgresql@18",
+        "mailpit" => "mailpit",
         _ => return None,
     })
 }
@@ -355,6 +360,7 @@ async fn service_installs(rt: &Runtime, id: &str) -> Vec<Install> {
         "mariadb" => stack.database(DatabaseEngine::Mariadb).versions().await,
         "redis" => stack.redis().versions().await,
         "postgresql" => stack.postgresql().versions().await,
+        "mailpit" => stack.mailpit().versions().await,
         _ => Vec::new(),
     }
 }
@@ -616,8 +622,11 @@ pub async fn set_active(
 /// Follow-up work after a version of `id` appeared, disappeared or was chosen.
 async fn after_change(app: &AppHandle, rt: &Arc<Runtime>, id: &str) {
     // Any version change can change what `php`, `node`, `mysql`... run.
-    let _ = rt;
     crate::commands::env_path::refresh_shims_later(app);
+    if id == "mailpit" && !cfg!(windows) {
+        // Outside Windows, PHP's sendmail_path names the Mailpit program.
+        crate::commands::settings::restart_php_for_mail(rt).await;
+    }
     if id == "phpmyadmin" || id == "php" {
         // /phpmyadmin/ follows the installed versions and the active PHP.
         sites::resync_later(app);

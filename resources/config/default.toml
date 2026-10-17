@@ -45,6 +45,13 @@ enabled = false              # start PostgreSQL with Start All (it runs next to 
 version = ""                 # empty = newest installed; "17" = newest 17.x
 port = 5432
 
+[mailpit]
+enabled = false              # start Mailpit with "Start All"; it catches outgoing mail
+version = ""                 # empty = newest installed
+smtp_port = 1025             # apps send mail to 127.0.0.1:1025 (any username and password)
+ui_port = 8025               # the inbox: http://127.0.0.1:8025
+php_mail = true              # send PHP's mail() to Mailpit (overrides SMTP / sendmail_path in php.ini)
+
 [editor]
 # Default: Notepad++ on Windows, VS Code on macOS and Linux. Choose another
 # in Settings, or set it here:

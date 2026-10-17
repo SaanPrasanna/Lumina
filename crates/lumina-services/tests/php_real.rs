@@ -180,7 +180,7 @@ async fn serves_requests_with_enforced_children_and_our_php_ini() {
     let Some(env) = setup() else { return };
     let script = write_script(&env.layout);
 
-    let runtime = env.php.start(&config("8.3", 2)).await.expect("start");
+    let runtime = env.php.start(&config("8.3", 2), &[]).await.expect("start");
 
     assert_eq!(runtime.children, 4, "PHP_FCGI_CHILDREN=2 raised to 4");
     let body = fastcgi_get(runtime.port, &script);
@@ -219,7 +219,7 @@ async fn version_switch_leaves_zero_old_processes() {
             .expect("name"),
     );
 
-    let first = env.php.start(&cfg83).await.expect("start 8.3");
+    let first = env.php.start(&cfg83, &[]).await.expect("start 8.3");
     assert!(fastcgi_get(first.port, &script).starts_with("8.3."));
     assert_eq!(php_processes_under(&old_root).len(), 5);
 
@@ -227,7 +227,7 @@ async fn version_switch_leaves_zero_old_processes() {
         version: "8.4".into(),
         ..cfg83
     };
-    let second = env.php.restart(&cfg84).await.expect("switch to 8.4");
+    let second = env.php.restart(&cfg84, &[]).await.expect("switch to 8.4");
 
     assert!(
         php_processes_under(&old_root).is_empty(),
@@ -245,7 +245,7 @@ async fn falls_back_when_the_main_port_is_taken() {
     let mut cfg = config("", 4);
     cfg.fcgi_port = blocker.local_addr().expect("addr").port();
 
-    let runtime = env.php.start(&cfg).await.expect("start");
+    let runtime = env.php.start(&cfg, &[]).await.expect("start");
 
     assert!(runtime.fell_back);
     assert_eq!(runtime.port, cfg.fcgi_fallback_port);
@@ -257,7 +257,7 @@ async fn missing_version_is_a_clear_error() {
     let Some(env) = setup() else { return };
     let err = env
         .php
-        .start(&config("5.6", 4))
+        .start(&config("5.6", 4), &[])
         .await
         .expect_err("not installed");
     assert!(

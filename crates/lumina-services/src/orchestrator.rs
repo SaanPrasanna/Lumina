@@ -25,6 +25,7 @@ use tokio::sync::Mutex;
 
 use crate::apache::Apache;
 use crate::database::{Database, DbStatus, engine};
+use crate::mailpit::{Mailpit, MailpitStatus};
 use crate::nginx::Nginx;
 use crate::php_fcgi::{PhpFcgi, PhpStatus};
 use crate::postgresql::{PgStatus, Postgresql};
@@ -50,6 +51,7 @@ pub struct StackStatus {
     pub database: DbStatus,
     pub redis: RedisStatus,
     pub postgresql: PgStatus,
+    pub mailpit: MailpitStatus,
 }
 
 #[derive(Clone)]
@@ -66,6 +68,7 @@ struct Inner {
     mariadb: Database,
     redis: Redis,
     postgresql: Postgresql,
+    mailpit: Mailpit,
     /// The local CA and site certificates (`<data-root>/ssl`).
     ssl: Ssl,
     /// Why HTTPS could not be set up last time, for the UI.
@@ -94,6 +97,7 @@ impl Orchestrator {
                     templates.clone(),
                 ),
                 postgresql: Postgresql::new(supervisor.clone(), layout.clone()),
+                mailpit: Mailpit::new(supervisor.clone(), layout.clone()),
                 redis: Redis::new(supervisor, layout.clone(), templates),
                 ssl: Ssl::new(layout.ssl()),
                 tls_error: std::sync::Mutex::new(None),
@@ -128,6 +132,25 @@ impl Orchestrator {
 
     pub fn postgresql(&self) -> &Postgresql {
         &self.inner.postgresql
+    }
+
+    pub fn mailpit(&self) -> &Mailpit {
+        &self.inner.mailpit
+    }
+
+    /// php.ini settings that send PHP's `mail()` to Mailpit (see
+    /// [`crate::mailpit::php_ini`]), for php-cgi and the `php` command alike.
+    pub async fn php_mail_ini(&self, cfg: &AppConfig) -> Vec<(String, String)> {
+        if !cfg.mailpit.php_mail {
+            return Vec::new();
+        }
+        let exe = self
+            .inner
+            .mailpit
+            .selected(&cfg.mailpit)
+            .await
+            .map(|i| i.exe);
+        crate::mailpit::php_ini(&cfg.mailpit, exe.as_deref())
     }
 
     /// The service kind of the configured database engine.
@@ -245,11 +268,16 @@ impl Orchestrator {
         let mut out = Vec::new();
 
         let php = self.inner.php.cli(&cfg.php).await;
+        let mail = crate::php_fcgi::ini_args(&self.php_mail_ini(cfg).await);
         if let Some((php_exe, ini, version)) = &php {
+            let php_args: Vec<String> = ["-c".into(), ini.to_string_lossy().into_owned()]
+                .into_iter()
+                .chain(mail.iter().cloned())
+                .collect();
             out.push(Shim {
                 name: "php".into(),
                 program: php_exe.clone(),
-                args: vec!["-c".into(), ini.to_string_lossy().into_owned()],
+                args: php_args.clone(),
                 describes: format!("PHP {version}"),
             });
             if let Some(composer) = pick("composer", &cfg.tools.composer) {
@@ -258,11 +286,11 @@ impl Orchestrator {
                     out.push(Shim {
                         name: "composer".into(),
                         program: php_exe.clone(),
-                        args: vec![
-                            "-c".into(),
-                            ini.to_string_lossy().into_owned(),
-                            phar.to_string_lossy().into_owned(),
-                        ],
+                        args: php_args
+                            .iter()
+                            .cloned()
+                            .chain([phar.to_string_lossy().into_owned()])
+                            .collect(),
                         describes: format!("Composer {} on PHP {version}", composer.version),
                     });
                 }
@@ -457,13 +485,15 @@ impl Orchestrator {
     async fn start_locked(&self, kind: ServiceKind, cfg: &AppConfig) -> Result<()> {
         match kind {
             ServiceKind::PhpFcgi => {
-                self.inner.php.start(&cfg.php).await?;
+                let mail = self.php_mail_ini(cfg).await;
+                self.inner.php.start(&cfg.php, &mail).await?;
                 self.sync_web_to_php(cfg).await
             }
             ServiceKind::Nginx | ServiceKind::Apache => {
                 // The web server needs PHP; start it first if it is down.
                 if self.inner.php.status().await.runtime.is_none() {
-                    self.inner.php.start(&cfg.php).await?;
+                    let mail = self.php_mail_ini(cfg).await;
+                    self.inner.php.start(&cfg.php, &mail).await?;
                 }
                 let other = if kind == ServiceKind::Nginx {
                     ServiceKind::Apache
@@ -500,6 +530,10 @@ impl Orchestrator {
                 self.inner.postgresql.start(&cfg.postgresql).await?;
                 Ok(())
             }
+            ServiceKind::Mailpit => {
+                self.inner.mailpit.start(&cfg.mailpit).await?;
+                Ok(())
+            }
         }
     }
 
@@ -517,6 +551,7 @@ impl Orchestrator {
             ServiceKind::Mariadb => self.inner.mariadb.stop().await,
             ServiceKind::Redis => self.inner.redis.stop().await,
             ServiceKind::Postgresql => self.inner.postgresql.stop().await,
+            ServiceKind::Mailpit => self.inner.mailpit.stop().await,
         }
     }
 
@@ -528,7 +563,8 @@ impl Orchestrator {
     async fn restart_locked(&self, kind: ServiceKind, cfg: &AppConfig) -> Result<()> {
         match kind {
             ServiceKind::PhpFcgi => {
-                self.inner.php.restart(&cfg.php).await?;
+                let mail = self.php_mail_ini(cfg).await;
+                self.inner.php.restart(&cfg.php, &mail).await?;
                 self.sync_web_to_php(cfg).await
             }
             _ => {
@@ -660,7 +696,7 @@ impl Orchestrator {
         ))
     }
 
-    /// Database, PostgreSQL and Redis (if enabled), PHP, then the configured web server. Every
+    /// Database, then PostgreSQL, Redis and Mailpit (if enabled), PHP, then the configured web server. Every
     /// service is attempted; the first error is returned.
     pub async fn start_all(&self, cfg: &AppConfig) -> Result<()> {
         let _guard = self.inner.lock.lock().await;
@@ -670,6 +706,9 @@ impl Orchestrator {
         }
         if cfg.redis.enabled {
             kinds.push(ServiceKind::Redis);
+        }
+        if cfg.mailpit.enabled {
+            kinds.push(ServiceKind::Mailpit);
         }
         kinds.push(ServiceKind::PhpFcgi);
         kinds.push(Self::configured_web(cfg));
@@ -697,6 +736,7 @@ impl Orchestrator {
             ServiceKind::Mariadb => self.inner.mariadb.status().await.runtime.is_some(),
             ServiceKind::Redis => self.inner.redis.status().await.runtime.is_some(),
             ServiceKind::Postgresql => self.inner.postgresql.status().await.runtime.is_some(),
+            ServiceKind::Mailpit => self.inner.mailpit.status().await.runtime.is_some(),
         }
     }
 
@@ -729,6 +769,10 @@ impl Orchestrator {
                 let s = self.inner.postgresql.status().await;
                 (s.status, s.pid, s.runtime.map(|r| r.port))
             }
+            ServiceKind::Mailpit => {
+                let s = self.inner.mailpit.status().await;
+                (s.status, s.pid, s.runtime.map(|r| r.smtp_port))
+            }
         };
         if status != ServiceStatus::Running {
             return None;
@@ -752,6 +796,7 @@ impl Orchestrator {
             ServiceKind::Mariadb,
             ServiceKind::Postgresql,
             ServiceKind::Redis,
+            ServiceKind::Mailpit,
             ServiceKind::PhpFcgi,
             ServiceKind::Nginx,
             ServiceKind::Apache,
@@ -782,7 +827,7 @@ impl Orchestrator {
         healed
     }
 
-    /// Web servers, PHP, Redis, then databases. Returns the services that
+    /// Web servers, PHP, Mailpit, Redis, then databases. Returns the services that
     /// failed to stop.
     pub async fn stop_all(&self) -> Vec<(ServiceKind, Error)> {
         let _guard = self.inner.lock.lock().await;
@@ -791,6 +836,7 @@ impl Orchestrator {
             ServiceKind::Nginx,
             ServiceKind::Apache,
             ServiceKind::PhpFcgi,
+            ServiceKind::Mailpit,
             ServiceKind::Redis,
             ServiceKind::Postgresql,
             ServiceKind::Mysql,
@@ -843,6 +889,7 @@ impl Orchestrator {
             database,
             redis: self.inner.redis.status().await,
             postgresql: self.inner.postgresql.status().await,
+            mailpit: self.inner.mailpit.status().await,
         }
     }
 }

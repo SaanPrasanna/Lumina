@@ -457,6 +457,7 @@ async fn create(
                 DatabaseEngine::Mariadb => format!("{db_version}-MariaDB"),
             },
         ),
+        ("mail_port", cfg.mailpit.smtp_port.to_string()),
         (
             "composer_home",
             composer_home.to_string_lossy().into_owned(),

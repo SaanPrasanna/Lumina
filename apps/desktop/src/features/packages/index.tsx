@@ -24,7 +24,7 @@ import {
 } from "@/features/packages/api";
 
 /** Query keys that show installed versions somewhere in the app. */
-const AFFECTED = [PACKAGES_KEY, ["services"], ["php"], ["web"], ["db"], ["redis"], ["postgresql"], ["sites"]] as const;
+const AFFECTED = [PACKAGES_KEY, ["services"], ["php"], ["web"], ["db"], ["redis"], ["postgresql"], ["mailpit"], ["sites"]] as const;
 
 /** Live progress from `package-progress`, by `id@version`. */
 function useProgress() {

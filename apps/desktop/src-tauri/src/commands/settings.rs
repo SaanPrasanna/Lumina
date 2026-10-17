@@ -53,6 +53,21 @@ pub fn apply_start_on_login(app: &AppHandle, enabled: bool) {
     }
 }
 
+/// Restarts a running PHP so its `mail()` follows the Mailpit settings
+/// (php-cgi reads them only at start).
+pub async fn restart_php_for_mail(rt: &Runtime) {
+    if rt.stack.php().status().await.runtime.is_none() {
+        return;
+    }
+    if let Err(err) = rt
+        .stack
+        .restart(lumina_core::types::ServiceKind::PhpFcgi, &rt.config())
+        .await
+    {
+        log::error!("could not restart PHP for the new mail settings: {err}");
+    }
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn settings_get(state: State<'_, AppState>) -> CommandResult<Settings> {
@@ -87,7 +102,17 @@ pub fn settings_update(
     };
     *slot = value;
     let mut config: AppConfig = serde_json::from_value(json).map_err(bad)?;
-    let login_changed = config.general.start_on_login != runtime.config().general.start_on_login;
+    let old = runtime.config();
+    let login_changed = config.general.start_on_login != old.general.start_on_login;
+    let mail_changed = (
+        old.mailpit.php_mail,
+        old.mailpit.smtp_port,
+        &old.mailpit.version,
+    ) != (
+        config.mailpit.php_mail,
+        config.mailpit.smtp_port,
+        &config.mailpit.version,
+    );
 
     let warnings = lumina_config::validate::validate(&mut config);
     lumina_config::save(&runtime.layout.config_file(), &config)?;
@@ -99,8 +124,12 @@ pub fn settings_update(
     if login_changed {
         apply_start_on_login(&app, runtime.config().general.start_on_login);
     }
-    if matches!(section.as_str(), "php" | "database" | "tools") {
+    if matches!(section.as_str(), "php" | "database" | "tools" | "mailpit") {
         crate::commands::env_path::refresh_shims_later(&app);
+    }
+    if mail_changed {
+        let rt = runtime.clone();
+        tauri::async_runtime::spawn(async move { restart_php_for_mail(&rt).await });
     }
     if section == "general" || section == "sites" {
         // The projects folder, suffix or a site's settings may have changed.

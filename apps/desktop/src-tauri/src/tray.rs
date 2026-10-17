@@ -50,6 +50,7 @@ struct Labels {
     open_log: &'static str,
     ext_dir: &'static str,
     sites_config: &'static str,
+    inbox: &'static str,
     start_all: &'static str,
     stop_all: &'static str,
     quit: &'static str,
@@ -80,6 +81,7 @@ fn labels(language: &str) -> Labels {
             open_log: "ලොගය විවෘත කරන්න",
             ext_dir: "දිගු ෆෝල්ඩරය",
             sites_config: "අඩවි වින්‍යාස ෆෝල්ඩරය",
+            inbox: "එන ලිපි විවෘත කරන්න",
             start_all: "සියල්ල ආරම්භ කරන්න",
             stop_all: "සියල්ල නවත්වන්න",
             quit: "ඉවත් වන්න",
@@ -107,6 +109,7 @@ fn labels(language: &str) -> Labels {
             open_log: "Open log",
             ext_dir: "Extensions folder",
             sites_config: "Sites config folder",
+            inbox: "Open inbox",
             start_all: "Start All",
             stop_all: "Stop All",
             quit: "Quit",
@@ -223,6 +226,13 @@ async fn snapshot(app: &AppHandle) -> Snapshot {
             "Redis",
             names(stack.redis().versions().await),
             status.redis.runtime.map(|r| r.version),
+        ),
+        row(
+            Some(ServiceKind::Mailpit),
+            "mailpit",
+            "Mailpit",
+            names(stack.mailpit().versions().await),
+            status.mailpit.runtime.map(|r| r.version),
         ),
     ];
     let tool = |package, name| {
@@ -417,6 +427,9 @@ fn service_menu(
         }
         ServiceKind::Redis => {
             items.push(item(app, "edit:redis", "custom.conf", true)?);
+        }
+        ServiceKind::Mailpit => {
+            items.push(item(app, "mail-inbox", l.inbox, row.running.is_some())?);
         }
     }
     items.push(item(app, format!("log:{id}"), l.open_log, true)?);
@@ -653,6 +666,7 @@ async fn run(app: &AppHandle, rt: &std::sync::Arc<Runtime>, id: &str) -> Command
             }
         }
         "db-ui" => packages::open_db_ui(app, rt).await?,
+        "mail-inbox" => services::mailpit_open_for(app)?,
         "site" => sites::open_site_for(app, rt, arg)?,
         "open-localhost" => services::open_localhost_for(app)?,
         "open-www" => services::open_www_for(app)?,
@@ -695,6 +709,7 @@ mod tests {
             ServiceKind::Mariadb,
             ServiceKind::Postgresql,
             ServiceKind::Redis,
+            ServiceKind::Mailpit,
         ] {
             assert_eq!(parse_kind(&kind_id(kind)), Some(kind));
         }

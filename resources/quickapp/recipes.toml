@@ -3,6 +3,7 @@
 # Placeholders the app provides for every project:
 #   {name} {dir} {www} {domain} {url}            folder, its path, projects folder, name.test, https://name.test
 #   {db} {db_driver} {db_host} {db_port} {db_user} {db_password} {db_server_version}
+#   {mail_port}                                  Mailpit's SMTP port (on 127.0.0.1)
 #   {composer_home}                              Lumina's own global Composer folder
 # plus {option} / {option.var} for the chosen options and {random:N}.
 #
@@ -112,6 +113,10 @@ DB_PORT = "{db_port}"
 DB_DATABASE = "{db}"
 DB_USERNAME = "{db_user}"
 DB_PASSWORD = "{db_password}"
+# Mail goes to Mailpit (its inbox shows it) instead of the log.
+MAIL_MAILER = "smtp"
+MAIL_HOST = "127.0.0.1"
+MAIL_PORT = "{mail_port}"
 
 [[recipe.step]]
 label = "Run the database migrations"

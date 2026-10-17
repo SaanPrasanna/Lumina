@@ -23,6 +23,7 @@ pub struct AppConfig {
     pub database: Database,
     pub redis: Redis,
     pub postgresql: Postgresql,
+    pub mailpit: Mailpit,
     pub editor: Editor,
     pub tunnel: Tunnel,
     pub updates: Updates,
@@ -43,6 +44,7 @@ impl Default for AppConfig {
             database: Database::default(),
             redis: Redis::default(),
             postgresql: Postgresql::default(),
+            mailpit: Mailpit::default(),
             editor: Editor::default(),
             tunnel: Tunnel::default(),
             updates: Updates::default(),
@@ -211,6 +213,35 @@ impl Default for Postgresql {
             enabled: false,
             version: String::new(),
             port: 5432,
+        }
+    }
+}
+
+/// Mailpit, which catches the mail PHP and your apps send (`[mailpit]`).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(default)]
+pub struct Mailpit {
+    /// Start Mailpit with "Start All".
+    pub enabled: bool,
+    /// Empty = newest installed.
+    pub version: String,
+    /// Where apps send mail (SMTP).
+    pub smtp_port: u16,
+    /// The inbox in the browser.
+    pub ui_port: u16,
+    /// Send PHP's `mail()` to Mailpit instead of the `SMTP` / `sendmail_path`
+    /// in php.ini.
+    pub php_mail: bool,
+}
+
+impl Default for Mailpit {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            version: String::new(),
+            smtp_port: 1025,
+            ui_port: 8025,
+            php_mail: true,
         }
     }
 }

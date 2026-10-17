@@ -4,6 +4,7 @@
 pub mod apache;
 pub mod database;
 pub mod install;
+pub mod mailpit;
 pub mod nginx;
 pub mod orchestrator;
 pub mod php_fcgi;

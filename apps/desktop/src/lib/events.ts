@@ -17,7 +17,7 @@ const INVALIDATES: Record<BackendEvent, readonly (readonly string[])[]> = {
   "service-status": [["services"], ["sites"], ["profiles"]],
   "config-changed": [["settings"], ["services"], ["sites"], ["profiles"], ["tunnel"]],
   "sites-changed": [["sites"]],
-  "packages-changed": [["packages"], ["php"], ["web"], ["db"], ["redis"], ["postgresql"], ["services"], ["profiles"], ["quickapp"], ["tunnel"]],
+  "packages-changed": [["packages"], ["php"], ["web"], ["db"], ["redis"], ["postgresql"], ["mailpit"], ["services"], ["profiles"], ["quickapp"], ["tunnel"]],
   "quickapp-changed": [["quickapp"], ["sites"], ["services"]],
   "tunnels-changed": [["tunnel"]],
   "updates-changed": [["updates"]],

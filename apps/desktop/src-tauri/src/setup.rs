@@ -113,6 +113,7 @@ async fn after_wake(app: AppHandle) {
                     ServiceKind::Mariadb => "MariaDB",
                     ServiceKind::Redis => "Redis",
                     ServiceKind::Postgresql => "PostgreSQL",
+                    ServiceKind::Mailpit => "Mailpit",
                 };
                 crate::notify::send(&app, crate::notify::Note::Failed { service });
             }
