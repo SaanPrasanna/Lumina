@@ -7,9 +7,12 @@
 //!   Apache (port 80), starting MariaDB stops MySQL (port 3306), and vice versa.
 //! - PHP's actual port (which may be the fallback) is pushed into the web
 //!   server's config; if PHP moves, a running web server is reloaded.
+//! - [`Orchestrator::heal`] restarts a service that runs but no longer
+//!   answers on its port (checked after the computer wakes from sleep).
 
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
 use lumina_config::AppConfig;
 use lumina_config::schema::{DatabaseEngine, WebServer};
@@ -519,6 +522,10 @@ impl Orchestrator {
 
     pub async fn restart(&self, kind: ServiceKind, cfg: &AppConfig) -> Result<()> {
         let _guard = self.inner.lock.lock().await;
+        self.restart_locked(kind, cfg).await
+    }
+
+    async fn restart_locked(&self, kind: ServiceKind, cfg: &AppConfig) -> Result<()> {
         match kind {
             ServiceKind::PhpFcgi => {
                 self.inner.php.restart(&cfg.php).await?;
@@ -691,6 +698,88 @@ impl Orchestrator {
             ServiceKind::Redis => self.inner.redis.status().await.runtime.is_some(),
             ServiceKind::Postgresql => self.inner.postgresql.status().await.runtime.is_some(),
         }
+    }
+
+    /// A running service's PID and the port it answers on. `None` unless it
+    /// runs: stopped, failed, or being restarted by the supervisor.
+    async fn probe_target(&self, kind: ServiceKind) -> Option<(u32, u16)> {
+        let (status, pid, port) = match kind {
+            ServiceKind::PhpFcgi => {
+                let s = self.inner.php.status().await;
+                (s.status, s.pid, s.runtime.map(|r| r.port))
+            }
+            ServiceKind::Nginx | ServiceKind::Apache => {
+                let s = self.web_status(kind).await;
+                (s.status, s.pid, s.runtime.map(|r| r.http_port))
+            }
+            ServiceKind::Mysql | ServiceKind::Mariadb => {
+                let db = if kind == ServiceKind::Mysql {
+                    &self.inner.mysql
+                } else {
+                    &self.inner.mariadb
+                };
+                let s = db.status().await;
+                (s.status, s.pid, s.runtime.map(|r| r.port))
+            }
+            ServiceKind::Redis => {
+                let s = self.inner.redis.status().await;
+                (s.status, s.pid, s.runtime.map(|r| r.port))
+            }
+            ServiceKind::Postgresql => {
+                let s = self.inner.postgresql.status().await;
+                (s.status, s.pid, s.runtime.map(|r| r.port))
+            }
+        };
+        if status != ServiceStatus::Running {
+            return None;
+        }
+        Some((pid?, port?))
+    }
+
+    /// Checks that every running service still accepts connections on its
+    /// port, e.g. after the computer woke from sleep, and restarts each one
+    /// that does not within `limit`. A crashed service needs no help (the
+    /// supervisor restarts it); this catches one that runs but no longer
+    /// answers. Returns the services restarted and how each restart went.
+    ///
+    /// The probes run without the stack lock, so the UI is not held up; a
+    /// service stopped or restarted by someone else meanwhile is left alone.
+    pub async fn heal(&self, cfg: &AppConfig, limit: Duration) -> Vec<(ServiceKind, Result<()>)> {
+        let mut silent = Vec::new();
+        // Dependencies first, as in `start_all`.
+        for kind in [
+            ServiceKind::Mysql,
+            ServiceKind::Mariadb,
+            ServiceKind::Postgresql,
+            ServiceKind::Redis,
+            ServiceKind::PhpFcgi,
+            ServiceKind::Nginx,
+            ServiceKind::Apache,
+        ] {
+            if let Some((pid, port)) = self.probe_target(kind).await
+                && !lumina_process::health::wait_tcp(port, limit).await
+            {
+                silent.push((kind, pid));
+            }
+        }
+
+        let mut healed = Vec::new();
+        if silent.is_empty() {
+            return healed;
+        }
+        let _guard = self.inner.lock.lock().await;
+        for (kind, pid) in silent {
+            if self.probe_target(kind).await.map(|(p, _)| p) != Some(pid) {
+                continue;
+            }
+            tracing::warn!("{kind:?} (pid {pid}) no longer answers; restarting it");
+            let result = self.restart_locked(kind, cfg).await;
+            if let Err(err) = &result {
+                tracing::error!("could not restart {kind:?}: {err}");
+            }
+            healed.push((kind, result));
+        }
+        healed
     }
 
     /// Web servers, PHP, Redis, then databases. Returns the services that

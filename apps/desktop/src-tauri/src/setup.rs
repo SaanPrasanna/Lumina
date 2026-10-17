@@ -3,10 +3,12 @@
 
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 
 use lumina_config::bootstrap;
 use lumina_core::paths::Layout;
-use tauri::{AppHandle, Manager};
+use lumina_core::types::ServiceKind;
+use tauri::{AppHandle, Emitter, Manager};
 
 use crate::events;
 use crate::state::{AppState, Runtime};
@@ -70,7 +72,56 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         }
         None => log::info!("no bootstrap file; first-run wizard will be shown"),
     }
+    watch_for_wake(app.handle().clone());
     Ok(())
+}
+
+/// How long a service gets to accept a connection after a wake.
+const WAKE_PROBE: Duration = Duration::from_secs(5);
+/// Lets the network stack come back before the services are probed.
+const WAKE_SETTLE: Duration = Duration::from_secs(3);
+
+/// After the computer sleeps, checks the running services and restarts any
+/// that no longer answer, renews certificates that came due while it slept,
+/// and has the UI refetch what may have changed (tunnels drop during sleep).
+fn watch_for_wake(app: AppHandle) {
+    tauri::async_runtime::spawn(lumina_process::wake::watch(move |asleep| {
+        log::info!(
+            "the computer woke up after about {} s; checking services",
+            asleep.as_secs()
+        );
+        tauri::async_runtime::spawn(after_wake(app.clone()));
+    }));
+}
+
+async fn after_wake(app: AppHandle) {
+    tokio::time::sleep(WAKE_SETTLE).await;
+    let Ok(runtime) = app.state::<AppState>().runtime() else {
+        return; // first-run wizard: nothing runs yet
+    };
+    let cfg = runtime.config();
+    for (kind, result) in runtime.stack.heal(&cfg, WAKE_PROBE).await {
+        match result {
+            Ok(()) => log::warn!("restarted {kind:?}: it no longer answered after sleep"),
+            Err(err) => {
+                log::error!("could not restart {kind:?} after sleep: {err}");
+                let service = match kind {
+                    ServiceKind::PhpFcgi => "PHP",
+                    ServiceKind::Nginx => "nginx",
+                    ServiceKind::Apache => "Apache",
+                    ServiceKind::Mysql => "MySQL",
+                    ServiceKind::Mariadb => "MariaDB",
+                    ServiceKind::Redis => "Redis",
+                    ServiceKind::Postgresql => "PostgreSQL",
+                };
+                crate::notify::send(&app, crate::notify::Note::Failed { service });
+            }
+        }
+    }
+    // The 12-hour renewal timer does not count time asleep on macOS and Linux.
+    crate::commands::sites::resync_later(&app);
+    crate::tray::refresh(app.clone());
+    let _ = app.emit(events::TUNNELS_CHANGED, ());
 }
 
 /// Builds the runtime for `layout` and stores it in `AppState`. Errors are

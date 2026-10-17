@@ -5,6 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [S
 
 ## [Unreleased]
 
+
+- **Sleep and resume:** When the computer wakes up, Lumina checks that every running service still answers and restarts any that does not, renews certificates that came due while it slept, and refreshes the Sharing page.
+
 ## [0.3.0] - 2026-10-15
 Lumina now sets up a stack on macOS and Linux, using official downloads and Homebrew, the standard way on those systems.
 

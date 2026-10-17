@@ -8,6 +8,7 @@ pub mod ledger;
 pub mod logs;
 pub mod ports;
 pub mod supervisor;
+pub mod wake;
 
 pub use handle::{ProcessEvent, ProcessInfo, ProcessSpec, ProcessState, RestartPolicy};
 pub use supervisor::Supervisor;

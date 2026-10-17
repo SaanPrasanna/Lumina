@@ -248,6 +248,42 @@ async fn starting_one_engine_stops_the_other() {
 }
 
 #[tokio::test]
+async fn heal_restarts_a_service_that_stopped_answering() {
+    let Some(env) = setup(&[("LUMINA_TEST_REDIS_DIR", "redis")]) else {
+        return;
+    };
+    env.stack
+        .start(ServiceKind::Redis, &env.cfg)
+        .await
+        .expect("start");
+    let limit = std::time::Duration::from_secs(2);
+    assert!(
+        env.stack.heal(&env.cfg, limit).await.is_empty(),
+        "a healthy service is left alone"
+    );
+
+    // Redis keeps running but closes its TCP listener.
+    let dir = PathBuf::from(std::env::var("LUMINA_TEST_REDIS_DIR").expect("var"));
+    let cli = dir.join(format!("redis-cli{}", std::env::consts::EXE_SUFFIX));
+    let port = env.cfg.redis.port.to_string();
+    let out = Command::new(&cli)
+        .args(["-p", &port, "CONFIG", "SET", "port", "0"])
+        .output()
+        .expect("cli");
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "OK");
+    let before = env.stack.redis().status().await.pid;
+
+    let healed = env.stack.heal(&env.cfg, limit).await;
+    assert_eq!(healed.len(), 1, "{healed:?}");
+    assert_eq!(healed[0].0, ServiceKind::Redis);
+    assert!(healed[0].1.is_ok(), "{healed:?}");
+    assert_ne!(env.stack.redis().status().await.pid, before, "restarted");
+    assert!(lumina_process::health::wait_tcp(env.cfg.redis.port, limit).await);
+
+    env.stack.stop(ServiceKind::Redis).await.expect("stop");
+}
+
+#[tokio::test]
 async fn redis_starts_serves_and_saves_on_stop() {
     let Some(env) = setup(&[("LUMINA_TEST_REDIS_DIR", "redis")]) else {
         return;
