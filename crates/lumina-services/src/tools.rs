@@ -244,7 +244,6 @@ mod tests {
         assert!(names.iter().any(|n| n.starts_with("php")));
     }
 
-    #[cfg(windows)]
     /// Windows: a shim that is running is moved aside and replaced.
     #[cfg(windows)]
     #[test]
@@ -278,6 +277,7 @@ mod tests {
         assert!(!aside.exists());
     }
 
+    #[cfg(windows)]
     #[test]
     fn without_the_shim_binary_cmd_launchers_are_written() {
         let tmp = tempfile::tempdir().expect("tempdir");
