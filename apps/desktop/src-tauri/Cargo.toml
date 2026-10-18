@@ -54,4 +54,4 @@ workspace = true
 [dev-dependencies]
 tempfile = { workspace = true }
 minisign-verify = "0.2"
-base64 = "0.22"
+base64 = "0.23"
