@@ -720,6 +720,181 @@ h1 {
   color: var(--accent);
 }
 
+/* Changelog */
+.changelog {
+  padding-block: 40px 72px;
+}
+
+.crumbs {
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.crumbs a {
+  color: var(--fg-soft);
+}
+
+.cl-head {
+  margin: 18px 0 40px;
+  max-width: 760px;
+}
+
+.cl-head h1 {
+  margin: 0 0 12px;
+}
+
+.cl-head .cta {
+  margin-top: 22px;
+}
+
+.cl-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.cl-toc {
+  position: sticky;
+  top: 88px;
+}
+
+.cl-toc ul {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  border-inline-start: 1px solid var(--line);
+}
+
+.cl-toc a {
+  display: flex;
+  flex-direction: column;
+  margin-inline-start: -1px;
+  padding: 6px 0 6px 16px;
+  border-inline-start: 2px solid transparent;
+  color: var(--fg-soft);
+}
+
+.cl-toc a:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.cl-toc a span {
+  font-weight: 700;
+}
+
+.cl-toc time {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.cl-list {
+  display: grid;
+  gap: 22px;
+}
+
+.release {
+  scroll-margin-top: 88px;
+  padding: 26px 28px;
+}
+
+.release:hover {
+  transform: none;
+}
+
+.release:target {
+  border-color: var(--accent);
+}
+
+.rel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.rel-head h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.rel-head h2 a {
+  color: var(--fg);
+}
+
+.rel-head time {
+  margin-inline-start: auto;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.rel-badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.rel-intro {
+  margin: 14px 0 0;
+  font-size: 1.05rem;
+  color: var(--fg-soft);
+}
+
+.rel-items {
+  margin: 18px 0 0;
+  padding-inline-start: 20px;
+  display: grid;
+  gap: 10px;
+  color: var(--fg-soft);
+}
+
+.rel-items strong {
+  color: var(--fg);
+}
+
+.rel-items code,
+.rel-intro code {
+  white-space: nowrap;
+}
+
+.cl-toc .eyebrow {
+  margin: 0;
+  text-align: start;
+}
+
+.rel-items li::marker {
+  color: var(--accent);
+}
+
+.rel-links {
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 900px) {
+  .cl-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cl-toc {
+    display: none;
+  }
+
+  .release {
+    padding: 20px;
+  }
+}
+
 @keyframes rise {
   from {
     opacity: 0;

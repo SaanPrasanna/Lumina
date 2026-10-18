@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+  <title>Lumina releases</title>
+  <subtitle>New versions of Lumina and what changed in them.</subtitle>
+  <link rel="self" type="application/atom+xml" href="https://lumina.hexdev.tech/changelog/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/"/>
+  <id>https://lumina.hexdev.tech/changelog/</id>
+  <updated>2026-10-18T00:00:00Z</updated>
+  <author><name>Sandun Prasanna</name><uri>https://github.com/SaanPrasanna</uri></author>
+  <icon>https://lumina.hexdev.tech/assets/icon-180.png</icon>
+  <logo>https://lumina.hexdev.tech/assets/icon-512.png</logo>
+  <rights>GNU GPL v3.0</rights>
+  <entry>
+    <title>Lumina 0.4.0</title>
+    <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/#v0.4.0"/>
+    <id>tag:lumina.hexdev.tech,2026-10-18:v0.4.0</id>
+    <published>2026-10-18T00:00:00Z</published>
+    <updated>2026-10-18T00:00:00Z</updated>
+    <summary>Lumina grows beyond PHP: Node.js and Python projects get their own .test address, more databases and services join the stack, and sharing, debugging and testing tools come built in.</summary>
+    <content type="html">
+          &lt;p class=&quot;rel-intro&quot;&gt;Lumina grows beyond PHP: Node.js and Python projects get their own &lt;code&gt;.test&lt;/code&gt; address, more databases and services join the stack, and sharing, debugging and testing tools come built in.&lt;/p&gt;
+&lt;ul&gt;
+            &lt;li&gt;&lt;strong&gt;Dev servers behind .test:&lt;/strong&gt; Node.js and Python projects get their own address too. A folder with Vite, Next.js, Nuxt, Astro, SvelteKit or React Router (and no PHP), or with Django, FastAPI or Flask, is served by its own dev server at &lt;code&gt;https://&amp;lt;folder&amp;gt;.test&lt;/code&gt;, with hot reload. Start it from the Sites page; Lumina runs it with its own Node.js and Python, on a fixed port per site, and shows its log. Any other command works too (Edit › Served by), and a dev server can start with Start All.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;More runtimes:&lt;/strong&gt; Bun, Deno, uv and pnpm in Quick Add, each on PATH in every terminal (&lt;code&gt;bun&lt;/code&gt;/&lt;code&gt;bunx&lt;/code&gt;, &lt;code&gt;deno&lt;/code&gt;, &lt;code&gt;uv&lt;/code&gt;/&lt;code&gt;uvx&lt;/code&gt;, &lt;code&gt;pnpm&lt;/code&gt;/&lt;code&gt;pnpx&lt;/code&gt;). A project&#x27;s &lt;code&gt;.nvmrc&lt;/code&gt;, &lt;code&gt;.node-version&lt;/code&gt;, &lt;code&gt;.python-version&lt;/code&gt; or &lt;code&gt;.tool-versions&lt;/code&gt; chooses the Node.js or Python its dev server runs with.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;A PHP version per site:&lt;/strong&gt; Edit a site and pick its PHP version; it gets its own PHP pool while other sites keep the shared one. Works with nginx and Apache.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;More services:&lt;/strong&gt; MongoDB, Valkey, Meilisearch, Typesense and SeaweedFS (S3-compatible storage) from Quick Add, each with its own card on the Services page and a place in Start All. Adminer, a one-file database manager for MySQL, MariaDB, PostgreSQL and SQLite, opens at &lt;code&gt;http://localhost/adminer/&lt;/code&gt;.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Mailpit:&lt;/strong&gt; Install Mailpit from Quick Add and every mail your sites send lands in a local inbox instead of a real mailbox. Apps send to &lt;code&gt;127.0.0.1:1025&lt;/code&gt; with any login; the inbox opens from its card on the Services page or from the tray. PHP&#x27;s &lt;code&gt;mail()&lt;/code&gt; goes there too (switch it off in Settings › Mail), and new Laravel projects from QuickApp are set up to use it. Start it with Start All like Redis.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Debugging:&lt;/strong&gt; Xdebug in one switch on the PHP card (Windows builds for PHP 8.1–8.5 in Quick Add), with a VS Code debug setup written into the project on request. Each site lists its latest requests (method, path, status, time). A webhook catcher records webhooks on a local address, can pass them on to a site, and replays any of them later.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Testing:&lt;/strong&gt; Database snapshots for MySQL, MariaDB and PostgreSQL: save a database before a migration and restore it in one click. Install Playwright&#x27;s browsers for a project from its row on the Sites page. Dev servers trust Lumina&#x27;s certificates, so their requests to &lt;code&gt;https://*.test&lt;/code&gt; work.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Sharing:&lt;/strong&gt; Share sites through Cloudflare Tunnel with no account (a random &lt;code&gt;trycloudflare.com&lt;/code&gt; address), next to ngrok. &quot;Share on my network&quot; serves the sites to phones and tablets on the same Wi-Fi at &lt;code&gt;http://&amp;lt;site&amp;gt;.&amp;lt;ip&amp;gt;.nip.io&lt;/code&gt;, with a QR code; phpMyAdmin and Adminer still answer only this computer.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Quick Add:&lt;/strong&gt; More versions to choose from (three of most tools and services, the long-term MongoDB lines among them), and every download shows its size. A paused download can be discarded instead of only resumed. Tools with no download for your system (Valkey and Typesense on Windows) are no longer listed there.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Not installed, said plainly:&lt;/strong&gt; Services that are not installed carry a &quot;Not installed&quot; label on the Dashboard and the Services page, with an Install button that opens Quick Add on them, instead of a Start button that fails. Starting one anyway says &quot;MySQL is not installed yet&quot; with the same button, and the service is no longer marked as failed.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Settings, redesigned:&lt;/strong&gt; Every setting sits on its own row with a short explanation, on/off options are switches, and a section&#x27;s Save button wakes up only when something changed, with Undo next to it. A side index follows you down the page, and the page uses the whole window. About and updates, now last, shows the license and links to the source code.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Cleaner window:&lt;/strong&gt; The sidebar starts straight with the pages; the window title already names the app.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Sleep and resume:&lt;/strong&gt; When the computer wakes up, Lumina checks that every running service still answers and restarts any that does not, renews certificates that came due while it slept, and refreshes the Sharing page.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Fixes:&lt;/strong&gt; Stopping a terminal tool that runs &lt;code&gt;node&lt;/code&gt;, &lt;code&gt;php&lt;/code&gt; or &lt;code&gt;python&lt;/code&gt; through Lumina (for example a Vite dev server) now stops the program too, instead of leaving it running and holding its port; Lumina updates those commands even while one of them is running. &quot;Open terminal&quot; works with Windows Terminal again, instead of opening a tab that fails with &lt;code&gt;%PATH%&lt;/code&gt;. Choosing a version is no longer offered for Adminer and Xdebug, where it failed.&lt;/li&gt;
+&lt;/ul&gt;</content>
+  </entry>
+  <entry>
+    <title>Lumina 0.3.0</title>
+    <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/#v0.3.0"/>
+    <id>tag:lumina.hexdev.tech,2026-10-15:v0.3.0</id>
+    <published>2026-10-15T00:00:00Z</published>
+    <updated>2026-10-15T00:00:00Z</updated>
+    <summary>Lumina now sets up a stack on macOS and Linux, using official downloads and Homebrew, the standard way on those systems.</summary>
+    <content type="html">
+          &lt;p class=&quot;rel-intro&quot;&gt;Lumina now sets up a stack on macOS and Linux, using official downloads and Homebrew, the standard way on those systems.&lt;/p&gt;
+&lt;ul&gt;
+            &lt;li&gt;&lt;strong&gt;macOS and Linux downloads:&lt;/strong&gt; Quick Add installs MySQL (macOS and Linux), PostgreSQL (macOS) and Python (macOS and Linux) straight from their official downloads, each checked against its SHA-256.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Homebrew:&lt;/strong&gt; PHP, nginx, Apache, MariaDB and Redis publish no downloads for macOS and Linux. Quick Add shows the &lt;code&gt;brew install&lt;/code&gt; command for them, and Lumina finds the Homebrew versions on its own and runs them with its own settings, sites and HTTPS. Homebrew versions carry a Homebrew badge and can be chosen like any other.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Clearer messages:&lt;/strong&gt; Quick Add explains how to get a server instead of only saying that no download exists.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Fixes:&lt;/strong&gt; On macOS the window no longer scrolls or bounces past its edges. Quick Add unpacks &lt;code&gt;.tar.xz&lt;/code&gt; archives (MySQL for Linux).&lt;/li&gt;
+&lt;/ul&gt;</content>
+  </entry>
+  <entry>
+    <title>Lumina 0.2.0</title>
+    <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/#v0.2.0"/>
+    <id>tag:lumina.hexdev.tech,2026-10-15:v0.2.0</id>
+    <published>2026-10-15T00:00:00Z</published>
+    <updated>2026-10-15T00:00:00Z</updated>
+    <summary>PostgreSQL joins the stack, the tray menu grows into a full control panel, and the app gets a new look.</summary>
+    <content type="html">
+          &lt;p class=&quot;rel-intro&quot;&gt;PostgreSQL joins the stack, the tray menu grows into a full control panel, and the app gets a new look.&lt;/p&gt;
+&lt;ul&gt;
+            &lt;li&gt;&lt;strong&gt;PostgreSQL:&lt;/strong&gt; Install PostgreSQL 18 or 17 from Quick Add and run it next to MySQL or MariaDB. Its first start creates the data folder (user &lt;code&gt;postgres&lt;/code&gt;, no password, local connections only); each major version keeps its own data. Start it with Start All, include it in profiles, change its port in Settings and edit &lt;code&gt;postgresql.conf&lt;/code&gt; from its card. PHP loads the &lt;code&gt;pgsql&lt;/code&gt; and &lt;code&gt;pdo_pgsql&lt;/code&gt; extensions.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Tray menu:&lt;/strong&gt; One submenu per service, as in classic local-server panels: start or stop it, pick its version, open its config file and its log. A green dot marks what runs. www lists your projects, Tools opens a terminal, and Node.js and Python versions are a click away. If an action fails, a notification says why.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Right-click menu:&lt;/strong&gt; Right-clicking inside the window opens the same menu. Text fields keep their Cut, Copy and Paste menu.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;New look:&lt;/strong&gt; A graphite dark theme and a clean light theme with an amber accent, the Manrope and Roboto Mono fonts, Noto Sans Sinhala for Sinhala text, and short, quiet animations (switched off when your system asks for reduced motion). Focused fields show an amber border.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Notepad++ by default:&lt;/strong&gt; New installs on Windows open projects and config files in Notepad++, found even when it is not on PATH. macOS and Linux keep VS Code. Choose any editor in Settings.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Fixes:&lt;/strong&gt; The tray follows a language change at once, and its version lists follow installs, settings and new projects.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;License:&lt;/strong&gt; Lumina is now licensed under the GNU General Public License v3.0 (copyright Sandun Prasanna). Copies and modified versions must keep the copyright notice and stay open source under the same license.&lt;/li&gt;
+&lt;/ul&gt;</content>
+  </entry>
+  <entry>
+    <title>Lumina 0.1.0</title>
+    <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/#v0.1.0"/>
+    <id>tag:lumina.hexdev.tech,2026-10-15:v0.1.0</id>
+    <published>2026-10-15T00:00:00Z</published>
+    <updated>2026-10-15T00:00:00Z</updated>
+    <summary>The first release of Lumina: a local development environment for PHP for Windows, macOS and Linux.</summary>
+    <content type="html">
+          &lt;p class=&quot;rel-intro&quot;&gt;The first release of Lumina: a local development environment for PHP for Windows, macOS and Linux.&lt;/p&gt;
+&lt;ul&gt;
+            &lt;li&gt;&lt;strong&gt;One-click stack:&lt;/strong&gt; PHP (FastCGI) with nginx or Apache, MySQL or MariaDB, and Redis. Start All / Stop All from the dashboard or the tray; every process Lumina starts is stopped with it, so nothing keeps running in the background.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Automatic sites:&lt;/strong&gt; Every folder in your projects folder becomes &lt;code&gt;&amp;lt;folder&amp;gt;.test&lt;/code&gt;, with the hosts file kept up to date (one administrator prompt when it changes).&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;HTTPS that just works:&lt;/strong&gt; A certificate authority that exists only on your computer gives every site and &lt;code&gt;localhost&lt;/code&gt; a trusted certificate. Force HTTPS is one switch.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Quick Add:&lt;/strong&gt; Install and switch PHP, nginx, Apache, MySQL, MariaDB, Redis, Node.js, Python, Composer, phpMyAdmin and ngrok versions. Every download is checked against its SHA-256 before it is used.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;QuickApp:&lt;/strong&gt; New Laravel, WordPress, Symfony, CodeIgniter, Drupal, Joomla, Statamic, Vite or plain PHP projects in one click, with their database created and their site ready. Cancelling stops everything the installer started.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Profiles:&lt;/strong&gt; Save stacks such as &quot;nginx · PHP 8.3 · MySQL 8.4&quot; and switch between them in one click, from the app or the tray.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Terminal PATH:&lt;/strong&gt; &lt;code&gt;php&lt;/code&gt;, &lt;code&gt;composer&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; in every terminal follow Lumina&#x27;s active versions.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Sharing:&lt;/strong&gt; Share a site on a public HTTPS address through ngrok, with a QR code for your phone. Links and redirects use the public address.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Logs:&lt;/strong&gt; Every log in one place, live, with a filter.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;English and Sinhala:&lt;/strong&gt; The whole app, the tray menu and notifications in both languages.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Automatic updates:&lt;/strong&gt; Lumina checks for new versions and installs them on request. Updates are signed and verified first, and the services that were running start again afterwards. Choose the stable or beta channel in Settings.&lt;/li&gt;
+&lt;/ul&gt;</content>
+  </entry>
+</feed>

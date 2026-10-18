@@ -5,7 +5,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://lumina.hexdev.tech/</loc>
-    <lastmod>2026-10-16T01:56:31+00:00</lastmod>
+    <lastmod>2026-10-18T04:58:37+00:00</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
     <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
@@ -18,7 +18,7 @@
   </url>
   <url>
     <loc>https://lumina.hexdev.tech/si/</loc>
-    <lastmod>2026-10-16T01:56:31+00:00</lastmod>
+    <lastmod>2026-10-18T04:58:37+00:00</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
     <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
@@ -27,6 +27,13 @@
     </image:image>
     <image:image>
       <image:loc>https://lumina.hexdev.tech/assets/icon-512.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/changelog/</loc>
+    <lastmod>2026-10-18T04:58:37+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
     </image:image>
   </url>
 </urlset>
