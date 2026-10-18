@@ -159,9 +159,12 @@ fn unzip(archive: &Path, release: &Release, dest: &Path) -> Result<()> {
     for i in 0..zip.len() {
         let mut entry = zip.by_index(i).map_err(|e| Error::Archive(e.to_string()))?;
         // `enclosed_name` already rejects `..` and absolute names.
-        let name = entry
-            .enclosed_name()
-            .ok_or_else(|| Error::Archive(format!("unsafe path in archive: {}", entry.name())))?;
+        let name = entry.enclosed_name().ok_or_else(|| {
+            Error::Archive(format!(
+                "unsafe path in archive: {}",
+                entry.name().unwrap_or_default()
+            ))
+        })?;
         let Some(rel) = target(&name, release.strip, release.subdir.as_deref())? else {
             continue;
         };

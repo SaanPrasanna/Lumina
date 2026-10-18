@@ -29,6 +29,18 @@ yanked = "warn"
 # today (unic-*, proc-macro-error) come in through Tauri and its GTK bindings
 # and cannot be replaced from here; they are tracked upstream.
 unmaintained = "workspace"
+# zip 4.x, pulled in only by tauri-plugin-updater (every release, 2.14.0 and
+# 3.0.0-alpha.3 included, requires zip ^4, and 4.x has no fixed release).
+# Lumina itself uses zip 9. The advisories concern ZipArchive::extract() on
+# attacker-supplied archives creating SUID/SGID files or symlinks that point
+# outside the destination; the updater uses zip on Windows only (no SUID bits
+# or such symlinks there) and only for an update whose signature it verified
+# first. Remove these once the updater moves to zip >= 9.
+ignore = [
+  { id = "RUSTSEC-2026-0367", reason = "zip 4.x via tauri-plugin-updater only: Windows, signed updates" },
+  { id = "RUSTSEC-2026-0368", reason = "zip 4.x via tauri-plugin-updater only: Windows, signed updates" },
+  { id = "RUSTSEC-2026-0369", reason = "zip 4.x via tauri-plugin-updater only: Windows, signed updates" },
+]
 
 [bans]
 multiple-versions = "warn"
