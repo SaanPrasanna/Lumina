@@ -4,12 +4,16 @@
 
 # Lumina
 
-**A fast, open-source local development environment for PHP, on Windows, macOS and Linux.**
+**A fast, open-source local development environment for web developers, on Windows, macOS and Linux.**
 
+**🌐 [lumina.hexdev.tech](https://lumina.hexdev.tech/)**
+
+[![Website](https://img.shields.io/badge/website-lumina.hexdev.tech-d97706)](https://lumina.hexdev.tech/)
 [![Latest release](https://img.shields.io/github/v/release/SaanPrasanna/Lumina?sort=semver)](https://github.com/SaanPrasanna/Lumina/releases/latest)
 [![CI](https://github.com/SaanPrasanna/Lumina/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/SaanPrasanna/Lumina/actions/workflows/ci.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
+[Website](https://lumina.hexdev.tech/) ·
 [Download](https://github.com/SaanPrasanna/Lumina/releases/latest) ·
 [Install guide](INSTALL.md) ·
 [Changelog](CHANGELOG.md) ·
@@ -28,13 +32,19 @@ running in the background.
 ## Features
 
 - **One-click stack.** PHP (FastCGI) with nginx or Apache, MySQL or MariaDB,
-  PostgreSQL and Redis. Start All / Stop All from the dashboard or the tray.
+  PostgreSQL, Redis and Mailpit, plus MongoDB, Valkey, Meilisearch, Typesense
+  and SeaweedFS (S3). Start All / Stop All from the dashboard or the tray.
 - **Automatic sites.** Every folder in your projects folder becomes
-  `<folder>.test`; the hosts file is kept up to date for you.
+  `<folder>.test`; the hosts file is kept up to date for you. Each site can
+  use its own PHP version.
+- **Node.js and Python too.** Vite, Next.js, Nuxt, Astro, SvelteKit, Django,
+  FastAPI and Flask projects are served by their own dev server at
+  `<folder>.test`, with hot reload and the runtime version the project asks for.
 - **Trusted local HTTPS.** A certificate authority that exists only on your
   computer gives every site and `localhost` a certificate browsers trust.
 - **Quick Add.** Install and switch versions of PHP, nginx, Apache, MySQL,
-  MariaDB, PostgreSQL, Redis, Node.js, Python, Composer, phpMyAdmin and ngrok.
+  MariaDB, PostgreSQL, Redis, the services above, Node.js, Python, Bun, Deno,
+  uv, pnpm, Composer, Xdebug, phpMyAdmin, Adminer, ngrok and cloudflared.
   Every download is verified against its SHA-256 checksum before it is used.
 - **QuickApp.** New Laravel, WordPress, Symfony, CodeIgniter, Drupal, Joomla,
   Statamic, Vite or plain PHP projects in one click, database and site included.
@@ -43,10 +53,14 @@ running in the background.
 - **Tray control panel.** A menu per service to start or stop it, pick its
   version and open its config file or log. The same menu opens on right-click
   inside the window.
-- **Terminal PATH.** `php`, `composer` and `node` in every terminal follow
-  Lumina's active versions.
-- **Sharing.** Put a site on a public HTTPS address through ngrok, with a QR
-  code for your phone.
+- **Terminal PATH.** `php`, `composer`, `node`, `bun`, `pnpm` and the rest in
+  every terminal follow Lumina's active versions.
+- **Sharing.** Put a site on a public HTTPS address through ngrok or
+  Cloudflare Tunnel (no account needed), or share every site with phones on
+  your Wi-Fi, with a QR code.
+- **Debugging and testing.** Mailpit catches outgoing mail, Xdebug is one
+  switch, each site lists its recent requests, a webhook catcher records and
+  replays webhooks, and database snapshots restore a database in one click.
 - **Logs.** Every service log in one place, live, with a filter.
 - **Automatic updates.** Signed updates, verified before they are installed,
   on a stable or beta channel.
