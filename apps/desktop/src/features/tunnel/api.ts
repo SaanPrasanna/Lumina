@@ -15,6 +15,8 @@ export const tunnelStart = (name: string, domain: string | null) => commands.tun
 export const tunnelStop = (name: string) => commands.tunnelStop(name);
 export const tunnelStopAll = () => commands.tunnelStopAll();
 export const tunnelOpenLog = () => commands.tunnelOpenLog();
+/** `ngrok` or `cloudflare`. */
+export const tunnelSetProvider = (provider: string) => commands.tunnelSetProvider(provider);
 
 /** Where ngrok shows a user's authtoken. */
 export const TOKEN_URL = "https://dashboard.ngrok.com/get-started/your-authtoken";

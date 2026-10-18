@@ -104,6 +104,9 @@ pub struct PackageView {
     pub homepage: String,
     /// The configured choice: "" = newest (phpMyAdmin: newest compatible).
     pub selected: String,
+    /// Whether a version can be chosen. Adminer always uses the newest and
+    /// Xdebug the build for the active PHP.
+    pub pickable: bool,
     /// The version that is used: the running one, else the selected one.
     pub active: Option<String>,
     pub running: Option<String>,
@@ -141,6 +144,16 @@ pub(crate) fn selected(cfg: &AppConfig, id: &str) -> Option<String> {
         "composer" => cfg.tools.composer.clone(),
         "phpmyadmin" => cfg.tools.phpmyadmin.clone(),
         "ngrok" => cfg.tools.ngrok.clone(),
+        "bun" => cfg.tools.bun.clone(),
+        "deno" => cfg.tools.deno.clone(),
+        "uv" => cfg.tools.uv.clone(),
+        "pnpm" => cfg.tools.pnpm.clone(),
+        "cloudflared" => cfg.tools.cloudflared.clone(),
+        id if lumina_services::extra::definition(id).is_some() => cfg
+            .services
+            .get(id)
+            .map(|s| s.version.clone())
+            .unwrap_or_default(),
         _ => return None,
     })
 }
@@ -160,6 +173,14 @@ fn set_selected(cfg: &mut AppConfig, id: &str, version: String) -> lumina_core::
         "composer" => &mut cfg.tools.composer,
         "phpmyadmin" => &mut cfg.tools.phpmyadmin,
         "ngrok" => &mut cfg.tools.ngrok,
+        "bun" => &mut cfg.tools.bun,
+        "deno" => &mut cfg.tools.deno,
+        "uv" => &mut cfg.tools.uv,
+        "pnpm" => &mut cfg.tools.pnpm,
+        "cloudflared" => &mut cfg.tools.cloudflared,
+        id if lumina_services::extra::definition(id).is_some() => {
+            &mut cfg.services.entry(id.to_owned()).or_default().version
+        }
         other => return Err(Error::Other(format!("unknown package `{other}`"))),
     };
     *slot = version;
@@ -250,6 +271,7 @@ async fn view(
     };
     let mut versions: Vec<String> = installed.iter().map(|i| i.version.clone()).collect();
     versions.extend(brewed.iter().map(|i| i.version.clone()));
+    let pickable = selected(cfg, &package.id).is_some();
     let selected = selected(cfg, &package.id).unwrap_or_default();
     let running = running_version(rt, &package.id).await;
     let active = if package.id == "phpmyadmin" {
@@ -319,6 +341,7 @@ async fn view(
         description: package.description.clone(),
         homepage: package.homepage.clone(),
         selected,
+        pickable,
         active,
         running,
         installed: installed_views,
@@ -329,6 +352,21 @@ async fn view(
             install_command: format!("brew install {formula}"),
         }),
     }
+}
+
+/// Whether this system can get `id` at all: a catalog download for it, or a
+/// Homebrew formula. Valkey and Typesense publish no Windows builds.
+pub(crate) fn offered_here(rt: &Runtime, id: &str) -> bool {
+    let (os, arch) = lumina_packages::catalog::platform();
+    homebrew_formula(id).is_some()
+        || rt
+            .packages
+            .catalog()
+            .packages
+            .iter()
+            .filter(|p| p.id == id)
+            .flat_map(|p| &p.versions)
+            .any(|r| r.fits(os, arch))
 }
 
 /// The Homebrew formula of a server, on macOS and Linux.
@@ -345,7 +383,7 @@ fn homebrew_formula(id: &str) -> Option<&'static str> {
         "redis" => "redis",
         "postgresql" => "postgresql@18",
         "mailpit" => "mailpit",
-        _ => return None,
+        id => return lumina_services::extra::definition(id).map(|d| d.homebrew),
     })
 }
 
@@ -361,7 +399,10 @@ async fn service_installs(rt: &Runtime, id: &str) -> Vec<Install> {
         "redis" => stack.redis().versions().await,
         "postgresql" => stack.postgresql().versions().await,
         "mailpit" => stack.mailpit().versions().await,
-        _ => Vec::new(),
+        id => match lumina_services::extra::definition(id) {
+            Some(def) => stack.extras().versions(def).await,
+            None => Vec::new(),
+        },
     }
 }
 
@@ -378,7 +419,12 @@ pub async fn packages_list(
     let db_ui = rt.stack.db_ui(&cfg).await.map(|u| u.version);
     let mut packages = Vec::new();
     for package in &rt.packages.catalog().packages {
-        packages.push(view(&rt, &jobs, package, &cfg, php.as_deref(), db_ui.as_deref()).await);
+        let view = view(&rt, &jobs, package, &cfg, php.as_deref(), db_ui.as_deref()).await;
+        // Nothing to install here and nothing installed: leave it out.
+        if view.available.is_empty() && view.installed.is_empty() && view.homebrew.is_none() {
+            continue;
+        }
+        packages.push(view);
     }
     Ok(PackagesOverview {
         packages,
@@ -540,6 +586,31 @@ pub fn package_dismiss(app: AppHandle, id: String, version: String) {
     let _ = app.emit(events::PACKAGES_CHANGED, ());
 }
 
+/// Deletes a paused download (the "Discard" next to "Resume").
+#[tauri::command]
+#[specta::specta]
+pub fn package_discard(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    id: String,
+    version: String,
+) -> CommandResult<()> {
+    let jobs = app.state::<Jobs>();
+    let mut map = jobs.lock();
+    if map.get(&key(&id, &version)).is_some_and(|j| !j.done) {
+        return Err(Error::Other(format!("{id} {version} is still downloading")).into());
+    }
+    map.remove(&key(&id, &version));
+    drop(map);
+    state
+        .runtime()?
+        .packages
+        .discard_partial(&id, &version)
+        .map_err(lumina_core::Error::from)?;
+    let _ = app.emit(events::PACKAGES_CHANGED, ());
+    Ok(())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn package_uninstall(
@@ -614,6 +685,11 @@ pub async fn set_active(
             rt.stack.restart(kind, &cfg).await?;
         }
     }
+    if let Some(def) = lumina_services::extra::definition(id)
+        && rt.stack.extras().is_running(def).await
+    {
+        rt.stack.restart_extra(id, &cfg).await?;
+    }
     after_change(app, rt, id).await;
     let _ = app.emit(events::PACKAGES_CHANGED, ());
     Ok(())
@@ -627,8 +703,8 @@ async fn after_change(app: &AppHandle, rt: &Arc<Runtime>, id: &str) {
         // Outside Windows, PHP's sendmail_path names the Mailpit program.
         crate::commands::settings::restart_php_for_mail(rt).await;
     }
-    if id == "phpmyadmin" || id == "php" {
-        // /phpmyadmin/ follows the installed versions and the active PHP.
+    if id == "phpmyadmin" || id == "php" || id == "adminer" {
+        // /phpmyadmin/ and /adminer/ follow the installed versions and the active PHP.
         sites::resync_later(app);
     }
 }
@@ -644,7 +720,7 @@ pub async fn db_ui_open(app: AppHandle, state: State<'_, AppState>) -> CommandRe
 pub async fn open_db_ui(app: &AppHandle, rt: &Runtime) -> CommandResult<()> {
     let cfg = rt.config();
     if rt.packages.installed("phpmyadmin").is_empty() {
-        return Err(Error::Other("phpMyAdmin is not installed; add it in Quick Add".into()).into());
+        return Err(Error::not_installed("phpmyadmin", "phpMyAdmin").into());
     }
     if rt.stack.db_ui(&cfg).await.is_none() {
         return Err(Error::Other(

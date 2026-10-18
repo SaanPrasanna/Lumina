@@ -1,24 +1,35 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Code, ExternalLink, FolderOpen, Pencil, RefreshCw, ShieldCheck, SquareTerminal } from "lucide-react";
+import { Activity, Bug, Code, Drama, ExternalLink, FolderOpen, Pencil, RefreshCw, ShieldCheck, SquareTerminal } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
 import { editorOpen, terminalOpen } from "@/features/env-path/api";
-import { openWww } from "@/features/services/api";
+import { openWww, PHP_VERSIONS_KEY, phpVersions } from "@/features/services/api";
+import { DevServer, fullOverride, isDefaultOverride, ServedByFields } from "@/features/sites/DevServer";
 import { HttpsCard } from "@/features/sites/HttpsCard";
+import { Requests } from "@/features/sites/Requests";
+import { WebhooksCard } from "@/features/sites/Webhooks";
 import { formatDate, SSL_KEY, sslStatus } from "@/features/sites/ssl";
-import { type AppConfig, SETTINGS_KEY, settingsGet, settingsUpdate } from "@/features/settings/api";
+import { type AppConfig, SETTINGS_KEY, type SiteOverride, settingsGet, settingsUpdate } from "@/features/settings/api";
 import { ShareButton, SharePanel, useSiteShare } from "@/features/tunnel";
-import { TUNNEL_KEY, type TunnelOverview, tunnelOverview } from "@/features/tunnel/api";
+import { qrSource, TUNNEL_KEY, type TunnelOverview, tunnelOverview } from "@/features/tunnel/api";
 import {
+  APPS_KEY,
+  type AppStatus,
+  appsStatus,
+  LAN_KEY,
+  type LanOverview,
+  lanOverview,
   type HostsReport,
   type Site,
   SITES_KEY,
   type Skipped,
   siteOpen,
   siteOpenFolder,
+  sitePlaywrightInstall,
+  siteXdebugConfig,
   sitesList,
   sitesSync,
   type SitesOverview,
@@ -56,6 +67,7 @@ export function SitesPage() {
             <HttpsCard />
             <HostsStatus hosts={data.hosts} webRunning={data.webRunning} onRetry={() => action.mutate(sitesSync)} busy={action.isPending} />
             {data.autoVhosts && <SiteList data={data} config={config} />}
+            <WebhooksCard config={config} sites={data.sites} />
           </>
         )}
       </div>
@@ -108,6 +120,16 @@ function AutoSettings({ data, config }: { data: SitesOverview; config: AppConfig
           />
           {t("sites.auto.enabled")}
         </label>
+        <label className="flex items-center gap-2.5 text-sm" title={t("sites.lan.hint")}>
+          <input
+            type="checkbox"
+            className="size-4 accent-accent"
+            checked={config.general.lan}
+            disabled={save.isPending}
+            onChange={(e) => update({ lan: e.target.checked })}
+          />
+          {t("sites.lan.enabled")}
+        </label>
         <form onSubmit={submit} className="flex items-end gap-2">
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium">{t("sites.auto.tld")}</span>
@@ -131,6 +153,7 @@ function AutoSettings({ data, config }: { data: SitesOverview; config: AppConfig
         </form>
       </div>
       {cleaned === "local" && <p className="mt-3 text-sm text-warn">{t("sites.auto.localWarning")}</p>}
+      {config.general.lan && <p className="mt-3 text-sm text-muted">{t("sites.lan.hint")}</p>}
       <div className="mt-3">
         <ErrorBox error={save.error} />
       </div>
@@ -204,6 +227,8 @@ export function HostsStatus(props: { hosts: HostsReport; webRunning: boolean; bu
 function SiteList({ data, config }: { data: SitesOverview; config: AppConfig }) {
   const { t } = useTranslation();
   const tunnels = useQuery({ queryKey: TUNNEL_KEY, queryFn: tunnelOverview });
+  const apps = useQuery({ queryKey: APPS_KEY, queryFn: appsStatus, enabled: data.sites.some((s) => s.app) });
+  const lan = useQuery({ queryKey: LAN_KEY, queryFn: lanOverview, enabled: config.general.lan });
   const [search, setSearch] = useState("");
   const needle = search.trim().toLowerCase();
   const shown = needle ? data.sites.filter((s) => s.domain.includes(needle) || s.name.toLowerCase().includes(needle)) : data.sites;
@@ -230,7 +255,15 @@ function SiteList({ data, config }: { data: SitesOverview; config: AppConfig }) 
       {shown.length === 0 && data.sites.length > 0 && <p className="text-sm text-muted">{t("sites.noMatch")}</p>}
       <ul className="divide-y divide-line rounded-xl border border-line empty:hidden" aria-label={t("nav.sites")}>
         {shown.map((site) => (
-          <SiteRow key={site.name} site={site} config={config} webRunning={data.webRunning} tunnels={tunnels.data} />
+          <SiteRow
+            key={site.name}
+            site={site}
+            config={config}
+            webRunning={data.webRunning}
+            tunnels={tunnels.data}
+            app={apps.data?.find((a) => a.name === site.name)}
+            lan={lan.data}
+          />
         ))}
       </ul>
       {data.skipped.length > 0 && <SkippedList skipped={data.skipped} config={config} />}
@@ -244,22 +277,33 @@ function docrootLabel(t: (k: string) => string, site: Site): string {
   return site.docrootSource.subdir ? `${site.docrootSource.subdir}/` : t("sites.docrootFolder");
 }
 
-function SiteRow(props: { site: Site; config: AppConfig; webRunning: boolean; tunnels: TunnelOverview | undefined }) {
+function SiteRow(props: {
+  site: Site;
+  config: AppConfig;
+  webRunning: boolean;
+  tunnels: TunnelOverview | undefined;
+  app: AppStatus | undefined;
+  lan: LanOverview | undefined;
+}) {
   const { site, config, webRunning } = props;
   const { t, i18n } = useTranslation();
   const share = useSiteShare(site.name, props.tunnels, config.web);
   const ssl = useQuery({ queryKey: SSL_KEY, queryFn: sslStatus });
   const cert = ssl.data?.enabled ? ssl.data.sites.find((c) => c.domain === site.domain) : undefined;
   const [editing, setEditing] = useState(false);
+  const [showRequests, setShowRequests] = useState(false);
   const action = useSitesAction();
-  const current = config.sites[site.name] ?? { enabled: true, docroot: "" };
-  const [docroot, setDocroot] = useState(current.docroot);
+  const current = fullOverride(config.sites[site.name]);
+  const php = useQuery({ queryKey: PHP_VERSIONS_KEY, queryFn: phpVersions, enabled: editing });
+  const [form, setForm] = useState<SiteOverride>(current);
+  const servedByApp = form.kind === "app" || (form.kind === "auto" && (!!(site.app && !site.app.configured) || form.command.trim() !== ""));
 
-  const saveOverride = (next: { enabled: boolean; docroot: string }) =>
+  const saveOverride = (next: SiteOverride) =>
     action.mutate(async () => {
       const sites = { ...config.sites };
-      if (next.enabled && next.docroot.trim() === "") delete sites[site.name];
-      else sites[site.name] = { enabled: next.enabled, docroot: next.docroot.trim() };
+      const cleaned = { ...next, docroot: next.docroot.trim(), command: next.command.trim() };
+      if (isDefaultOverride(cleaned)) delete sites[site.name];
+      else sites[site.name] = cleaned;
       await settingsUpdate("sites", sites);
       setEditing(false);
     });
@@ -272,14 +316,17 @@ function SiteRow(props: { site: Site; config: AppConfig; webRunning: boolean; tu
             {site.domain}
           </p>
           <p className="mt-0.5 truncate text-xs text-muted">
-            {t("sites.row", { folder: site.name, docroot: docrootLabel(t, site), interpolation: { escapeValue: false } })}
+            {site.app
+              ? t("sites.rowApp", { folder: site.name, framework: site.app.framework, interpolation: { escapeValue: false } })
+              : t("sites.row", { folder: site.name, docroot: docrootLabel(t, site), interpolation: { escapeValue: false } })}
+            {!site.app && site.php && ` · ${t("sites.phpVersion", { version: site.php })}`}
           </p>
           {cert && (
             <p className="mt-0.5 text-xs text-muted">
               {t("ssl.siteCert", { date: formatDate(cert.notAfter, i18n.language) })}
             </p>
           )}
-          {!site.docrootExists && <p className="mt-0.5 text-xs text-warn">{t("sites.docrootMissing")}</p>}
+          {!site.app && !site.docrootExists && <p className="mt-0.5 text-xs text-warn">{t("sites.docrootMissing")}</p>}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => action.mutate(() => siteOpen(site.domain))} disabled={!webRunning} icon={<ExternalLink />}>
@@ -292,38 +339,80 @@ function SiteRow(props: { site: Site; config: AppConfig; webRunning: boolean; tu
           <Button onClick={() => action.mutate(() => siteOpenFolder(site.name))} icon={<FolderOpen />}>
             {t("sites.folder")}
           </Button>
-          <ShareButton share={share} disabled={!site.docrootExists} />
+          <ShareButton share={share} disabled={!site.app && !site.docrootExists} />
+          {site.node && (
+            <Button onClick={() => action.mutate(() => sitePlaywrightInstall(site.name))} disabled={action.isPending} icon={<Drama />} title={t("sites.playwrightHint")}>
+              {action.isPending ? t("sites.playwrightBusy") : t("sites.playwright")}
+            </Button>
+          )}
+          {config.php.xdebug && !site.app && (
+            <Button
+              onClick={() =>
+                action.mutate(async () => {
+                  await siteXdebugConfig(site.name);
+                  await editorOpen({ kind: "site", name: site.name });
+                })
+              }
+              icon={<Bug />}
+              title={t("sites.xdebugConfigHint")}
+            >
+              {t("sites.xdebugConfig")}
+            </Button>
+          )}
+          <Button onClick={() => setShowRequests(!showRequests)} aria-expanded={showRequests} icon={<Activity />}>
+            {t("sites.requests.button")}
+          </Button>
           <Button onClick={() => setEditing(!editing)} aria-expanded={editing} icon={<Pencil />}>
             {t("sites.edit")}
           </Button>
         </div>
       </div>
+      <LanAddress site={site} lan={props.lan} />
+      <DevServer site={site} status={props.app} />
+      {showRequests && <Requests name={site.name} />}
       <SharePanel share={share} />
       {editing && (
         <form
           className="mt-3 flex flex-wrap items-end gap-3"
           onSubmit={(e) => {
             e.preventDefault();
-            saveOverride({ enabled: true, docroot });
+            saveOverride({ ...form, enabled: true });
           }}
         >
-          <label className="flex min-w-64 flex-1 flex-col gap-1.5 text-sm">
-            <span className="font-medium">{t("sites.docroot")}</span>
-            <input
-              className="rounded-md border border-line bg-surface px-3 py-1.5 font-mono"
-              dir="ltr"
-              placeholder={t("sites.docrootPlaceholder")}
-              value={docroot}
-              onChange={(e) => setDocroot(e.target.value)}
-            />
-          </label>
+          <ServedByFields site={site} value={form} onChange={setForm} />
+          {!servedByApp && (
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium">{t("sites.php")}</span>
+              <select className="rounded-md border border-line bg-surface px-3 py-1.5" value={form.php} onChange={(e) => setForm({ ...form, php: e.target.value })}>
+                <option value="">{t("sites.phpShared", { version: config.php.version || t("sites.phpNewest") })}</option>
+                {(php.data ?? []).map((v) => (
+                  <option key={v.version} value={v.version}>
+                    {t("sites.phpVersion", { version: v.version })}
+                  </option>
+                ))}
+                {form.php && !(php.data ?? []).some((v) => v.version === form.php) && <option value={form.php}>{t("sites.phpVersion", { version: form.php })}</option>}
+              </select>
+            </label>
+          )}
+          {!servedByApp && (
+            <label className="flex min-w-64 flex-1 flex-col gap-1.5 text-sm">
+              <span className="font-medium">{t("sites.docroot")}</span>
+              <input
+                className="rounded-md border border-line bg-surface px-3 py-1.5 font-mono"
+                dir="ltr"
+                placeholder={t("sites.docrootPlaceholder")}
+                value={form.docroot}
+                onChange={(e) => setForm({ ...form, docroot: e.target.value })}
+              />
+            </label>
+          )}
           <button type="submit" disabled={action.isPending} className="rounded-md bg-accent px-3 py-1.5 text-sm text-on-accent hover:bg-accent-strong disabled:opacity-50">
             {t("actions.save")}
           </button>
           <button
             type="button"
             disabled={action.isPending}
-            onClick={() => saveOverride({ enabled: false, docroot: current.docroot })}
+            onClick={() => saveOverride({ ...current, enabled: false })}
             className="rounded-md border border-line px-3 py-1.5 text-sm hover:bg-hover disabled:opacity-50"
           >
             {t("sites.disable")}
@@ -337,15 +426,33 @@ function SiteRow(props: { site: Site; config: AppConfig; webRunning: boolean; tu
   );
 }
 
+/** The site's address for phones and tablets on the same network, with a QR code. */
+function LanAddress({ site, lan }: { site: Site; lan: LanOverview | undefined }) {
+  const { t } = useTranslation();
+  const [qr, setQr] = useState(false);
+  const entry = lan?.sites.find((s) => s.name === site.name);
+  if (!lan?.enabled) return null;
+  if (!entry) return <p className="mt-1 text-xs text-warn">{t("sites.lan.noNetwork")}</p>;
+  return (
+    <div className="mt-1 text-xs text-muted">
+      {t("sites.lan.address")}{" "}
+      <button type="button" className="font-mono text-accent-ink underline" dir="ltr" onClick={() => setQr(!qr)} aria-expanded={qr}>
+        {entry.url}
+      </button>
+      {qr && <img className="mt-2 size-40 rounded bg-white p-2" src={qrSource(entry.qrSvg)} alt={t("sites.lan.qr", { url: entry.url })} />}
+    </div>
+  );
+}
+
 function SkippedList({ skipped, config }: { skipped: Skipped[]; config: AppConfig }) {
   const { t } = useTranslation();
   const action = useSitesAction();
   const enable = (name: string) =>
     action.mutate(() => {
       const sites = { ...config.sites };
-      const docroot = sites[name]?.docroot ?? "";
-      if (docroot === "") delete sites[name];
-      else sites[name] = { enabled: true, docroot };
+      const next = { ...fullOverride(sites[name]), enabled: true };
+      if (isDefaultOverride(next)) delete sites[name];
+      else sites[name] = next;
       return settingsUpdate("sites", sites);
     });
 

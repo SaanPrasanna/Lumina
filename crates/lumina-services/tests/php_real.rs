@@ -79,6 +79,7 @@ fn config(version: &str, children: u32) -> PhpConfig {
         fcgi_fallback_port: free_port(),
         fcgi_children: children,
         fcgi_max_requests: 0,
+        xdebug: false,
     }
 }
 

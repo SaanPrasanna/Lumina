@@ -27,6 +27,8 @@ export const packagesList = () => commands.packagesList();
 export const packageInstall = (id: string, version: string) => commands.packageInstall(id, version);
 export const packageCancel = (id: string, version: string) => commands.packageCancel(id, version);
 export const packageDismiss = (id: string, version: string) => commands.packageDismiss(id, version);
+/** Deletes a paused download. */
+export const packageDiscard = (id: string, version: string) => commands.packageDiscard(id, version);
 export const packageUninstall = (id: string, version: string) => commands.packageUninstall(id, version);
 /** `version` "" = newest installed (phpMyAdmin: newest that runs on the active PHP). */
 export const packageSetActive = (id: string, version: string) => commands.packageSetActive(id, version);

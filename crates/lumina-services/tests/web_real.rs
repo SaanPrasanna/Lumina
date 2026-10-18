@@ -4,6 +4,7 @@
 //! $env:LUMINA_TEST_PHP_DIRS   = "C:\Lumina\bin\php\8.4.26"
 //! $env:LUMINA_TEST_NGINX_DIR  = "C:\Lumina\bin\nginx\1.30.5"
 //! $env:LUMINA_TEST_APACHE_DIR = "C:\Lumina\bin\apache\2.4.69"
+//! $env:LUMINA_TEST_NODE_DIR   = "C:\Lumina\bin\node\24.21.0"   # dev-server tests
 //! cargo test -p lumina-services --test web_real -- --nocapture --test-threads=1
 //! ```
 //!
@@ -856,6 +857,306 @@ async fn nginx_has_no_5xx_while_php_workers_recycle() {
 #[tokio::test]
 async fn apache_has_no_5xx_while_php_workers_recycle() {
     no_5xx_under_keepalive_load(WebServer::Apache).await;
+}
+
+/// A folder served by its own dev server (here a small Node.js server that
+/// also answers WebSocket upgrades, like Vite's hot reload): `<name>.test` is
+/// forwarded to it, and shows a "not running" page once it stops.
+async fn dev_server_behind_the_web_server(server: WebServer) {
+    let Some(node_dir) = std::env::var_os("LUMINA_TEST_NODE_DIR").map(PathBuf::from) else {
+        return;
+    };
+    let Some(mut env) = setup(server) else { return };
+    let node = node_dir.join(format!("node{}", std::env::consts::EXE_SUFFIX));
+    let front = env.layout.www().join("front");
+    std::fs::create_dir_all(&front).expect("mkdir");
+    std::fs::write(
+        front.join("server.js"),
+        r#"
+const http = require("http");
+const crypto = require("crypto");
+const server = http.createServer((req, res) => {
+  res.end(`front:${req.headers.host}:${req.headers["x-forwarded-host"]}`);
+});
+server.on("upgrade", (req, socket) => {
+  const accept = crypto.createHash("sha1")
+    .update(req.headers["sec-websocket-key"] + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+    .digest("base64");
+  socket.end("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n" +
+    `Sec-WebSocket-Accept: ${accept}\r\n\r\n`);
+});
+server.listen(Number(process.argv[2]), "127.0.0.1");
+"#,
+    )
+    .expect("server.js");
+    let port = free_port();
+    env.cfg.sites.insert(
+        "front".into(),
+        lumina_config::schema::SiteOverride {
+            kind: lumina_config::schema::SiteKind::App,
+            command: format!("\"{}\" server.js {{port}}", node.display()),
+            port,
+            ..Default::default()
+        },
+    );
+
+    // Starting the dev server also starts the web server in front of it.
+    env.stack
+        .start_app("front", &env.cfg)
+        .await
+        .unwrap_or_else(|e| panic!("start: {e}\n{}", env.logs()));
+    let (status, body) = get_host(&env, "front.test", "/hello").await;
+    assert_eq!(status, 200, "{body}\n{}", env.logs());
+    assert_eq!(body, format!("front:127.0.0.1:{port}:front.test"));
+
+    // A WebSocket upgrade goes through to the dev server.
+    {
+        use std::io::{Read, Write};
+        let mut ws =
+            std::net::TcpStream::connect(("127.0.0.1", env.cfg.web.http_port)).expect("connect");
+        ws.set_read_timeout(Some(Duration::from_secs(5)))
+            .expect("timeout");
+        write!(
+            ws,
+            "GET /ws HTTP/1.1\r\nHost: front.test\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\
+             Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n"
+        )
+        .expect("write");
+        let mut reply = [0u8; 64];
+        let n = ws.read(&mut reply).expect("read");
+        let reply = String::from_utf8_lossy(&reply[..n]);
+        assert!(reply.starts_with("HTTP/1.1 101"), "{reply}");
+    }
+
+    let status = env.stack.apps_status(&env.cfg).await;
+    assert_eq!(status.len(), 1);
+    assert_eq!(status[0].status, lumina_core::types::ServiceStatus::Running);
+
+    env.stack.stop_app("front").await.expect("stop app");
+    let (status, body) = get_host(&env, "front.test", "/").await;
+    assert!(status == 502 || status == 503, "{status} {body}");
+    assert!(
+        body.contains("dev server of front is not running"),
+        "{body}"
+    );
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+/// A site set to another PHP version gets its own php-cgi pool; dropping the
+/// setting moves it back to the shared PHP and stops the pool.
+async fn per_site_php_versions(server: WebServer) {
+    let dirs = std::env::var("LUMINA_TEST_PHP_DIRS").unwrap_or_default();
+    let versions: Vec<String> = std::env::split_paths(&dirs)
+        .filter_map(|d| d.file_name().map(|n| n.to_string_lossy().into_owned()))
+        .collect();
+    let [newer, older, ..] = versions.as_slice() else {
+        return; // needs two PHP builds
+    };
+    let Some(mut env) = setup(server) else { return };
+    let www = env.layout.www();
+    for name in ["shared", "legacy"] {
+        std::fs::create_dir_all(www.join(name)).expect("mkdir");
+        std::fs::write(www.join(name).join("index.php"), "<?php echo PHP_VERSION;").expect("write");
+    }
+    env.cfg.php.version = newer.clone();
+    env.cfg.sites.insert(
+        "legacy".into(),
+        lumina_config::schema::SiteOverride {
+            php: older.clone(),
+            ..Default::default()
+        },
+    );
+
+    env.start_web()
+        .await
+        .unwrap_or_else(|e| panic!("start: {e}\n{}", env.logs()));
+    let (status, body) = get_host(&env, "shared.test", "/").await;
+    assert_eq!(
+        (status, body.as_str()),
+        (200, newer.as_str()),
+        "{}",
+        env.logs()
+    );
+    let (status, body) = get_host(&env, "legacy.test", "/").await;
+    assert_eq!(
+        (status, body.as_str()),
+        (200, older.as_str()),
+        "{}",
+        env.logs()
+    );
+    let pools = env.stack.status(&env.cfg).await.php_pools;
+    assert_eq!(pools.len(), 1);
+    assert_eq!(
+        pools[0].runtime.as_ref().map(|r| r.port),
+        Some(Orchestrator::pool_port(older))
+    );
+
+    env.cfg.sites.clear();
+    env.stack.sync_sites(&env.cfg).await.expect("sync");
+    let (_, body) = get_host(&env, "legacy.test", "/").await;
+    assert_eq!(body, *newer);
+    assert!(env.stack.status(&env.cfg).await.php_pools.is_empty());
+
+    // Every request is in the JSON request log, per site.
+    let log = lumina_services::requests::log_file(&env.layout.logs());
+    let mut seen = Vec::new();
+    for _ in 0..20 {
+        seen = lumina_services::requests::recent(&log, "legacy.test", 10);
+        if seen.len() >= 2 {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    assert_eq!(seen.len(), 2, "{seen:?}");
+    assert!(
+        seen.iter()
+            .all(|r| r.method == "GET" && r.uri == "/" && r.status == 200),
+        "{seen:?}"
+    );
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+    assert!(
+        processes_under(&env.layout.bin().join("php")).is_empty(),
+        "no php-cgi left"
+    );
+}
+
+/// LAN sharing: a site also answers to `<site>.<ip>.nip.io`, and the server
+/// listens on every interface; without it, such a name gets the default site.
+async fn lan_names_reach_their_site(server: WebServer) {
+    let Some(mut env) = setup(server) else { return };
+    let www = env.layout.www();
+    std::fs::create_dir_all(www.join("blog")).expect("mkdir");
+    std::fs::write(www.join("blog").join("index.php"), "<?php echo 'blog';").expect("write");
+    std::fs::write(www.join("index.php"), "<?php echo 'localhost';").expect("write");
+    env.cfg.general.auto_ssl = false;
+
+    env.start_web()
+        .await
+        .unwrap_or_else(|e| panic!("start: {e}\n{}", env.logs()));
+    let (_, body) = get_host(&env, "blog.192.168.1.20.nip.io", "/").await;
+    assert_eq!(body, "localhost", "LAN sharing off: no nip.io names");
+
+    env.cfg.general.lan = true;
+    env.stack.sync_sites(&env.cfg).await.expect("sync");
+    let (status, body) = get_host(&env, "blog.192.168.1.20.nip.io", "/").await;
+    assert_eq!((status, body.as_str()), (200, "blog"), "{}", env.logs());
+    let (_, body) = get_host(&env, "blog.test", "/").await;
+    assert_eq!(body, "blog");
+    // Listening on every interface, not only 127.0.0.1.
+    let conf = std::fs::read_to_string(if server == WebServer::Nginx {
+        env.layout.etc().join("nginx").join("nginx.conf")
+    } else {
+        env.layout.etc().join("apache").join("httpd.conf")
+    })
+    .unwrap_or_default();
+    let sites = std::fs::read_dir(if server == WebServer::Nginx {
+        env.layout.etc().join("nginx").join("sites")
+    } else {
+        env.layout.etc().join("apache").join("sites")
+    })
+    .expect("sites")
+    .flatten()
+    .map(|e| std::fs::read_to_string(e.path()).unwrap_or_default())
+    .collect::<String>();
+    assert!(
+        format!("{conf}{sites}").contains("0.0.0.0:"),
+        "binds every interface"
+    );
+    env.stack.stop_all().await;
+}
+
+#[tokio::test]
+async fn nginx_answers_lan_names() {
+    lan_names_reach_their_site(WebServer::Nginx).await;
+}
+
+#[tokio::test]
+async fn apache_answers_lan_names() {
+    lan_names_reach_their_site(WebServer::Apache).await;
+}
+
+/// A real Cloudflare quick tunnel (needs the internet): the public address
+/// serves the site, and PHP sees that address and HTTPS.
+#[tokio::test]
+async fn cloudflare_tunnel_serves_the_site_with_its_public_host() {
+    let Some(program) = std::env::var_os("LUMINA_TEST_CLOUDFLARED").map(PathBuf::from) else {
+        return;
+    };
+    let Some(mut env) = setup(WebServer::Nginx) else {
+        return;
+    };
+    let www = env.layout.www();
+    std::fs::create_dir_all(www.join("blog")).expect("mkdir");
+    std::fs::write(
+        www.join("blog").join("index.php"),
+        "<?php echo $_SERVER['HTTP_HOST'], ' ', $_SERVER['HTTPS'] ?? 'off';",
+    )
+    .expect("write");
+    env.cfg.general.auto_ssl = false;
+    env.start_web()
+        .await
+        .unwrap_or_else(|e| panic!("start: {e}\n{}", env.logs()));
+
+    use lumina_tunnel::TunnelProvider;
+    let supervisor = Supervisor::new(Ledger::disabled());
+    let cf = lumina_tunnel::cloudflare::Cloudflare::new(supervisor, &env.layout.logs());
+    let spec = lumina_tunnel::TunnelSpec {
+        name: "blog".into(),
+        host: "blog.test".into(),
+        port: env.cfg.web.http_port,
+        domain: None,
+    };
+    let tunnel = cf
+        .open(&lumina_tunnel::cloudflare::Settings { program }, &spec)
+        .await
+        .expect("open");
+    assert!(
+        tunnel.public_url.ends_with(".trycloudflare.com"),
+        "{}",
+        tunnel.public_url
+    );
+    let public_host = tunnel.public_url.trim_start_matches("https://").to_owned();
+
+    // A new quick-tunnel name can take a little while to resolve.
+    let mut body = String::new();
+    for _ in 0..30 {
+        if let Ok(resp) = reqwest::get(&tunnel.public_url).await
+            && resp.status().is_success()
+        {
+            body = resp.text().await.unwrap_or_default();
+            break;
+        }
+        tokio::time::sleep(Duration::from_secs(2)).await;
+    }
+    assert_eq!(body, format!("{public_host} on"), "{}", env.logs());
+    assert_eq!(cf.tunnels().await.len(), 1);
+    cf.shutdown().await.expect("shutdown");
+    assert!(cf.tunnels().await.is_empty());
+    env.stack.stop_all().await;
+}
+
+#[tokio::test]
+async fn nginx_runs_per_site_php_versions() {
+    per_site_php_versions(WebServer::Nginx).await;
+}
+
+#[tokio::test]
+async fn apache_runs_per_site_php_versions() {
+    per_site_php_versions(WebServer::Apache).await;
+}
+
+#[tokio::test]
+async fn nginx_serves_a_dev_server_with_websockets() {
+    dev_server_behind_the_web_server(WebServer::Nginx).await;
+}
+
+#[tokio::test]
+async fn apache_serves_a_dev_server_with_websockets() {
+    dev_server_behind_the_web_server(WebServer::Apache).await;
 }
 
 #[tokio::test]

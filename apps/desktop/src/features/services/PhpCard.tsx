@@ -3,6 +3,7 @@ import { FileCog, FileText, Play, RotateCw, Square } from "lucide-react";
 import { editorOpen } from "@/features/env-path/api";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
+import { InstallButton, NotInstalledBadge } from "@/components/Installable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button, Fact, VersionSelect } from "@/components/ui";
 import {
@@ -16,7 +17,7 @@ import {
   serviceStop,
 } from "@/features/services/api";
 import { useServiceAction } from "@/features/services/useServiceAction";
-import type { PhpSettings } from "@/features/settings/api";
+import { type PhpSettings, settingsUpdate } from "@/features/settings/api";
 
 /** PHP FastCGI: status, version switcher, runtime facts and controls. */
 export function PhpCard({ status, config }: { status: PhpStatus; config: PhpSettings | undefined }) {
@@ -26,6 +27,7 @@ export function PhpCard({ status, config }: { status: PhpStatus; config: PhpSett
 
   const rt = status.runtime;
   const installed = versions.data ?? [];
+  const missing = versions.isSuccess && installed.length === 0;
   const busy = action.isPending;
   const running = rt !== null;
 
@@ -36,7 +38,7 @@ export function PhpCard({ status, config }: { status: PhpStatus; config: PhpSett
           <h2 id="php-title" className="text-lg font-semibold">
             {t("php.title")}
           </h2>
-          <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />
+          {missing && !running ? <NotInstalledBadge /> : <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />}
         </div>
         <div className="flex flex-wrap gap-2">
           {running ? (
@@ -48,6 +50,8 @@ export function PhpCard({ status, config }: { status: PhpStatus; config: PhpSett
                 {t("actions.stop")}
               </Button>
             </>
+          ) : missing ? (
+            <InstallButton pkg="php" name="PHP" />
           ) : (
             <Button
               primary
@@ -85,6 +89,26 @@ export function PhpCard({ status, config }: { status: PhpStatus; config: PhpSett
           />
         </div>
       )}
+
+      {config && installed.length > 0 && (
+        <label className="mt-4 flex items-center gap-2.5 text-sm">
+          <input
+            type="checkbox"
+            className="size-4 accent-accent"
+            checked={config.xdebug}
+            disabled={busy}
+            onChange={(e) =>
+              action.mutate(async () => {
+                await settingsUpdate("php", { ...config, xdebug: e.target.checked });
+                if (running) await serviceRestart("php-fcgi");
+              })
+            }
+          />
+          {t("php.xdebug")}
+        </label>
+      )}
+      {config?.xdebug && rt && !rt.xdebug && <p className="mt-2 text-sm text-warn">{t("php.xdebugMissing", { version: rt.version })}</p>}
+      {config?.xdebug && rt?.xdebug && <p className="mt-2 text-sm text-muted">{t("php.xdebugHint")}</p>}
 
       {rt && (
         <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">

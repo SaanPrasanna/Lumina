@@ -41,6 +41,8 @@ pub struct PhpRuntime {
     pub port: u16,
     /// `true` when the configured port was busy and the fallback port is used.
     pub fell_back: bool,
+    /// Xdebug is loaded (it is on and this PHP version has it).
+    pub xdebug: bool,
     /// Effective PHP_FCGI_CHILDREN (after enforcing the minimum).
     pub children: u32,
     pub max_requests: u32,
@@ -68,6 +70,9 @@ pub struct PhpFcgi {
 }
 
 struct Inner {
+    /// Supervisor ID: `php-fcgi` for the main pool, `php-fcgi@<version>` for
+    /// the pools of sites that use another PHP version.
+    id: String,
     supervisor: Supervisor,
     layout: Layout,
     templates: Templates,
@@ -84,8 +89,14 @@ struct State {
 
 impl PhpFcgi {
     pub fn new(supervisor: Supervisor, layout: Layout, templates: Templates) -> Self {
+        Self::with_id(PROCESS_ID, supervisor, layout, templates)
+    }
+
+    /// A pool with its own supervisor ID and log (`logs/<id>.log`).
+    pub fn with_id(id: &str, supervisor: Supervisor, layout: Layout, templates: Templates) -> Self {
         Self {
             inner: Arc::new(Inner {
+                id: id.to_owned(),
                 supervisor,
                 layout,
                 templates,
@@ -95,7 +106,10 @@ impl PhpFcgi {
     }
 
     pub fn log_file(&self) -> PathBuf {
-        self.inner.layout.logs().join("php-fcgi.log")
+        self.inner
+            .layout
+            .logs()
+            .join(format!("{}.log", self.inner.id.replace('@', "-")))
     }
 
     fn php_root(&self) -> PathBuf {
@@ -139,7 +153,7 @@ impl PhpFcgi {
     pub async fn start(&self, cfg: &PhpConfig, ini: &[(String, String)]) -> Result<PhpRuntime> {
         let mut state = self.inner.state.lock().await;
         let result = self.start_locked(&mut state, cfg, ini).await;
-        state.last_error = result.as_ref().err().map(ToString::to_string);
+        state.last_error = crate::start_failure(&result);
         result
     }
 
@@ -149,32 +163,30 @@ impl PhpFcgi {
         cfg: &PhpConfig,
         ini_overrides: &[(String, String)],
     ) -> Result<PhpRuntime> {
-        if let Some(info) = self.inner.supervisor.info(PROCESS_ID).await
+        if let Some(info) = self.inner.supervisor.info(&self.inner.id).await
             && info.state != ProcessState::Failed
         {
-            return Err(Error::Service(PROCESS_ID.into(), "already running".into()));
+            return Err(Error::Service(
+                self.inner.id.clone(),
+                "already running".into(),
+            ));
         }
 
         let installs = self.versions().await;
         let install = versions::select(&installs, &cfg.version).ok_or_else(|| {
-            let wanted = if cfg.version.is_empty() {
-                "any version".to_owned()
-            } else {
-                format!("PHP {}", cfg.version)
-            };
-            Error::Service(
-                PROCESS_ID.into(),
-                format!("{wanted} is not installed in {}", self.php_root().display()),
-            )
+            crate::install::not_installed(&self.inner.id, "PHP", &cfg.version, &self.php_root())
         })?;
 
         let ini = env::ensure_ini(&self.inner.layout, &self.inner.templates, install)?;
         let ini_dir = env::ini_dir(&self.inner.layout, install);
+        let (ini_overrides, xdebug) =
+            env::resolve_xdebug(&self.inner.layout, install, ini_overrides);
+        let ini_overrides = ini_overrides.as_slice();
         let choice = ports::pick(cfg.fcgi_port, cfg.fcgi_fallback_port)?;
         let children = env::effective_children(cfg.fcgi_children);
 
         let spec = ProcessSpec {
-            id: PROCESS_ID.into(),
+            id: self.inner.id.clone(),
             program: install.exe.clone(),
             args: ini_args(ini_overrides)
                 .into_iter()
@@ -192,10 +204,14 @@ impl PhpFcgi {
         self.inner.supervisor.start(spec.clone()).await?;
 
         if !health::wait_tcp(choice.port, READY_TIMEOUT).await {
-            let _ = self.inner.supervisor.stop(PROCESS_ID, STOP_TIMEOUT).await;
+            let _ = self
+                .inner
+                .supervisor
+                .stop(&self.inner.id, STOP_TIMEOUT)
+                .await;
             let tail = logs::tail(&self.log_file(), 15);
             return Err(Error::Service(
-                PROCESS_ID.into(),
+                self.inner.id.clone(),
                 format!(
                     "php-cgi did not start listening on port {} within {}s.\n{tail}",
                     choice.port,
@@ -208,6 +224,7 @@ impl PhpFcgi {
             version: install.version.clone(),
             port: choice.port,
             fell_back: choice.fell_back,
+            xdebug,
             children,
             max_requests: cfg.fcgi_max_requests,
             ini,
@@ -236,7 +253,10 @@ impl PhpFcgi {
         if let Some(watchdog) = state.watchdog.take() {
             watchdog.abort();
         }
-        self.inner.supervisor.stop(PROCESS_ID, STOP_TIMEOUT).await?;
+        self.inner
+            .supervisor
+            .stop(&self.inner.id, STOP_TIMEOUT)
+            .await?;
         state.runtime = None;
         state.spec = None;
         Ok(())
@@ -247,13 +267,13 @@ impl PhpFcgi {
         let mut state = self.inner.state.lock().await;
         self.stop_locked(&mut state).await?;
         let result = self.start_locked(&mut state, cfg, ini).await;
-        state.last_error = result.as_ref().err().map(ToString::to_string);
+        state.last_error = crate::start_failure(&result);
         result
     }
 
     pub async fn status(&self) -> PhpStatus {
         let state = self.inner.state.lock().await;
-        let info = self.inner.supervisor.info(PROCESS_ID).await;
+        let info = self.inner.supervisor.info(&self.inner.id).await;
         let processes = self.php_cgi_processes().await.len();
         let status = crate::service_status(info.as_ref(), state.last_error.is_some());
         PhpStatus {
@@ -269,7 +289,7 @@ impl PhpFcgi {
 
     /// php-cgi processes in the pool's group (ignores helpers such as conhost.exe).
     async fn php_cgi_processes(&self) -> Vec<u32> {
-        let members = self.inner.supervisor.members(PROCESS_ID).await;
+        let members = self.inner.supervisor.members(&self.inner.id).await;
         crate::web::named(&members, "php-cgi")
     }
 }
@@ -292,7 +312,7 @@ async fn watchdog(php: PhpFcgi) {
         if alive >= minimum {
             continue;
         }
-        let Some(info) = php.inner.supervisor.info(PROCESS_ID).await else {
+        let Some(info) = php.inner.supervisor.info(&php.inner.id).await else {
             return;
         };
         if info.state != ProcessState::Running {
@@ -304,7 +324,10 @@ async fn watchdog(php: PhpFcgi) {
             return;
         };
         let result = async {
-            php.inner.supervisor.stop(PROCESS_ID, STOP_TIMEOUT).await?;
+            php.inner
+                .supervisor
+                .stop(&php.inner.id, STOP_TIMEOUT)
+                .await?;
             php.inner.supervisor.start(spec).await
         }
         .await;

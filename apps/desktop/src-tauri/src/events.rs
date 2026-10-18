@@ -75,7 +75,11 @@ pub fn bridge_supervisor(app: AppHandle, runtime: &Arc<Runtime>) {
                     _ => {}
                 }
             }
-            if event.id() == lumina_tunnel::ngrok::PROCESS_ID {
+            if event.id() == lumina_tunnel::ngrok::PROCESS_ID
+                || event
+                    .id()
+                    .starts_with(lumina_tunnel::cloudflare::PROCESS_PREFIX)
+            {
                 let _ = app.emit(TUNNELS_CHANGED, ());
             }
             // A web server came up (start, restart, Apache's restart-reload):

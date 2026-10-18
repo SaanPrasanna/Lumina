@@ -20,6 +20,7 @@ const config: PhpSettings = {
   version: "",
   fcgi_port: 10987,
   fcgi_fallback_port: 20987,
+  xdebug: false,
   fcgi_children: 10,
   fcgi_max_requests: 0,
 };
@@ -53,7 +54,7 @@ describe("PhpCard", () => {
     renderCard({
       ...stopped,
       status: "running",
-      runtime: { version: "8.4.26", port: 20987, fellBack: true, children: 10, maxRequests: 0, ini: "x" },
+      runtime: { version: "8.4.26", port: 20987, fellBack: true, xdebug: false, children: 10, maxRequests: 0, ini: "x" },
       pid: 42,
       processes: 11,
     });

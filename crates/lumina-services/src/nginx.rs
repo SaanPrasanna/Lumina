@@ -129,11 +129,18 @@ impl Nginx {
         c.insert("www_root", &forward_slashes(&ctx.www_root));
         web::insert_tls(&mut c, ctx);
         web::render_db_ui(t, &mut changes, &mut c, ctx)?;
+        c.insert("php_pools", &ctx.php_pools);
         t.render_into(
             &mut changes,
             "nginx/fastcgi.conf.tera",
             &c,
             &prefix.join("fastcgi.conf"),
+        )?;
+        t.render_into(
+            &mut changes,
+            "nginx/fastcgi_common.conf.tera",
+            &c,
+            &prefix.join("fastcgi_common.conf"),
         )?;
         t.render_into(&mut changes, "nginx/nginx.conf.tera", &c, &self.conf())?;
         t.render_into(
@@ -180,7 +187,7 @@ impl Nginx {
     pub async fn start(&self, cfg: &WebConfig, ctx: &WebContext) -> Result<WebRuntime> {
         let mut state = self.inner.state.lock().await;
         let result = self.start_locked(&mut state, cfg, ctx).await;
-        state.last_error = result.as_ref().err().map(ToString::to_string);
+        state.last_error = crate::start_failure(&result);
         result
     }
 
@@ -443,6 +450,10 @@ mod tests {
                 sites: certs,
             }),
             db_ui: None,
+            php_pools: Vec::new(),
+            site_php: Default::default(),
+            adminer: None,
+            lan: false,
         };
         nginx.prepare(&ctx).expect("prepare");
 
@@ -501,6 +512,10 @@ mod tests {
             sites: lumina_vhost::scan(&layout.www(), &cfg).sites,
             tls: None,
             db_ui: None,
+            php_pools: Vec::new(),
+            site_php: Default::default(),
+            adminer: None,
+            lan: false,
         };
 
         let changes = nginx.prepare(&ctx).expect("prepare");
@@ -524,7 +539,16 @@ mod tests {
         assert!(!root.contains('\\'), "paths use forward slashes: {root}");
         let fastcgi =
             std::fs::read_to_string(nginx.prefix().join("fastcgi.conf")).expect("fastcgi");
+        assert!(fastcgi.contains("fastcgi_pass  php_upstream;"));
+        assert!(fastcgi.contains("include       fastcgi_common.conf;"));
+        // The shared part, used by per-site PHP pools too.
+        let fastcgi = std::fs::read_to_string(nginx.prefix().join("fastcgi_common.conf"))
+            .expect("fastcgi_common");
         assert!(fastcgi.contains("fastcgi_next_upstream "));
+        assert!(
+            !fastcgi.contains("fastcgi_pass"),
+            "the pool is chosen by the includer"
+        );
         assert!(
             !fastcgi.lines().any(|l| l.starts_with("fastcgi_keep_conn")),
             "one PHP connection per request"

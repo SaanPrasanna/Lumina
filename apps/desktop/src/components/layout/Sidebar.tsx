@@ -4,20 +4,13 @@ import { NAV_ITEMS } from "@/app/nav";
 import { LanguageSelect } from "@/components/LanguageSelect";
 import { ThemeSelect } from "@/components/ThemeSelect";
 import { ProfileSwitcher } from "@/features/profiles/ProfileSwitcher";
-import { Logo } from "@/components/Logo";
 
 export function Sidebar() {
   const { t } = useTranslation();
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-e border-line bg-sidebar">
-      <div className="flex items-center gap-2.5 px-4 py-4">
-        <Logo className="size-8" />
-        <div className="min-w-0">
-          <div className="text-sm font-semibold">{t("app.title")}</div>
-          <div className="truncate text-xs text-muted">{t("app.tagline")}</div>
-        </div>
-      </div>
+    // No logo or name here: the window title already says "Lumina".
+    <aside className="flex w-56 shrink-0 flex-col border-e border-line bg-sidebar pt-3">
 
       <ProfileSwitcher />
 

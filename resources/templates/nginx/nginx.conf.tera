@@ -21,6 +21,9 @@ http {
     charset       utf-8;
 
     access_log    "{{ logs_dir }}/nginx_access.log";
+    # One JSON line per request, for the request list on Lumina's Sites page.
+    log_format    lumina_json escape=json '{"time":"$time_iso8601","host":"$host","method":"$request_method","uri":"$request_uri","status":$status,"seconds":$request_time,"bytes":$body_bytes_sent}';
+    access_log    "{{ logs_dir }}/requests.log" lumina_json;
     sendfile      on;
     keepalive_timeout     65;
     client_max_body_size  256m;
@@ -48,24 +51,48 @@ http {
     upstream php_upstream {
         server  127.0.0.1:{{ php_port }} max_fails=0;
     }
+{%- for pool in php_pools %}
+
+    # PHP {{ pool.version }}, for the sites set to it.
+    upstream php_{{ pool.key }} {
+        server  127.0.0.1:{{ pool.port }} max_fails=0;
+    }
+{%- endfor %}
 
     # A request shared through a Lumina tunnel (the tunnel adds
     # X-Lumina-Tunnel) reaches PHP with the public host and HTTPS, so links,
     # assets and redirects point at the public address. Other requests are
     # unchanged (see fastcgi_params).
-    map $http_x_lumina_tunnel $lumina_host {
+    # WebSocket upgrades for sites served by a dev server (hot reload).
+    map $http_upgrade $lumina_connection_upgrade {
+        default  upgrade;
+        ""       "";
+    }
+    # Lumina's ngrok tunnels add X-Lumina-Tunnel; Cloudflare tunnels add
+    # Cf-Warp-Tag-Id. Either marks a request that came through a tunnel.
+    map "$http_x_lumina_tunnel$http_cf_warp_tag_id" $lumina_tunnel {
+        ""       "";
+        default  1;
+    }
+    # "Force HTTPS" redirects plain HTTP, except for nip.io names (LAN
+    # sharing), which the local certificates do not cover.
+    map "$lumina_scheme:$host" $lumina_force_https {
+        default                    0;
+        "~^http:(?!.+\.nip\.io$)"  1;
+    }
+    map $lumina_tunnel $lumina_host {
         ""       $http_host;
         default  $http_x_forwarded_host;
     }
-    map $http_x_lumina_tunnel $lumina_scheme {
+    map $lumina_tunnel $lumina_scheme {
         ""       $scheme;
         default  https;
     }
-    map $http_x_lumina_tunnel $lumina_https {
+    map $lumina_tunnel $lumina_https {
         ""       $https;
         default  on;
     }
-    map $http_x_lumina_tunnel $lumina_port {
+    map $lumina_tunnel $lumina_port {
         ""       $server_port;
         default  443;
     }

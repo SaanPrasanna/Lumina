@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listen } from "@tauri-apps/api/event";
-import { Download, RefreshCw } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { Code, Download, RefreshCw, Scale } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
 import { Button } from "@/components/ui";
 import { formatBytes } from "@/features/packages/api";
+import { ErrorRow, inputClass, Row, Section, SwitchRow } from "@/features/settings/parts";
 import {
   type Channel,
   UPDATES_KEY,
@@ -16,6 +18,10 @@ import {
   updatesInstall,
   updatesStatus,
 } from "@/features/updates/api";
+
+/** Not translated: addresses. */
+const LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html";
+const SOURCE_URL = "https://github.com/SaanPrasanna/Lumina";
 
 /** Settings › About and updates: version, channel, check, install. */
 export function UpdatesCard() {
@@ -44,78 +50,81 @@ export function UpdatesCard() {
   const checkedAt = data.checkedAt ? new Date(data.checkedAt * 1000).toLocaleString(i18n.language) : null;
 
   return (
-    <section id="updates" className="scroll-mt-4 space-y-4 rounded-xl border border-line p-5" aria-labelledby="updates-title">
-      <h2 id="updates-title" className="text-lg font-semibold">
-        {t("settings.updates.title")}
-      </h2>
-      <p className="text-sm">{t("settings.about.version", { version: data.current })}</p>
-
-      <div className="flex flex-wrap items-end gap-4 text-sm">
-        <label className="flex flex-col gap-1.5">
-          <span className="font-medium">{t("settings.updates.channel")}</span>
-          <select
-            className="rounded-md border border-line bg-surface px-3 py-2"
-            value={data.channel}
-            disabled={configure.isPending || installing}
-            onChange={(e) => configure.mutate({ channel: e.target.value as Channel, auto: data.check })}
-          >
-            <option value="stable">{t("settings.updates.stable")}</option>
-            <option value="beta">{t("settings.updates.beta")}</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-2.5 pb-2">
-          <input
-            type="checkbox"
-            className="size-4 accent-accent"
-            checked={data.check}
-            disabled={configure.isPending}
-            onChange={(e) => configure.mutate({ channel: data.channel as Channel, auto: e.target.checked })}
-          />
-          {t("settings.updates.auto")}
-        </label>
+    <Section id="updates" title={t("settings.updates.title")} description={t("settings.updates.safety")}>
+      <Row label={t("settings.about.version", { version: data.current })} hint={checkedAt && !available && !data.error ? t("settings.updates.upToDate", { when: checkedAt }) : undefined}>
         <Button onClick={() => check.mutate()} disabled={check.isPending || installing} icon={<RefreshCw className={check.isPending ? "animate-spin" : ""} />}>
           {t("settings.updates.checkNow")}
         </Button>
-      </div>
-
-      <div role="status" className="text-sm">
-        {available ? (
-          <div className="space-y-3 rounded-md border border-accent/40 bg-accent-soft p-4">
-            <p className="font-medium">{t("settings.updates.available", { version: available.version })}</p>
-            {available.notes && <p className="whitespace-pre-wrap text-xs text-fg-soft">{available.notes}</p>}
-            {installing ? (
-              <p>
-                {progress
-                  ? t("settings.updates.downloading", {
-                      received: formatBytes(progress.received),
-                      total: progress.total ? formatBytes(progress.total) : "?",
-                    })
-                  : t("settings.updates.starting")}
-              </p>
-            ) : confirm ? (
-              <div className="space-y-2">
-                <p className="text-xs">{t("settings.updates.confirm")}</p>
-                <div className="flex gap-2">
-                  <Button primary onClick={() => install.mutate()} icon={<Download />}>
-                    {t("settings.updates.installNow")}
-                  </Button>
-                  <Button onClick={() => setConfirm(false)}>{t("actions.cancel")}</Button>
+      </Row>
+      <Row label={t("settings.updates.channel")} htmlFor="update-channel">
+        <select
+          id="update-channel"
+          className={inputClass}
+          value={data.channel}
+          disabled={configure.isPending || installing}
+          onChange={(e) => configure.mutate({ channel: e.target.value as Channel, auto: data.check })}
+        >
+          <option value="stable">{t("settings.updates.stable")}</option>
+          <option value="beta">{t("settings.updates.beta")}</option>
+        </select>
+      </Row>
+      <SwitchRow
+        label={t("settings.updates.auto")}
+        checked={data.check}
+        disabled={configure.isPending}
+        onChange={(auto) => configure.mutate({ channel: data.channel as Channel, auto })}
+      />
+      {(available || data.error) && (
+        <div role="status" className="space-y-3 px-5 py-4 text-sm">
+          {available && (
+            <div className="space-y-3 rounded-lg border border-accent/40 bg-accent-soft p-4">
+              <p className="font-medium">{t("settings.updates.available", { version: available.version })}</p>
+              {available.notes && <p className="whitespace-pre-wrap text-xs text-fg-soft">{available.notes}</p>}
+              {installing ? (
+                <p>
+                  {progress
+                    ? t("settings.updates.downloading", {
+                        received: formatBytes(progress.received),
+                        total: progress.total ? formatBytes(progress.total) : "?",
+                      })
+                    : t("settings.updates.starting")}
+                </p>
+              ) : confirm ? (
+                <div className="space-y-2">
+                  <p className="text-xs">{t("settings.updates.confirm")}</p>
+                  <div className="flex gap-2">
+                    <Button primary onClick={() => install.mutate()} icon={<Download />}>
+                      {t("settings.updates.installNow")}
+                    </Button>
+                    <Button onClick={() => setConfirm(false)}>{t("actions.cancel")}</Button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <Button primary onClick={() => setConfirm(true)} icon={<Download />}>
-                {t("settings.updates.install")}
-              </Button>
-            )}
-          </div>
-        ) : (
-          checkedAt && !data.error && <p className="text-muted">{t("settings.updates.upToDate", { when: checkedAt })}</p>
-        )}
-        {data.error && <p className="mt-2 text-xs text-danger">{t("settings.updates.failed", { error: data.error, interpolation: { escapeValue: false } })}</p>}
-      </div>
-      <p className="text-xs text-muted">{t("settings.updates.safety")}</p>
-      <ErrorBox error={check.error ?? configure.error ?? install.error} />
-    </section>
+              ) : (
+                <Button primary onClick={() => setConfirm(true)} icon={<Download />}>
+                  {t("settings.updates.install")}
+                </Button>
+              )}
+            </div>
+          )}
+          {data.error && <p className="text-xs text-danger">{t("settings.updates.failed", { error: data.error, interpolation: { escapeValue: false } })}</p>}
+        </div>
+      )}
+      <Row label={t("settings.about.license")} hint={t("settings.about.licenseHint")}>
+        <div className="flex flex-col gap-2 @md:items-end">
+          <span className="text-sm">{t("settings.about.licenseName")}</span>
+          <span className="flex flex-wrap gap-2">
+            <Button onClick={() => void openUrl(LICENSE_URL)} icon={<Scale />}>
+              {t("settings.about.readLicense")}
+            </Button>
+            <Button onClick={() => void openUrl(SOURCE_URL)} icon={<Code />}>
+              {t("settings.about.source")}
+            </Button>
+          </span>
+        </div>
+      </Row>
+      <p className="px-5 py-3 text-xs text-muted">{t("settings.about.thirdParty")}</p>
+      <ErrorRow error={check.error ?? configure.error ?? install.error} />
+    </Section>
   );
 }
 

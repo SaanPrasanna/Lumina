@@ -61,14 +61,19 @@
     "tunnel_invalid_token": "This is not an ngrok authtoken.",
     "tunnel_auth": "ngrok did not accept the authtoken.",
     "tunnel": "The site could not be shared.",
-    "keychain": "The system keychain could not be used."
+    "keychain": "The system keychain could not be used.",
+    "not_installed": "{{name}} is not installed yet.",
+    "not_installed_version": "{{name}} {{version}} is not installed yet.",
+    "not_installed_hint": "Install it in Quick Add, then try again.",
+    "install": "Install {{name}}"
   },
   "status": {
     "stopped": "Stopped",
     "starting": "Starting",
     "running": "Running",
     "stopping": "Stopping",
-    "failed": "Failed"
+    "failed": "Failed",
+    "notInstalled": "Not installed"
   },
   "actions": {
     "start": "Start",
@@ -96,7 +101,14 @@
     "maxRequests": "Max requests per worker",
     "unlimited": "Unlimited",
     "restarts": "Restarts",
-    "notInstalled": "No PHP version is installed yet. Put PHP in {{path}}."
+    "notInstalled": "No PHP version is installed yet. Put PHP in {{path}}.",
+    "pools": {
+      "title": "PHP for sites with their own version",
+      "running": "PHP {{version}} on port {{port}}"
+    },
+    "xdebug": "Xdebug (step debugging on port 9003 when a request carries the trigger)",
+    "xdebugMissing": "PHP {{version}} has no Xdebug yet. On Windows install Xdebug for this PHP version from Quick Add; on macOS and Linux run pecl install xdebug.",
+    "xdebugHint": "Xdebug is on. Start listening in your editor (port 9003), then open the site with the Xdebug browser extension or ?XDEBUG_TRIGGER=1."
   },
   "settings": {
     "saved": "Saved",
@@ -109,13 +121,15 @@
       "children": "Workers (PHP_FCGI_CHILDREN)",
       "childrenHint": "At least 4. More workers handle more requests at the same time.",
       "maxRequests": "Max requests per worker (PHP_FCGI_MAX_REQUESTS)",
-      "maxRequestsHint": "A worker is replaced after this many requests. 0 = never."
+      "maxRequestsHint": "A worker is replaced after this many requests. 0 = never.",
+      "description": "How PHP runs behind the web server."
     },
     "editor": {
       "title": "Code editor",
       "name": "Name",
       "command": "Command",
-      "args": "Arguments (one per line; {path} is the folder or file)"
+      "args": "Arguments (one per line; {path} is the folder or file)",
+      "description": "The editor that opens projects, config files and log lines."
     },
     "general": {
       "title": "General",
@@ -123,7 +137,8 @@
       "closeToTray": "Keep running in the tray when the window is closed",
       "www": "Projects folder",
       "wwwHint": "Every folder inside becomes a site. Empty = {{folder}}.",
-      "startOnLogin": "Start Lumina when I sign in (in the tray)"
+      "startOnLogin": "Start Lumina when I sign in (in the tray)",
+      "description": "Your projects folder and how Lumina starts and closes."
     },
     "web": {
       "title": "Web server",
@@ -153,7 +168,8 @@
     },
     "appearance": {
       "title": "Language and appearance",
-      "hint": "The tray menu and notifications follow the language too."
+      "hint": "The tray menu and notifications follow the language too.",
+      "description": "Changes apply at once."
     },
     "elsewhere": {
       "title": "More settings",
@@ -166,15 +182,23 @@
       "sharing": "Sharing",
       "sharingHint": "Sharing page: ngrok account and reserved domain",
       "profiles": "Profiles",
-      "profilesHint": "Profiles page: saved stacks to switch between"
+      "profilesHint": "Profiles page: saved stacks to switch between",
+      "description": "These settings live on the page they belong to."
     },
     "advanced": {
       "title": "Advanced",
       "proxy": "Download proxy",
-      "proxyHint": "For Quick Add downloads. Empty = the system's proxy settings. Applies after Lumina restarts."
+      "proxyHint": "For Quick Add downloads. Empty = the system's proxy settings. Applies after Lumina restarts.",
+      "logs": "Log files"
     },
     "about": {
-      "version": "Lumina {{version}}"
+      "version": "Lumina {{version}}",
+      "license": "License",
+      "licenseName": "GNU General Public License v3.0",
+      "licenseHint": "Lumina is free software: you may use, share and change it, as long as copies stay under the same license with their source code. It comes with no warranty.",
+      "readLicense": "Read the license",
+      "source": "Source code",
+      "thirdParty": "The servers and tools Lumina downloads (PHP, nginx, MySQL, PostgreSQL and others) are separate programs under their own licenses."
     },
     "updates": {
       "title": "About and updates",
@@ -194,7 +218,9 @@
       "safety": "Updates are signed and checked before they are installed. They replace only the program; your projects, databases, certificates and settings stay where they are.",
       "view": "View",
       "later": "Later"
-    }
+    },
+    "unsaved": "Unsaved changes",
+    "reset": "Undo changes"
   },
   "configWarnings": {
     "php_children_raised": "PHP_FCGI_CHILDREN={{from}} is too low; Lumina uses {{to}}.",
@@ -238,7 +264,8 @@
     "login": "Log in as root with no password, at 127.0.0.1. Only this computer can connect.",
     "firstStart": "The first start creates a new, empty database folder; this takes a few seconds.",
     "notInstalled": "{{engine}} is not installed yet. Put it in {{path}}.",
-    "openUi": "Open DB UI"
+    "openUi": "Open DB UI",
+    "openAdminer": "Adminer"
   },
   "postgresql": {
     "title": "PostgreSQL",
@@ -296,6 +323,7 @@
     "empty": "No projects yet. Create a folder in {{folder}} and it opens at http://<folder>.{{tld}}.",
     "startWeb": "Start the web server to open these sites.",
     "row": "Folder {{folder}} · serves {{docroot}}",
+    "rowApp": "Folder {{folder}} · served by its {{framework}} dev server",
     "docrootFolder": "the whole folder",
     "docrootMissing": "This document root does not exist yet; the site answers 404 until it does.",
     "open": "Open",
@@ -313,7 +341,50 @@
       "duplicate": "{{domain}} is already used by the folder {{other}}"
     },
     "search": "Search sites",
-    "noMatch": "No site matches the search."
+    "noMatch": "No site matches the search.",
+    "app": {
+      "title": "{{framework}} dev server",
+      "start": "Start dev server",
+      "noCommand": "No command yet: set one with Edit.",
+      "portBusy": "Port {{port}} is used by another program. Choose another port with Edit.",
+      "servedBy": "Served by",
+      "autoDetected": "Detect (now: {{framework}} dev server)",
+      "autoPhp": "Detect (now: PHP and files)",
+      "php": "PHP and files",
+      "devServer": "The project's dev server",
+      "command": "Dev server command",
+      "commandDetected": "Detected; use {port} for the port",
+      "port": "Port",
+      "autostart": "Start with Start All",
+      "address": "127.0.0.1:{{port}}",
+      "commandPlaceholder": "e.g. npm run dev -- --port {port}",
+      "runtimes": "Uses {{list}}"
+    },
+    "php": "PHP version",
+    "phpShared": "Same as all sites ({{version}})",
+    "phpNewest": "newest installed",
+    "phpVersion": "PHP {{version}}",
+    "xdebugConfig": "Debug setup",
+    "xdebugConfigHint": "Writes .vscode/launch.json for Xdebug (if missing) and opens the project in your editor",
+    "requests": {
+      "button": "Requests",
+      "empty": "No requests to this site yet.",
+      "time": "Time",
+      "request": "Request",
+      "status": "Status",
+      "ms": "ms",
+      "line": "{{method}} {{uri}}"
+    },
+    "playwright": "Playwright browsers",
+    "playwrightBusy": "Installing…",
+    "playwrightHint": "Runs npx playwright install in this project with Lumina's Node.js (several hundred MB the first time)",
+    "lan": {
+      "enabled": "Share on my network",
+      "hint": "Phones and tablets on the same Wi-Fi can open the sites at the addresses below (plain HTTP). Windows may ask once to allow the web server through the firewall.",
+      "address": "On your network:",
+      "noNetwork": "No network connection, so there is no address for other devices.",
+      "qr": "QR code for {{url}}"
+    }
   },
   "ssl": {
     "title": "HTTPS",
@@ -363,6 +434,9 @@
     },
     "install": "Install",
     "resume": "Resume",
+    "discard": "Discard",
+    "discardHint": "Delete the part already downloaded",
+    "paused": "Paused, {{done}} downloaded",
     "isInstalled": "Installed",
     "incompatible": "Not for the active PHP",
     "downloading": "Downloading {{done}} of {{total}}",
@@ -370,7 +444,7 @@
       "verifying": "Checking the SHA-256…",
       "extracting": "Unpacking…"
     },
-    "cancelled": "Cancelled. Install again to resume the download.",
+    "cancelled": "Cancelled. Resume to continue the download, or Discard to delete it.",
     "failed": "Not installed: {{error}}",
     "dismiss": "Dismiss",
     "homebrew": {
@@ -499,7 +573,7 @@
     "warning": "The project is ready, but its site cannot be opened yet:"
   },
   "tunnel": {
-    "intro": "Share a site on a public HTTPS address, to open it on a phone or show it to someone. Lumina uses ngrok, which needs a free ngrok account.",
+    "intro": "Share a site on a public HTTPS address, to open it on a phone or show it to someone. Lumina uses ngrok (a free account) or Cloudflare Tunnel (no account).",
     "share": "Share",
     "shared": "Shared",
     "opening": "Opening a public address…",
@@ -519,12 +593,12 @@
     "none": "No site is shared. Use Share next to a site on the Sites page.",
     "agent": {
       "title": "ngrok",
-      "installed": "ngrok {{version}} is installed.",
-      "missing": "ngrok is not installed yet.",
-      "install": "Install ngrok {{version}}",
+      "installed": "{{name}} {{version}} is installed.",
+      "missing": "{{name}} is not installed yet.",
+      "install": "Install {{name}} {{version}}",
       "installing": "Installing…",
       "installingPercent": "Installing… {{percent}}%",
-      "unavailable": "ngrok is not available for this system in Quick Add."
+      "unavailable": "{{name}} is not available for this system in Quick Add."
     },
     "token": {
       "title": "ngrok account",
@@ -543,6 +617,16 @@
       "help": "Without one, each share gets a new random address. A free ngrok account includes one static domain.",
       "find": "Find yours",
       "label": "Domain"
+    },
+    "provider": {
+      "title": "Share with",
+      "ngrok": "ngrok",
+      "ngrokHint": "Needs a free account and its token; can keep a fixed address.",
+      "cloudflare": "Cloudflare Tunnel",
+      "cloudflareHint": "No account: a random trycloudflare.com address each time."
+    },
+    "cloudflare": {
+      "agentTitle": "cloudflared"
     }
   },
   "logs": {
@@ -571,5 +655,44 @@
     "empty": "Nothing written yet. New lines appear here as they are written.",
     "noMatch": "No line matches the filter.",
     "count": "{{shown}} of {{total}} lines"
+  },
+  "extras": {
+    "title": "More services",
+    "showAll_one": "Show 1 more service",
+    "showAll_other": "Show {{count}} more services",
+    "none": "Install MongoDB, Valkey, Meilisearch, Typesense or SeaweedFS (S3) from Quick Add and they appear here.",
+    "enabled": "Start with Start All",
+    "version": "Version",
+    "newest": "Newest installed ({{version}})",
+    "port": "Port",
+    "openUi": "Open dashboard",
+    "notInstalled": "{{name}} is not installed yet. Install it from Quick Add."
+  },
+  "webhooks": {
+    "title": "Webhook catcher",
+    "description": "Point a webhook at this local address to record each request; pass them on to a site now or replay them later.",
+    "clear": "Clear",
+    "port": "Port",
+    "forward": "Pass on to",
+    "recordOnly": "Nothing (only record)",
+    "url": "http://127.0.0.1:{{port}}/",
+    "size": "{{size}} bytes",
+    "noBody": "(no body)",
+    "truncated": "The body was larger than 5 MB and was cut.",
+    "replayTo": "Replay to site",
+    "replay": "Replay",
+    "forwarded": "→ {{result}}"
+  },
+  "snapshots": {
+    "title": "Database snapshots",
+    "description": "Save a database before a migration or a test run, and put it back with one click.",
+    "database": "{{engine}} database",
+    "take": "Take snapshot",
+    "noDatabases": "This server has no databases of its own yet.",
+    "meta": "{{engine}} · {{date}} · {{size}}",
+    "restore": "Restore",
+    "confirmRestore": "Replace {{database}} now?",
+    "startServer": "Start {{engine}} to restore this snapshot",
+    "delete": "Delete snapshot"
   }
 }

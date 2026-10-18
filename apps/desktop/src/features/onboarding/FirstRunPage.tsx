@@ -37,7 +37,7 @@ export function FirstRunPage({ status }: { status: BootstrapStatus }) {
     : null;
 
   return (
-    <div className="flex h-full items-center justify-center overflow-y-auto bg-surface p-6 text-fg">
+    <div className="relative flex h-full items-center justify-center overflow-y-auto bg-surface p-6 text-fg">
       <form onSubmit={submit} className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-3 text-center">
           <Logo className="size-16" />

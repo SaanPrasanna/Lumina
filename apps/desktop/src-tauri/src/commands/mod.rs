@@ -11,6 +11,8 @@ pub mod quickapp;
 pub mod services;
 pub mod settings;
 pub mod sites;
+pub mod snapshots;
 pub mod ssl;
 pub mod tunnel;
 pub mod updates;
+pub mod webhooks;

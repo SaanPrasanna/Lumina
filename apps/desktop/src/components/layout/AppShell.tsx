@@ -34,11 +34,11 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="flex h-full overflow-hidden bg-surface text-fg">
+    <div className="relative flex h-full overflow-hidden bg-surface text-fg">
       <Sidebar />
       {/* The scroll container keeps room for its scrollbar, so pages that grow
           past the window height do not shift sideways. */}
-      <main className="min-w-0 flex-1 overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
+      <main className="relative min-w-0 flex-1 overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
         <UpdateBanner
           onOpen={() => {
             navigate("/settings");

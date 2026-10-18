@@ -87,7 +87,7 @@ async fn resolve_target(rt: &Runtime, target: &OpenTarget) -> lumina_core::Resul
                     .php()
                     .cli(&cfg.php)
                     .await
-                    .ok_or_else(|| Error::Other("PHP is not installed yet".into()))?
+                    .ok_or_else(|| Error::not_installed("php", "PHP"))?
                     .1
             }
             ConfigFile::Database => {
@@ -102,7 +102,7 @@ async fn resolve_target(rt: &Runtime, target: &OpenTarget) -> lumina_core::Resul
                 let pg = rt.stack.postgresql();
                 let installs = pg.versions().await;
                 let install = lumina_services::install::select(&installs, &cfg.postgresql.version)
-                    .ok_or_else(|| Error::Other("PostgreSQL is not installed yet".into()))?;
+                    .ok_or_else(|| Error::not_installed("postgresql", "PostgreSQL"))?;
                 let file = pg.data_dir(install).join("postgresql.conf");
                 if !file.is_file() {
                     return Err(Error::Other(

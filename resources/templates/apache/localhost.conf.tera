@@ -6,21 +6,33 @@
     Options FollowSymLinks
     DirectoryIndex index.php
     AllowOverride All
-    Require all granted
+    # Database tools answer this computer only (LAN sharing included).
+    Require local
 </Directory>
 <DirectoryMatch "^{{ db_ui_dir }}/(libraries|setup/lib|templates|tmp|vendor)/">
     Require all denied
 </DirectoryMatch>
 {%- endif %}
+{%- if adminer_dir %}
+
+# Adminer: one PHP file for MySQL, MariaDB, PostgreSQL and SQLite.
+<Directory "{{ adminer_dir }}">
+    DirectoryIndex index.php
+    Require local
+</Directory>
+{%- endif %}
 {%- if ssl %}
 # Certificate serial {{ localhost_serial }}.
 {%- endif %}
 
-<VirtualHost 127.0.0.1:{{ http_port }}>
+<VirtualHost {{ vhost_ip }}:{{ http_port }}>
     ServerName localhost
     DocumentRoot "{{ www_root }}"
 {%- if db_ui %}
     Alias /phpmyadmin "{{ db_ui_dir }}"
+{%- endif %}
+{%- if adminer_dir %}
+    Alias /adminer "{{ adminer_dir }}"
 {%- endif %}
 
     <Directory "{{ www_root }}">
@@ -31,11 +43,14 @@
 </VirtualHost>
 {%- if ssl %}
 
-<VirtualHost 127.0.0.1:{{ https_port }}>
+<VirtualHost {{ vhost_ip }}:{{ https_port }}>
     ServerName localhost
     DocumentRoot "{{ www_root }}"
 {%- if db_ui %}
     Alias /phpmyadmin "{{ db_ui_dir }}"
+{%- endif %}
+{%- if adminer_dir %}
+    Alias /adminer "{{ adminer_dir }}"
 {%- endif %}
     SSLEngine on
     SSLCertificateFile "{{ localhost_cert }}"

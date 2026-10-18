@@ -5,7 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { InstallButton, NotInstalledBadge } from "@/components/Installable";
 import { StatusBadge } from "@/components/StatusBadge";
+import { packageOf, useInstalled } from "@/features/services/installed";
 import { Button } from "@/components/ui";
 import { BOOTSTRAP_QUERY_KEY, bootstrapStatus } from "@/features/onboarding/api";
 import {
@@ -138,32 +140,9 @@ function ServiceGrid({ data, onAction, busy }: { data: StackStatus; onAction: (f
         </Link>
       </div>
       <ul className="grid gap-3 sm:grid-cols-2">
-        {rows(data).map((row) => {
-          const running = row.status === "running";
-          return (
-            <li key={row.kind} className="flex items-center justify-between gap-3 rounded-lg border border-line p-4">
-              <div className="min-w-0">
-                <p className="font-medium">
-                  {row.name}
-                  {row.version && <span className="ms-2 font-mono text-xs text-muted">{row.version}</span>}
-                </p>
-                <div className="mt-1 flex flex-wrap items-center gap-3">
-                  <StatusBadge status={row.status} />
-                  {row.port != null && <span className="font-mono text-xs text-muted">{t("dashboard.port", { port: row.port })}</span>}
-                </div>
-                {row.error && <p className="mt-1 truncate text-xs text-danger">{row.error}</p>}
-              </div>
-              <Button
-                onClick={() => onAction(() => (running ? serviceStop(row.kind) : serviceStart(row.kind)))}
-                disabled={busy || row.status === "starting" || row.status === "stopping"}
-                aria-label={running ? t("dashboard.stopService", { name: row.name }) : t("dashboard.startService", { name: row.name })}
-                icon={running ? <Square /> : <Play />}
-              >
-                {running ? t("actions.stop") : t("actions.start")}
-              </Button>
-            </li>
-          );
-        })}
+        {rows(data).map((row) => (
+          <ServiceTile key={row.kind} row={row} onAction={onAction} busy={busy} />
+        ))}
       </ul>
     </section>
   );
@@ -184,5 +163,38 @@ function Tile({ to, title, value, hint, icon }: { to: string; title: string; val
         <span className="block truncate text-xs text-muted">{hint}</span>
       </span>
     </Link>
+  );
+}
+
+function ServiceTile({ row, onAction, busy }: { row: Row; onAction: (fn: () => Promise<unknown>) => void; busy: boolean }) {
+  const { t } = useTranslation();
+  const running = row.status === "running";
+  const missing = useInstalled(row.kind) === false && !running;
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-lg border border-line p-4">
+      <div className="min-w-0">
+        <p className="font-medium">
+          {row.name}
+          {row.version && <span className="ms-2 font-mono text-xs text-muted">{row.version}</span>}
+        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          {missing ? <NotInstalledBadge /> : <StatusBadge status={row.status} />}
+          {row.port != null && <span className="font-mono text-xs text-muted">{t("dashboard.port", { port: row.port })}</span>}
+        </div>
+        {row.error && <p className="mt-1 truncate text-xs text-danger">{row.error}</p>}
+      </div>
+      {missing ? (
+        <InstallButton pkg={packageOf(row.kind)} name={row.name} primary={false} />
+      ) : (
+        <Button
+          onClick={() => onAction(() => (running ? serviceStop(row.kind) : serviceStart(row.kind)))}
+          disabled={busy || row.status === "starting" || row.status === "stopping"}
+          aria-label={running ? t("dashboard.stopService", { name: row.name }) : t("dashboard.startService", { name: row.name })}
+          icon={running ? <Square /> : <Play />}
+        >
+          {running ? t("actions.stop") : t("actions.start")}
+        </Button>
+      )}
+    </li>
   );
 }

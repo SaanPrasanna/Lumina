@@ -220,6 +220,10 @@ mod tests {
             "node",
             "python",
             "composer",
+            "bun",
+            "deno",
+            "uv",
+            "pnpm",
         ] {
             assert!(catalog.package(id).is_some(), "{id} missing");
         }

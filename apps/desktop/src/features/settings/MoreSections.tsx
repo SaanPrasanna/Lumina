@@ -1,10 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Check, ChevronRight, FolderOpen } from "lucide-react";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { ChevronRight, FolderOpen } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { ErrorBox } from "@/components/ErrorBox";
 import { LanguageSelect } from "@/components/LanguageSelect";
 import { ThemeSelect } from "@/components/ThemeSelect";
 import { Button } from "@/components/ui";
@@ -18,6 +17,7 @@ import {
   type Settings,
   settingsUpdate,
 } from "@/features/settings/api";
+import { differs, ErrorRow, FormSection, inputClass, NumberInput, Row, Section, SwitchRow } from "@/features/settings/parts";
 
 /** Saves several sections in order and puts the final (validated) result in the cache. */
 function useSaveSections() {
@@ -32,65 +32,8 @@ function useSaveSections() {
   });
 }
 
-/** A settings card with a Save button. */
-export function FormCard(props: { id: string; title: string; children: ReactNode; onSubmit: () => void; saving: boolean; saved: boolean }) {
-  const { t } = useTranslation();
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    props.onSubmit();
-  };
-  return (
-    <form id={props.id} onSubmit={submit} className="scroll-mt-4 space-y-4 rounded-xl border border-line p-5" aria-labelledby={`${props.id}-title`}>
-      <h2 id={`${props.id}-title`} className="text-lg font-semibold">
-        {props.title}
-      </h2>
-      {props.children}
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={props.saving}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent outline-none hover:bg-accent-strong focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-60"
-        >
-          {props.saving ? t("actions.saving") : t("actions.save")}
-        </button>
-        {props.saved && (
-          <span className="flex items-center gap-1 text-sm text-ok">
-            <Check className="size-4" aria-hidden />
-            {t("settings.saved")}
-          </span>
-        )}
-      </div>
-    </form>
-  );
-}
-
-/** A settings card without a form. */
-export function Card({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  return (
-    <section id={id} className="scroll-mt-4 space-y-3 rounded-xl border border-line p-5" aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`} className="text-lg font-semibold">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
 /** Shape of a proxy address (an example, not translated). */
 const PROXY_EXAMPLE = "http://proxy:8080";
-
-const input =
-  "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium">{label}</span>
-      {children}
-      {hint && <span className="text-xs text-muted">{hint}</span>}
-    </label>
-  );
-}
 
 /** Where the projects live (`[general] www_root`, empty = `<data root>/www`). */
 export function ProjectsFolderField({ value, onChange, fallback }: { value: string; onChange: (v: string) => void; fallback: string }) {
@@ -100,37 +43,32 @@ export function ProjectsFolderField({ value, onChange, fallback }: { value: stri
     if (typeof picked === "string") onChange(picked);
   };
   return (
-    <Field label={t("settings.general.www")} hint={t("settings.general.wwwHint", { folder: fallback, interpolation: { escapeValue: false } })}>
+    <Row label={t("settings.general.www")} hint={t("settings.general.wwwHint", { folder: fallback, interpolation: { escapeValue: false } })} htmlFor="general-www" wide>
       <span className="flex gap-2">
-        <input className={`${input} font-mono`} dir="ltr" value={value} placeholder={fallback} onChange={(e) => onChange(e.target.value)} />
+        <input id="general-www" className={`${inputClass} font-mono`} dir="ltr" value={value} placeholder={fallback} onChange={(e) => onChange(e.target.value)} />
         <Button onClick={() => void browse()} icon={<FolderOpen />}>
           {t("settings.browse")}
         </Button>
       </span>
-    </Field>
+    </Row>
   );
 }
 
 /** Database, PostgreSQL and Redis ports (engine and versions are on the Services page). */
-export function DatabaseForm({
-  database,
-  redis,
-  postgresql,
-}: {
-  database: DatabaseSettings;
-  redis: RedisSettings;
-  postgresql: PostgresqlSettings;
-}) {
+export function DatabaseForm({ database, redis, postgresql }: { database: DatabaseSettings; redis: RedisSettings; postgresql: PostgresqlSettings }) {
   const { t } = useTranslation();
   const [db, setDb] = useState(database);
   const [rd, setRd] = useState(redis);
   const [pg, setPg] = useState(postgresql);
   const save = useSaveSections();
-  const port = "w-full rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
   return (
-    <FormCard
+    <FormSection
       id="database"
       title={t("settings.database.title")}
+      description={t("settings.database.restart")}
+      dirty={differs([db, rd, pg], [database, redis, postgresql])}
+      saving={save.isPending}
+      saved={save.isSuccess}
       onSubmit={() =>
         save.mutate([
           ["database", db],
@@ -138,31 +76,25 @@ export function DatabaseForm({
           ["postgresql", pg],
         ])
       }
-      saving={save.isPending}
-      saved={save.isSuccess}
+      onReset={() => {
+        setDb(database);
+        setRd(redis);
+        setPg(postgresql);
+      }}
     >
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        <Field label={t("settings.database.port")} hint={t("settings.database.portHint")}>
-          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={db.port} onChange={(e) => setDb({ ...db, port: Number(e.target.value) })} />
-        </Field>
-        <Field label={t("settings.database.redisPort")}>
-          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={rd.port} onChange={(e) => setRd({ ...rd, port: Number(e.target.value) })} />
-        </Field>
-        <Field label={t("settings.database.postgresqlPort")}>
-          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={pg.port} onChange={(e) => setPg({ ...pg, port: Number(e.target.value) })} />
-        </Field>
-      </div>
-      <label className="flex items-center gap-2.5 text-sm">
-        <input type="checkbox" className="size-4 accent-accent" checked={rd.enabled} onChange={(e) => setRd({ ...rd, enabled: e.target.checked })} />
-        {t("settings.database.redisEnabled")}
-      </label>
-      <label className="flex items-center gap-2.5 text-sm">
-        <input type="checkbox" className="size-4 accent-accent" checked={pg.enabled} onChange={(e) => setPg({ ...pg, enabled: e.target.checked })} />
-        {t("settings.database.postgresqlEnabled")}
-      </label>
-      <p className="text-xs text-muted">{t("settings.database.restart")}</p>
-      <ErrorBox error={save.error} />
-    </FormCard>
+      <Row label={t("settings.database.port")} hint={t("settings.database.portHint")} htmlFor="db-port">
+        <NumberInput id="db-port" min={1} max={65535} value={db.port} onChange={(e) => setDb({ ...db, port: Number(e.target.value) })} />
+      </Row>
+      <Row label={t("settings.database.postgresqlPort")} htmlFor="pg-port">
+        <NumberInput id="pg-port" min={1} max={65535} value={pg.port} onChange={(e) => setPg({ ...pg, port: Number(e.target.value) })} />
+      </Row>
+      <SwitchRow label={t("settings.database.postgresqlEnabled")} checked={pg.enabled} onChange={(enabled) => setPg({ ...pg, enabled })} />
+      <Row label={t("settings.database.redisPort")} htmlFor="redis-port">
+        <NumberInput id="redis-port" min={1} max={65535} value={rd.port} onChange={(e) => setRd({ ...rd, port: Number(e.target.value) })} />
+      </Row>
+      <SwitchRow label={t("settings.database.redisEnabled")} checked={rd.enabled} onChange={(enabled) => setRd({ ...rd, enabled })} />
+      <ErrorRow error={save.error} />
+    </FormSection>
   );
 }
 
@@ -171,41 +103,46 @@ export function MailForm({ initial }: { initial: MailpitSettings }) {
   const { t } = useTranslation();
   const [mail, setMail] = useState(initial);
   const save = useSaveSections();
-  const port = "w-full rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent";
   return (
-    <FormCard id="mail" title={t("settings.mail.title")} onSubmit={() => save.mutate([["mailpit", mail]])} saving={save.isPending} saved={save.isSuccess}>
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        <Field label={t("settings.mail.smtpPort")} hint={t("settings.mail.smtpPortHint")}>
-          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={mail.smtp_port} onChange={(e) => setMail({ ...mail, smtp_port: Number(e.target.value) })} />
-        </Field>
-        <Field label={t("settings.mail.uiPort")}>
-          <input type="number" required min={1} max={65535} dir="ltr" className={port} value={mail.ui_port} onChange={(e) => setMail({ ...mail, ui_port: Number(e.target.value) })} />
-        </Field>
-      </div>
-      <label className="flex items-center gap-2.5 text-sm">
-        <input type="checkbox" className="size-4 accent-accent" checked={mail.enabled} onChange={(e) => setMail({ ...mail, enabled: e.target.checked })} />
-        {t("mailpit.enabled")}
-      </label>
-      <label className="flex items-center gap-2.5 text-sm">
-        <input type="checkbox" className="size-4 accent-accent" checked={mail.php_mail} onChange={(e) => setMail({ ...mail, php_mail: e.target.checked })} />
-        {t("mailpit.phpMail")}
-      </label>
-      <p className="text-xs text-muted">{t("settings.mail.restart")}</p>
-      <ErrorBox error={save.error} />
-    </FormCard>
+    <FormSection
+      id="mail"
+      title={t("settings.mail.title")}
+      description={t("settings.mail.restart")}
+      dirty={differs(mail, initial)}
+      saving={save.isPending}
+      saved={save.isSuccess}
+      onSubmit={() => save.mutate([["mailpit", mail]])}
+      onReset={() => setMail(initial)}
+    >
+      <Row label={t("settings.mail.smtpPort")} hint={t("settings.mail.smtpPortHint")} htmlFor="mail-smtp">
+        <NumberInput id="mail-smtp" min={1} max={65535} value={mail.smtp_port} onChange={(e) => setMail({ ...mail, smtp_port: Number(e.target.value) })} />
+      </Row>
+      <Row label={t("settings.mail.uiPort")} htmlFor="mail-ui">
+        <NumberInput id="mail-ui" min={1} max={65535} value={mail.ui_port} onChange={(e) => setMail({ ...mail, ui_port: Number(e.target.value) })} />
+      </Row>
+      <SwitchRow label={t("mailpit.enabled")} checked={mail.enabled} onChange={(enabled) => setMail({ ...mail, enabled })} />
+      <SwitchRow label={t("mailpit.phpMail")} checked={mail.php_mail} onChange={(php_mail) => setMail({ ...mail, php_mail })} />
+      <ErrorRow error={save.error} />
+    </FormSection>
   );
 }
 
+/** Language and theme: they apply at once, so no Save. */
 export function AppearanceCard() {
   const { t } = useTranslation();
   return (
-    <Card id="appearance" title={t("settings.appearance.title")}>
-      <div className="grid max-w-md gap-3">
-        <LanguageSelect />
-        <ThemeSelect />
-      </div>
-      <p className="text-xs text-muted">{t("settings.appearance.hint")}</p>
-    </Card>
+    <Section id="appearance" title={t("settings.appearance.title")} description={t("settings.appearance.description")}>
+      <Row label={t("language.label")} hint={t("settings.appearance.hint")}>
+        <div className="w-full">
+          <LanguageSelect />
+        </div>
+      </Row>
+      <Row label={t("theme.label")}>
+        <div className="w-full">
+          <ThemeSelect />
+        </div>
+      </Row>
+    </Section>
   );
 }
 
@@ -220,45 +157,54 @@ export function ElsewhereCard() {
     ["/profiles", t("settings.elsewhere.profiles"), t("settings.elsewhere.profilesHint")],
   ];
   return (
-    <Card id="elsewhere" title={t("settings.elsewhere.title")}>
-      <ul className="divide-y divide-line rounded-lg border border-line">
+    <Section id="elsewhere" title={t("settings.elsewhere.title")} description={t("settings.elsewhere.description")}>
+      <ul className="grid gap-px bg-line @2xl:grid-cols-2">
         {links.map(([to, title, hint]) => (
-          <li key={to}>
-            <Link to={to} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent">
+          <li key={to} className="bg-surface @2xl:[&:last-child:nth-child(odd)]:col-span-2">
+            <Link to={to} className="flex h-full items-center justify-between gap-3 px-5 py-3.5 text-sm outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent">
               <span className="min-w-0">
                 <span className="block font-medium">{title}</span>
-                <span className="block truncate text-xs text-muted">{hint}</span>
+                <span className="block text-xs text-muted">{hint}</span>
               </span>
               <ChevronRight className="size-4 shrink-0 text-muted rtl:rotate-180" aria-hidden />
             </Link>
           </li>
         ))}
       </ul>
-    </Card>
+    </Section>
   );
 }
 
-/** Download proxy and folders. */
+/** Download proxy and where Lumina keeps its files. */
 export function AdvancedForm({ proxy, path }: { proxy: string; path: string }) {
   const { t } = useTranslation();
   const [value, setValue] = useState(proxy);
   const save = useSaveSections();
   const folder = useMutation({ mutationFn: logsOpenFolder });
   return (
-    <FormCard id="advanced" title={t("settings.advanced.title")} onSubmit={() => save.mutate([["packages", { proxy: value.trim() }]])} saving={save.isPending} saved={save.isSuccess}>
-      <Field label={t("settings.advanced.proxy")} hint={t("settings.advanced.proxyHint")}>
-        <input className={`${input} font-mono`} dir="ltr" placeholder={PROXY_EXAMPLE} value={value} onChange={(e) => setValue(e.target.value)} />
-      </Field>
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-muted">{t("settings.file")}:</span>
-        <span className="min-w-0 truncate font-mono text-xs" dir="ltr">
+    <FormSection
+      id="advanced"
+      title={t("settings.advanced.title")}
+      dirty={value.trim() !== proxy}
+      saving={save.isPending}
+      saved={save.isSuccess}
+      onSubmit={() => save.mutate([["packages", { proxy: value.trim() }]])}
+      onReset={() => setValue(proxy)}
+    >
+      <Row label={t("settings.advanced.proxy")} hint={t("settings.advanced.proxyHint")} htmlFor="proxy">
+        <input id="proxy" className={`${inputClass} font-mono`} dir="ltr" placeholder={PROXY_EXAMPLE} value={value} onChange={(e) => setValue(e.target.value)} />
+      </Row>
+      <Row label={t("settings.file")}>
+        <span className="block truncate font-mono text-xs text-fg-soft @md:text-end" dir="ltr" title={path}>
           {path}
         </span>
-      </div>
-      <Button onClick={() => folder.mutate()} icon={<FolderOpen />}>
-        {t("logs.openFolder")}
-      </Button>
-      <ErrorBox error={save.error ?? folder.error} />
-    </FormCard>
+      </Row>
+      <Row label={t("settings.advanced.logs")}>
+        <Button onClick={() => folder.mutate()} icon={<FolderOpen />}>
+          {t("logs.openFolder")}
+        </Button>
+      </Row>
+      <ErrorRow error={save.error ?? folder.error} />
+    </FormSection>
   );
 }

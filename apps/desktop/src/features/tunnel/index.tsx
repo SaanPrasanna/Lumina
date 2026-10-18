@@ -18,6 +18,7 @@ import {
   tunnelOpenLog,
   tunnelOverview,
   tunnelSetDomain,
+  tunnelSetProvider,
   tunnelSetToken,
   tunnelStopAll,
 } from "@/features/tunnel/api";
@@ -62,9 +63,21 @@ export function TunnelPage() {
                 </span>
               </p>
             )}
-            <AgentCard data={data} />
-            <TokenCard data={data} />
-            <DomainCard key={data.domain} data={data} />
+            <ProviderCard data={data} />
+            {data.provider === "cloudflare" ? (
+              <AgentCard
+                id="cloudflared"
+                title={t("tunnel.cloudflare.agentTitle")}
+                installed={data.cloudflaredInstalled}
+                available={data.cloudflaredAvailable}
+              />
+            ) : (
+              <>
+                <AgentCard id="ngrok" title={t("tunnel.agent.title")} installed={data.installed} available={data.available} />
+                <TokenCard data={data} />
+                <DomainCard key={data.domain} data={data} />
+              </>
+            )}
             <section aria-labelledby="shared-title">
               <h2 id="shared-title" className="mb-2 mt-2 text-sm font-semibold text-muted">
                 {t("tunnel.sharedTitle")}
@@ -106,32 +119,71 @@ function Step({ done, title, children }: { done: boolean; title: string; childre
   );
 }
 
-/** 1. The ngrok agent, installed from Quick Add. */
-function AgentCard({ data }: { data: TunnelOverview }) {
+/** How sites are shared: ngrok (an account) or Cloudflare quick tunnels (none). */
+function ProviderCard({ data }: { data: TunnelOverview }) {
   const { t } = useTranslation();
-  const packages = useQuery({ queryKey: PACKAGES_KEY, queryFn: packagesList, enabled: !data.installed });
-  const install = useMutation({ mutationFn: (version: string) => packageInstall("ngrok", version) });
-  const job = packages.data?.packages.find((p) => p.id === "ngrok")?.jobs[0];
+  const action = useTunnelAction();
+  const choices: [string, string, string][] = [
+    ["ngrok", t("tunnel.provider.ngrok"), t("tunnel.provider.ngrokHint")],
+    ["cloudflare", t("tunnel.provider.cloudflare"), t("tunnel.provider.cloudflareHint")],
+  ];
+  return (
+    <section className="rounded-xl border border-line p-5" aria-labelledby="provider-title">
+      <h2 id="provider-title" className="font-semibold">
+        {t("tunnel.provider.title")}
+      </h2>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {choices.map(([value, label, hint]) => (
+          <label key={value} className={`flex cursor-pointer gap-2.5 rounded-md border px-3 py-2.5 text-sm ${data.provider === value ? "border-accent" : "border-line"}`}>
+            <input
+              type="radio"
+              name="tunnel-provider"
+              className="mt-0.5 size-4 accent-accent"
+              checked={data.provider === value}
+              disabled={action.isPending}
+              onChange={() => action.mutate(() => tunnelSetProvider(value))}
+            />
+            <span>
+              <span className="font-medium">{label}</span>
+              <span className="mt-0.5 block text-muted">{hint}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      <div className="mt-3">
+        <ErrorBox error={action.error} />
+      </div>
+    </section>
+  );
+}
+
+/** 1. The tunnel program (ngrok or cloudflared), installed from Quick Add. */
+function AgentCard({ id, title, installed, available }: { id: string; title: string; installed: string | null; available: string | null }) {
+  const name = title;
+  const { t } = useTranslation();
+  const packages = useQuery({ queryKey: PACKAGES_KEY, queryFn: packagesList, enabled: !installed });
+  const install = useMutation({ mutationFn: (version: string) => packageInstall(id, version) });
+  const job = packages.data?.packages.find((p) => p.id === id)?.jobs[0];
   const installing = install.isPending || (job != null && !job.done);
   const percent = job?.total ? Math.round((job.received / job.total) * 100) : null;
 
   return (
-    <Step done={data.installed != null} title={t("tunnel.agent.title")}>
-      {data.installed ? (
-        <p className="text-muted">{t("tunnel.agent.installed", { version: data.installed })}</p>
+    <Step done={installed != null} title={title}>
+      {installed ? (
+        <p className="text-muted">{t("tunnel.agent.installed", { name, version: installed })}</p>
       ) : (
         <>
-          <p className="text-muted">{t("tunnel.agent.missing")}</p>
-          {data.available ? (
-            <Button primary onClick={() => install.mutate(data.available ?? "")} disabled={installing} icon={<Download />}>
+          <p className="text-muted">{t("tunnel.agent.missing", { name })}</p>
+          {available ? (
+            <Button primary onClick={() => install.mutate(available)} disabled={installing} icon={<Download />}>
               {installing
                 ? percent != null
                   ? t("tunnel.agent.installingPercent", { percent })
                   : t("tunnel.agent.installing")
-                : t("tunnel.agent.install", { version: data.available })}
+                : t("tunnel.agent.install", { name, version: available })}
             </Button>
           ) : (
-            <p className="text-warn">{t("tunnel.agent.unavailable")}</p>
+            <p className="text-warn">{t("tunnel.agent.unavailable", { name })}</p>
           )}
           {job?.error && <p className="text-danger">{job.error}</p>}
           <ErrorBox error={install.error} />

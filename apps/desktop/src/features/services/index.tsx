@@ -6,6 +6,8 @@ import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
 import { openLocalhost, openWww, SERVICES_KEY, servicesStatus, servicesStopAll } from "@/features/services/api";
+import { ExtraServices } from "@/features/services/ExtraServices";
+import { SnapshotsCard } from "@/features/services/SnapshotsCard";
 import { MailpitCard } from "@/features/services/MailpitCard";
 import { PhpCard } from "@/features/services/PhpCard";
 import { DatabaseCard } from "@/features/services/DatabaseCard";
@@ -70,11 +72,30 @@ export function ServicesPage() {
         {stack.data && (
           <>
             <PhpCard status={stack.data.php} config={config?.php} />
+            {stack.data.phpPools.length > 0 && (
+              <section className="rounded-xl border border-line px-5 py-3 text-sm" aria-label={t("php.pools.title")}>
+                <h2 className="font-semibold">{t("php.pools.title")}</h2>
+                <ul className="mt-1 space-y-0.5 text-muted">
+                  {stack.data.phpPools.map((pool) => (
+                    <li key={pool.logFile}>
+                      {pool.runtime ? t("php.pools.running", { version: pool.runtime.version, port: pool.runtime.port }) : t(`status.${pool.status}`)}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             <WebCard status={stack.data.web} config={config?.web} onPortConflict={setConflict} />
             <DatabaseCard status={stack.data.database} config={config?.database} onPortConflict={setConflict} />
             <PostgresCard status={stack.data.postgresql} config={config?.postgresql} onPortConflict={setConflict} />
             <RedisCard status={stack.data.redis} config={config?.redis} onPortConflict={setConflict} />
             <MailpitCard status={stack.data.mailpit} config={config?.mailpit} onPortConflict={setConflict} />
+            <SnapshotsCard
+              engines={[
+                ...(stack.data.database.runtime ? [stack.data.database.engine] : []),
+                ...(stack.data.postgresql.runtime ? ["postgresql"] : []),
+              ]}
+            />
+            <ExtraServices config={config} />
           </>
         )}
       </div>

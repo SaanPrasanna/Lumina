@@ -50,6 +50,9 @@ const ready: api.TunnelOverview = {
   tunnels: [],
   stopped: null,
   logFile: "C:\\Lumina\\logs\\ngrok.log",
+  provider: "ngrok",
+  cloudflaredInstalled: null,
+  cloudflaredAvailable: "2026.10.1",
 };
 
 function wrap(ui: React.ReactNode) {
@@ -150,6 +153,15 @@ describe("TunnelPage", () => {
     const account = screen.getByRole("region", { name: "ngrok account" });
     await userEvent.click(within(account).getByRole("button", { name: "Save" }));
     expect(api.tunnelSetToken).toHaveBeenCalledWith("2abcDEFghiJKLmnoPQRstu_3vwxYZ");
+  });
+
+  it("shares through Cloudflare without an account", async () => {
+    vi.mocked(api.tunnelOverview).mockResolvedValue({ ...ready, provider: "cloudflare", hasToken: false });
+    wrap(<TunnelPage />);
+    await userEvent.click(await screen.findByRole("button", { name: "Install cloudflared 2026.10.1" }));
+    expect(packagesApi.packageInstall).toHaveBeenCalledWith("cloudflared", "2026.10.1");
+    expect(screen.queryByLabelText("Authtoken")).toBeNull();
+    expect(screen.getByRole("radio", { name: /Cloudflare Tunnel/ })).toBeChecked();
   });
 
   it("lists shared sites and why sharing stopped", async () => {

@@ -71,6 +71,90 @@ pub fn fcgi_env(
     env
 }
 
+/// php.ini settings that switch Xdebug on: step debugging when a request
+/// carries the trigger (XDEBUG_TRIGGER cookie/parameter, browser extension),
+/// to an IDE listening on 127.0.0.1:9003, plus the development helpers.
+/// `zend_extension` says "xdebug"; [`resolve_xdebug`] turns it into a path.
+pub fn xdebug_ini() -> Vec<(String, String)> {
+    [
+        ("zend_extension", "xdebug"),
+        ("xdebug.mode", "debug,develop"),
+        ("xdebug.start_with_request", "trigger"),
+        ("xdebug.client_host", "127.0.0.1"),
+        ("xdebug.client_port", "9003"),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_owned(), v.to_owned()))
+    .collect()
+}
+
+/// The Xdebug extension for `install`: its own `ext/` folder first, then the
+/// build Quick Add installed for this PHP version (`bin/xdebug/<x>-php8.4/`).
+pub fn xdebug_extension(layout: &Layout, install: &PhpInstall) -> Option<PathBuf> {
+    let own = ext_dir(install).join(if cfg!(windows) {
+        "php_xdebug.dll"
+    } else {
+        "xdebug.so"
+    });
+    if own.is_file() {
+        return Some(own);
+    }
+    let minor: String = install
+        .version
+        .split('.')
+        .take(2)
+        .collect::<Vec<_>>()
+        .join(".");
+    lumina_packages::installed::list(&layout.bin().join("xdebug"))
+        .into_iter()
+        .filter(|i| i.version.ends_with(&format!("-php{minor}")))
+        .map(|i| i.dir.join("php_xdebug.dll"))
+        .find(|p| p.is_file())
+}
+
+/// Points `zend_extension=xdebug` at the extension for `install`, or drops
+/// every Xdebug setting when there is none (PHP would refuse to start).
+/// Returns the settings and whether Xdebug is loaded.
+pub fn resolve_xdebug(
+    layout: &Layout,
+    install: &PhpInstall,
+    ini: &[(String, String)],
+) -> (Vec<(String, String)>, bool) {
+    let wanted = ini
+        .iter()
+        .any(|(k, v)| k == "zend_extension" && v == "xdebug");
+    if !wanted {
+        return (ini.to_vec(), false);
+    }
+    match xdebug_extension(layout, install) {
+        Some(path) => {
+            let path = forward_slashes(&path);
+            let out = ini
+                .iter()
+                .map(|(k, v)| match (k.as_str(), v.as_str()) {
+                    ("zend_extension", "xdebug") => (k.clone(), path.clone()),
+                    _ => (k.clone(), v.clone()),
+                })
+                .collect();
+            (out, true)
+        }
+        None => {
+            tracing::warn!(
+                "Xdebug is on, but PHP {} has no Xdebug extension; install it from Quick Add (Windows) or with pecl",
+                install.version
+            );
+            let out = ini
+                .iter()
+                .filter(|(k, v)| {
+                    !(k.starts_with("xdebug.") || (k == "zend_extension" && v == "xdebug"))
+                })
+                .cloned()
+                .collect();
+            (out, false)
+        }
+    }
+}
+
 /// `etc/php/<version>/`, where this version's php.ini lives.
 pub fn ini_dir(layout: &Layout, install: &PhpInstall) -> PathBuf {
     layout.etc().join("php").join(&install.version)
@@ -129,6 +213,47 @@ mod tests {
 
     fn templates() -> Templates {
         Templates::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/templates"))
+    }
+
+    #[test]
+    fn xdebug_is_pointed_at_its_extension_or_left_out() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let layout = Layout::new(tmp.path().join("root"));
+        let php = tmp.path().join("php");
+        std::fs::create_dir_all(php.join("ext")).expect("ext");
+        let install = PhpInstall {
+            version: "8.4.26".into(),
+            dir: php.clone(),
+            exe: php.join("php-cgi"),
+            homebrew: None,
+        };
+        let mut ini = vec![("SMTP".to_owned(), "127.0.0.1".to_owned())];
+        ini.extend(xdebug_ini());
+
+        let (out, loaded) = resolve_xdebug(&layout, &install, &ini);
+        assert!(!loaded);
+        assert_eq!(
+            out,
+            [("SMTP".to_owned(), "127.0.0.1".to_owned())],
+            "no extension: nothing of Xdebug"
+        );
+
+        let dll = layout.bin().join("xdebug").join("3.5.3-php8.4");
+        std::fs::create_dir_all(&dll).expect("xdebug");
+        std::fs::write(dll.join("php_xdebug.dll"), b"").expect("dll");
+        if cfg!(windows) {
+            let (out, loaded) = resolve_xdebug(&layout, &install, &ini);
+            assert!(loaded);
+            let ext = out
+                .iter()
+                .find(|(k, _)| k == "zend_extension")
+                .expect("zend_extension");
+            assert!(ext.1.ends_with("3.5.3-php8.4/php_xdebug.dll"), "{}", ext.1);
+            assert!(
+                out.iter()
+                    .any(|(k, v)| k == "xdebug.mode" && v == "debug,develop")
+            );
+        }
     }
 
     #[test]

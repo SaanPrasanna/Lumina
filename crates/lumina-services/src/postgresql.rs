@@ -162,7 +162,7 @@ impl Postgresql {
     pub async fn start(&self, cfg: &PgConfig) -> Result<PgRuntime> {
         let mut state = self.inner.state.lock().await;
         let result = self.start_locked(&mut state, cfg).await;
-        state.last_error = result.as_ref().err().map(ToString::to_string);
+        state.last_error = crate::start_failure(&result);
         result
     }
 

@@ -10,7 +10,8 @@
 //! - [`Orchestrator::heal`] restarts a service that runs but no longer
 //!   answers on its port (checked after the computer wakes from sleep).
 
-use std::path::PathBuf;
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -24,14 +25,16 @@ use serde::Serialize;
 use tokio::sync::Mutex;
 
 use crate::apache::Apache;
+use crate::apps::{AppStatus, Apps};
 use crate::database::{Database, DbStatus, engine};
+use crate::extra::{ExtraStatus, Extras};
 use crate::mailpit::{Mailpit, MailpitStatus};
 use crate::nginx::Nginx;
 use crate::php_fcgi::{PhpFcgi, PhpStatus};
 use crate::postgresql::{PgStatus, Postgresql};
 use crate::redis::{Redis, RedisStatus};
 use crate::template::Templates;
-use crate::web::{DbUi, ReloadOutcome, WebContext, WebStatus};
+use crate::web::{DbUi, PhpPool, ReloadOutcome, WebContext, WebStatus};
 use lumina_ssl::{Ssl, Tls};
 use lumina_vhost::Scan;
 
@@ -52,6 +55,8 @@ pub struct StackStatus {
     pub redis: RedisStatus,
     pub postgresql: PgStatus,
     pub mailpit: MailpitStatus,
+    /// php-cgi pools of other PHP versions, for sites set to one.
+    pub php_pools: Vec<PhpStatus>,
 }
 
 #[derive(Clone)]
@@ -69,6 +74,16 @@ struct Inner {
     redis: Redis,
     postgresql: Postgresql,
     mailpit: Mailpit,
+    /// Dev servers of app sites (Vite, Next.js, Django, ...).
+    apps: Apps,
+    /// MongoDB, Valkey, Meilisearch, ... (`[services.<id>]`).
+    extras: Extras,
+    /// The webhook catcher (runs inside Lumina, not as a process).
+    webhooks: crate::webhooks::Webhooks,
+    /// php-cgi pools for sites with their own PHP version, by full version.
+    pools: Mutex<BTreeMap<String, PhpFcgi>>,
+    supervisor: Supervisor,
+    templates: Templates,
     /// The local CA and site certificates (`<data-root>/ssl`).
     ssl: Ssl,
     /// Why HTTPS could not be set up last time, for the UI.
@@ -98,7 +113,13 @@ impl Orchestrator {
                 ),
                 postgresql: Postgresql::new(supervisor.clone(), layout.clone()),
                 mailpit: Mailpit::new(supervisor.clone(), layout.clone()),
-                redis: Redis::new(supervisor, layout.clone(), templates),
+                apps: Apps::new(supervisor.clone(), layout.clone()),
+                pools: Mutex::new(BTreeMap::new()),
+                extras: Extras::new(supervisor.clone(), layout.clone()),
+                webhooks: crate::webhooks::Webhooks::default(),
+                redis: Redis::new(supervisor.clone(), layout.clone(), templates.clone()),
+                supervisor,
+                templates,
                 ssl: Ssl::new(layout.ssl()),
                 tls_error: std::sync::Mutex::new(None),
                 layout,
@@ -136,6 +157,179 @@ impl Orchestrator {
 
     pub fn mailpit(&self) -> &Mailpit {
         &self.inner.mailpit
+    }
+
+    pub fn apps(&self) -> &Apps {
+        &self.inner.apps
+    }
+
+    pub fn extras(&self) -> &Extras {
+        &self.inner.extras
+    }
+
+    pub fn webhooks(&self) -> &crate::webhooks::Webhooks {
+        &self.inner.webhooks
+    }
+
+    /// Where webhooks for the site of folder `name` go: through the web
+    /// server, with the site's host name.
+    pub fn webhook_target(&self, cfg: &AppConfig, name: &str) -> Result<crate::webhooks::Target> {
+        let site = self.site(cfg, name)?;
+        Ok(crate::webhooks::Target {
+            domain: site.domain,
+            http_port: cfg.web.http_port,
+        })
+    }
+
+    /// Starts the webhook catcher with `[webhooks]`.
+    pub async fn start_webhooks(&self, cfg: &AppConfig) -> Result<()> {
+        let forward = match cfg.webhooks.forward.trim() {
+            "" => None,
+            name => Some(self.webhook_target(cfg, name)?),
+        };
+        self.inner.webhooks.start(cfg.webhooks.port, forward).await
+    }
+
+    fn extra(id: &str) -> Result<&'static crate::extra::Definition> {
+        crate::extra::definition(id)
+            .ok_or_else(|| Error::Service(id.into(), format!("Lumina does not run `{id}`")))
+    }
+
+    pub async fn start_extra(&self, id: &str, cfg: &AppConfig) -> Result<()> {
+        let def = Self::extra(id)?;
+        let _guard = self.inner.lock.lock().await;
+        self.inner
+            .extras
+            .start(def, &crate::extra::settings(&cfg.services, def))
+            .await
+    }
+
+    pub async fn stop_extra(&self, id: &str) -> Result<()> {
+        let def = Self::extra(id)?;
+        let _guard = self.inner.lock.lock().await;
+        self.inner.extras.stop(def).await
+    }
+
+    pub async fn restart_extra(&self, id: &str, cfg: &AppConfig) -> Result<()> {
+        let def = Self::extra(id)?;
+        let _guard = self.inner.lock.lock().await;
+        self.inner.extras.stop(def).await?;
+        self.inner
+            .extras
+            .start(def, &crate::extra::settings(&cfg.services, def))
+            .await
+    }
+
+    pub async fn extras_status(&self, cfg: &AppConfig) -> Vec<ExtraStatus> {
+        self.inner.extras.status(&cfg.services).await
+    }
+
+    fn site(&self, cfg: &AppConfig, name: &str) -> Result<lumina_vhost::Site> {
+        self.sites(cfg)
+            .sites
+            .into_iter()
+            .find(|s| s.name == name)
+            .ok_or_else(|| {
+                Error::Service(
+                    crate::apps::process_id(name),
+                    format!("there is no site for the folder `{name}`"),
+                )
+            })
+    }
+
+    /// Starts the dev server of the site for folder `name`, and the web
+    /// server in front of it if none runs.
+    pub async fn start_app(&self, name: &str, cfg: &AppConfig) -> Result<()> {
+        let site = self.site(cfg, name)?;
+        if self.running_web().await.is_none() {
+            self.start(Self::configured_web(cfg), cfg).await?;
+        }
+        self.inner.apps.start(&site, &self.shim_dir()).await
+    }
+
+    /// The running server of `engine` (`mysql`, `mariadb`, `postgresql`),
+    /// with the folder of its own tools, for snapshots.
+    pub async fn snapshot_server(&self, engine: &str) -> Result<crate::snapshots::Server> {
+        let (engine, runtime, installs): (
+            &'static str,
+            Option<(String, u16)>,
+            Vec<crate::install::Install>,
+        ) = match engine {
+            "mysql" | "mariadb" => {
+                let db = if engine == "mysql" {
+                    &self.inner.mysql
+                } else {
+                    &self.inner.mariadb
+                };
+                let rt = db.status().await.runtime.map(|r| (r.version, r.port));
+                let name = if engine == "mysql" {
+                    "mysql"
+                } else {
+                    "mariadb"
+                };
+                (name, rt, db.versions().await)
+            }
+            "postgresql" => {
+                let pg = &self.inner.postgresql;
+                let rt = pg.status().await.runtime.map(|r| (r.version, r.port));
+                ("postgresql", rt, pg.versions().await)
+            }
+            other => return Err(Error::Other(format!("no snapshots for `{other}`"))),
+        };
+        let (version, port) = runtime
+            .ok_or_else(|| Error::Service(engine.into(), format!("start {engine} first")))?;
+        let install = installs
+            .into_iter()
+            .find(|i| i.version == version)
+            .ok_or_else(|| {
+                Error::Service(
+                    engine.into(),
+                    format!("{engine} {version} is not installed"),
+                )
+            })?;
+        let bin = install
+            .exe
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| install.dir.join("bin"));
+        Ok(crate::snapshots::Server { engine, bin, port })
+    }
+
+    pub fn layout(&self) -> &Layout {
+        &self.inner.layout
+    }
+
+    /// Installs Playwright's browsers for the project of folder `name`.
+    pub async fn playwright_install(&self, name: &str, cfg: &AppConfig) -> Result<()> {
+        let site = self.site(cfg, name)?;
+        self.inner
+            .apps
+            .playwright_install(&site, &self.shim_dir())
+            .await
+    }
+
+    pub async fn stop_app(&self, name: &str) -> Result<()> {
+        self.inner.apps.stop(name).await
+    }
+
+    pub async fn restart_app(&self, name: &str, cfg: &AppConfig) -> Result<()> {
+        self.inner.apps.stop(name).await?;
+        self.start_app(name, cfg).await
+    }
+
+    /// The dev servers of every app site.
+    pub async fn apps_status(&self, cfg: &AppConfig) -> Vec<AppStatus> {
+        self.inner.apps.status(&self.sites(cfg).sites).await
+    }
+
+    /// Every php.ini setting Lumina adds on the command line: mail to
+    /// Mailpit, and Xdebug when it is on.
+    pub async fn php_ini(&self, cfg: &AppConfig) -> Vec<(String, String)> {
+        let mut ini = self.php_mail_ini(cfg).await;
+        if cfg.php.xdebug {
+            ini.extend(crate::php_fcgi::env::xdebug_ini());
+        }
+        ini
     }
 
     /// php.ini settings that send PHP's `mail()` to Mailpit (see
@@ -189,6 +383,7 @@ impl Orchestrator {
         let sites = lumina_vhost::scan(&www_root, cfg).sites;
         let tls = self.tls(cfg, &sites);
         let db_ui = self.db_ui(cfg).await;
+        let (php_pools, site_php) = self.sync_pools(cfg, &sites).await;
         WebContext {
             http_port: cfg.web.http_port,
             php_port,
@@ -196,7 +391,123 @@ impl Orchestrator {
             www_root,
             tls,
             db_ui,
+            php_pools,
+            site_php,
+            adminer: lumina_packages::installed::list(&self.inner.layout.bin().join("adminer"))
+                .into_iter()
+                .map(|i| i.dir)
+                .find(|d| d.join("index.php").is_file()),
+            lan: cfg.general.lan,
         }
+    }
+
+    /// The port of the pool for PHP `version`: fixed per minor version
+    /// (8.3 → 21803), so a site's config is the same on every run.
+    pub fn pool_port(version: &str) -> u16 {
+        let mut parts = version.split('.').filter_map(|p| p.parse::<u16>().ok());
+        let (major, minor) = (parts.next().unwrap_or(0), parts.next().unwrap_or(0));
+        21000 + (major % 10) * 100 + minor.min(99)
+    }
+
+    /// Starts a php-cgi pool for every other PHP version a site is set to,
+    /// stops pools no site needs any more, and says which site uses which.
+    /// A site whose version is not installed, or whose pool does not start,
+    /// keeps the shared PHP (and the reason is logged).
+    async fn sync_pools(
+        &self,
+        cfg: &AppConfig,
+        sites: &[lumina_vhost::Site],
+    ) -> (Vec<PhpPool>, BTreeMap<String, PhpPool>) {
+        let shared = self.inner.php.active_version(&cfg.php).await;
+        let installs = self.inner.php.versions().await;
+        let mut wanted: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for site in sites.iter().filter(|s| s.app.is_none()) {
+            let Some(asked) = &site.php else { continue };
+            match crate::php_fcgi::versions::select(&installs, asked) {
+                Some(install) if Some(&install.version) != shared.as_ref() => wanted
+                    .entry(install.version.clone())
+                    .or_default()
+                    .push(site.name.clone()),
+                Some(_) => {}
+                None => tracing::warn!(
+                    "{} is set to PHP {asked}, which is not installed; it uses the shared PHP",
+                    site.domain
+                ),
+            }
+        }
+
+        let mut pools = self.inner.pools.lock().await;
+        let stale: Vec<String> = pools
+            .keys()
+            .filter(|v| !wanted.contains_key(*v))
+            .cloned()
+            .collect();
+        for version in stale {
+            if let Some(pool) = pools.remove(&version)
+                && let Err(err) = pool.stop().await
+            {
+                tracing::error!("could not stop the PHP {version} pool: {err}");
+            }
+        }
+
+        let mail = self.php_ini(cfg).await;
+        let mut list = Vec::new();
+        let mut by_site = BTreeMap::new();
+        for (version, names) in wanted {
+            let pool = pools.entry(version.clone()).or_insert_with(|| {
+                PhpFcgi::with_id(
+                    &format!("{}@{version}", crate::php_fcgi::PROCESS_ID),
+                    self.inner.supervisor.clone(),
+                    self.inner.layout.clone(),
+                    self.inner.templates.clone(),
+                )
+            });
+            let port = match pool.status().await.runtime {
+                Some(rt) => rt.port,
+                None => {
+                    let port = Self::pool_port(&version);
+                    let pool_cfg = lumina_config::schema::Php {
+                        version: version.clone(),
+                        fcgi_port: port,
+                        fcgi_fallback_port: port + 1000,
+                        ..cfg.php.clone()
+                    };
+                    match pool.start(&pool_cfg, &mail).await {
+                        Ok(rt) => rt.port,
+                        Err(err) => {
+                            tracing::error!(
+                                "the PHP {version} pool did not start ({err}); {} use the shared PHP",
+                                names.join(", ")
+                            );
+                            continue;
+                        }
+                    }
+                }
+            };
+            let entry = PhpPool {
+                key: version.replace(['.', '-'], "_"),
+                version,
+                port,
+            };
+            for name in names {
+                by_site.insert(name, entry.clone());
+            }
+            list.push(entry);
+        }
+        (list, by_site)
+    }
+
+    /// Stops every per-site PHP pool (when no web server needs them).
+    async fn stop_pools(&self) -> Vec<(ServiceKind, Error)> {
+        let mut failures = Vec::new();
+        let mut pools = self.inner.pools.lock().await;
+        for (version, pool) in std::mem::take(&mut *pools) {
+            if let Err(err) = pool.stop().await {
+                tracing::error!("could not stop the PHP {version} pool: {err}");
+                failures.push((ServiceKind::PhpFcgi, err));
+            }
+        }
+        failures
     }
 
     /// The phpMyAdmin to serve: `tools.phpmyadmin` if set and installed, else
@@ -268,7 +579,7 @@ impl Orchestrator {
         let mut out = Vec::new();
 
         let php = self.inner.php.cli(&cfg.php).await;
-        let mail = crate::php_fcgi::ini_args(&self.php_mail_ini(cfg).await);
+        let mail = crate::php_fcgi::ini_args(&self.php_ini(cfg).await);
         if let Some((php_exe, ini, version)) = &php {
             let php_args: Vec<String> = ["-c".into(), ini.to_string_lossy().into_owned()]
                 .into_iter()
@@ -315,6 +626,47 @@ impl Orchestrator {
                         program,
                         args: Vec::new(),
                         describes: format!("Node.js {}", node.version),
+                    });
+                }
+            }
+        }
+
+        // Single-binary tools: (package, label, version, [(command, program, args)]).
+        // `bunx` is `bun x` and `pnpx` is `pnpm dlx`.
+        type Command<'a> = (&'a str, &'a str, &'a [&'a str]);
+        let single: [(&str, &str, &str, &[Command<'_>]); 4] = [
+            (
+                "bun",
+                "Bun",
+                &cfg.tools.bun,
+                &[("bun", "bun", &[]), ("bunx", "bun", &["x"])],
+            ),
+            ("deno", "Deno", &cfg.tools.deno, &[("deno", "deno", &[])]),
+            (
+                "uv",
+                "uv",
+                &cfg.tools.uv,
+                &[("uv", "uv", &[]), ("uvx", "uvx", &[])],
+            ),
+            (
+                "pnpm",
+                "pnpm",
+                &cfg.tools.pnpm,
+                &[("pnpm", "pnpm", &[]), ("pnpx", "pnpm", &["dlx"])],
+            ),
+        ];
+        for (package, label, wanted, commands) in single {
+            let Some(install) = pick(package, wanted) else {
+                continue;
+            };
+            for (name, file, args) in commands {
+                let program = install.dir.join(format!("{file}{exe}"));
+                if program.is_file() {
+                    out.push(Shim {
+                        name: (*name).into(),
+                        program,
+                        args: args.iter().map(|a| (*a).to_owned()).collect(),
+                        describes: format!("{label} {}", install.version),
                     });
                 }
             }
@@ -485,14 +837,14 @@ impl Orchestrator {
     async fn start_locked(&self, kind: ServiceKind, cfg: &AppConfig) -> Result<()> {
         match kind {
             ServiceKind::PhpFcgi => {
-                let mail = self.php_mail_ini(cfg).await;
+                let mail = self.php_ini(cfg).await;
                 self.inner.php.start(&cfg.php, &mail).await?;
                 self.sync_web_to_php(cfg).await
             }
             ServiceKind::Nginx | ServiceKind::Apache => {
                 // The web server needs PHP; start it first if it is down.
                 if self.inner.php.status().await.runtime.is_none() {
-                    let mail = self.php_mail_ini(cfg).await;
+                    let mail = self.php_ini(cfg).await;
                     self.inner.php.start(&cfg.php, &mail).await?;
                 }
                 let other = if kind == ServiceKind::Nginx {
@@ -503,6 +855,7 @@ impl Orchestrator {
                 if self.web_status(other).await.runtime.is_some() {
                     self.stop_locked(other).await?;
                 }
+                crate::requests::rotate(&crate::requests::log_file(&self.inner.layout.logs()));
                 let ctx = self.web_context(cfg).await;
                 match kind {
                     ServiceKind::Nginx => self.inner.nginx.start(&cfg.web, &ctx).await?,
@@ -545,8 +898,17 @@ impl Orchestrator {
     async fn stop_locked(&self, kind: ServiceKind) -> Result<()> {
         match kind {
             ServiceKind::PhpFcgi => self.inner.php.stop().await,
-            ServiceKind::Nginx => self.inner.nginx.stop().await,
-            ServiceKind::Apache => self.inner.apache.stop().await,
+            ServiceKind::Nginx | ServiceKind::Apache => {
+                match kind {
+                    ServiceKind::Nginx => self.inner.nginx.stop().await?,
+                    _ => self.inner.apache.stop().await?,
+                }
+                // The per-site PHP pools serve only the web server.
+                if self.running_web().await.is_none() {
+                    self.stop_pools().await;
+                }
+                Ok(())
+            }
             ServiceKind::Mysql => self.inner.mysql.stop().await,
             ServiceKind::Mariadb => self.inner.mariadb.stop().await,
             ServiceKind::Redis => self.inner.redis.stop().await,
@@ -563,8 +925,11 @@ impl Orchestrator {
     async fn restart_locked(&self, kind: ServiceKind, cfg: &AppConfig) -> Result<()> {
         match kind {
             ServiceKind::PhpFcgi => {
-                let mail = self.php_mail_ini(cfg).await;
+                let mail = self.php_ini(cfg).await;
                 self.inner.php.restart(&cfg.php, &mail).await?;
+                // The per-site pools start again with the web server's reload
+                // below, with the same settings as the shared one.
+                self.stop_pools().await;
                 self.sync_web_to_php(cfg).await
             }
             _ => {
@@ -723,6 +1088,28 @@ impl Orchestrator {
                 first_error.get_or_insert(err);
             }
         }
+        for def in crate::extra::DEFINITIONS {
+            let settings = crate::extra::settings(&cfg.services, def);
+            if !settings.enabled || self.inner.extras.is_running(def).await {
+                continue;
+            }
+            if let Err(err) = self.inner.extras.start(def, &settings).await {
+                tracing::error!("could not start {}: {err}", def.name);
+                first_error.get_or_insert(err);
+            }
+        }
+        // Dev servers marked "start with Start All", behind the web server.
+        for site in self.sites(cfg).sites {
+            if !site.app.as_ref().is_some_and(|a| a.autostart)
+                || self.inner.apps.is_running(&site.name).await
+            {
+                continue;
+            }
+            if let Err(err) = self.inner.apps.start(&site, &self.shim_dir()).await {
+                tracing::error!("could not start the dev server of {}: {err}", site.name);
+                first_error.get_or_insert(err);
+            }
+        }
         first_error.map_or(Ok(()), Err)
     }
 
@@ -808,6 +1195,32 @@ impl Orchestrator {
             }
         }
 
+        let mut silent_extras = Vec::new();
+        for def in crate::extra::DEFINITIONS {
+            if let Some((pid, port)) = self.inner.extras.probe_target(def).await
+                && !lumina_process::health::wait_tcp(port, limit).await
+            {
+                silent_extras.push((def, pid));
+            }
+        }
+        if !silent_extras.is_empty() {
+            let _guard = self.inner.lock.lock().await;
+            for (def, pid) in silent_extras {
+                if self.inner.extras.probe_target(def).await.map(|(p, _)| p) != Some(pid) {
+                    continue;
+                }
+                tracing::warn!("{} (pid {pid}) no longer answers; restarting it", def.name);
+                let settings = crate::extra::settings(&cfg.services, def);
+                let restarted = match self.inner.extras.stop(def).await {
+                    Ok(()) => self.inner.extras.start(def, &settings).await,
+                    Err(err) => Err(err),
+                };
+                if let Err(err) = restarted {
+                    tracing::error!("could not restart {}: {err}", def.name);
+                }
+            }
+        }
+
         let mut healed = Vec::new();
         if silent.is_empty() {
             return healed;
@@ -831,6 +1244,18 @@ impl Orchestrator {
     /// failed to stop.
     pub async fn stop_all(&self) -> Vec<(ServiceKind, Error)> {
         let _guard = self.inner.lock.lock().await;
+        self.inner.webhooks.stop().await;
+        // Dev servers first: nothing depends on them.
+        for (name, err) in self.inner.apps.stop_all().await {
+            tracing::error!("could not stop the dev server of {name}: {err}");
+        }
+        for def in crate::extra::DEFINITIONS {
+            if self.inner.extras.is_running(def).await
+                && let Err(err) = self.inner.extras.stop(def).await
+            {
+                tracing::error!("could not stop {}: {err}", def.name);
+            }
+        }
         let mut failures = Vec::new();
         for kind in [
             ServiceKind::Nginx,
@@ -890,6 +1315,14 @@ impl Orchestrator {
             redis: self.inner.redis.status().await,
             postgresql: self.inner.postgresql.status().await,
             mailpit: self.inner.mailpit.status().await,
+            php_pools: {
+                let pools: Vec<PhpFcgi> = self.inner.pools.lock().await.values().cloned().collect();
+                let mut out = Vec::new();
+                for pool in pools {
+                    out.push(pool.status().await);
+                }
+                out
+            },
         }
     }
 }

@@ -76,6 +76,10 @@ fn sources(app: &AppHandle, state: &AppState) -> Vec<LogSource> {
         for (name, path) in logs_in(&dir.join("quickapp")) {
             out.extend(source(format!("quickapp/{name}"), "quickapp", path));
         }
+        // Dev servers of app sites (Vite, Next.js, ...): service-like logs.
+        for (name, path) in logs_in(&dir.join("apps")) {
+            out.extend(source(format!("apps/{name}"), "service", path));
+        }
     }
     out
 }

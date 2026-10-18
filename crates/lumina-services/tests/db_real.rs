@@ -248,6 +248,231 @@ async fn starting_one_engine_stops_the_other() {
     assert!(processes_under(&env.layout.bin()).is_empty());
 }
 
+/// Runs one SQL statement with the server's own client; returns its output.
+fn sql(server: &lumina_services::snapshots::Server, db: &str, statement: &str) -> String {
+    let exe = std::env::consts::EXE_SUFFIX;
+    let port = server.port.to_string();
+    let out = if server.engine == "postgresql" {
+        Command::new(server.bin.join(format!("psql{exe}")))
+            .args([
+                "-h",
+                "127.0.0.1",
+                "-p",
+                &port,
+                "-U",
+                "postgres",
+                "-At",
+                "-d",
+                db,
+                "-c",
+                statement,
+            ])
+            .output()
+    } else {
+        Command::new(server.bin.join(format!("mysql{exe}")))
+            .args([
+                "--host=127.0.0.1",
+                &format!("--port={port}"),
+                "--user=root",
+                "-N",
+                "-e",
+                statement,
+                db,
+            ])
+            .output()
+    }
+    .expect("client");
+    assert!(
+        out.status.success(),
+        "{statement}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    String::from_utf8_lossy(&out.stdout).trim().to_owned()
+}
+
+/// Snapshot, change, restore: the database is back as it was.
+async fn snapshot_round_trip(var: &str, tool: &str, engine: &str) {
+    let Some(mut env) = setup(&[(var, tool)]) else {
+        return;
+    };
+    let kind = match engine {
+        "postgresql" => ServiceKind::Postgresql,
+        _ => {
+            env.cfg.database.engine = DatabaseEngine::Mariadb;
+            ServiceKind::Mariadb
+        }
+    };
+    env.stack.start(kind, &env.cfg).await.expect("start");
+    let server = env.stack.snapshot_server(engine).await.expect("server");
+    let admin_db = if engine == "postgresql" {
+        "postgres"
+    } else {
+        ""
+    };
+    sql(&server, admin_db, "CREATE DATABASE lumina_snap");
+    sql(
+        &server,
+        "lumina_snap",
+        "CREATE TABLE notes (body VARCHAR(20))",
+    );
+    sql(&server, "lumina_snap", "INSERT INTO notes VALUES ('kept')");
+
+    let dbs = lumina_services::snapshots::databases(&server)
+        .await
+        .expect("databases");
+    assert!(dbs.contains(&"lumina_snap".to_owned()), "{dbs:?}");
+    assert!(
+        !dbs.iter().any(|d| d == "mysql" || d == "postgres"),
+        "system databases hidden: {dbs:?}"
+    );
+
+    let snap = lumina_services::snapshots::create(&env.layout, &server, "lumina_snap")
+        .await
+        .expect("snapshot");
+    assert!(snap.size > 0);
+    sql(&server, "lumina_snap", "INSERT INTO notes VALUES ('lost')");
+    sql(&server, "lumina_snap", "CREATE TABLE extra (x INT)");
+
+    lumina_services::snapshots::restore(&env.layout, &server, &snap.id)
+        .await
+        .expect("restore");
+    assert_eq!(
+        sql(&server, "lumina_snap", "SELECT body FROM notes"),
+        "kept"
+    );
+    let tables = if engine == "postgresql" {
+        sql(
+            &server,
+            "lumina_snap",
+            "SELECT count(*) FROM pg_tables WHERE tablename = 'extra'",
+        )
+    } else {
+        sql(
+            &server,
+            "lumina_snap",
+            "SELECT count(*) FROM information_schema.tables WHERE table_name = 'extra'",
+        )
+    };
+    assert_eq!(tables, "0", "the restore replaced the whole database");
+
+    assert_eq!(lumina_services::snapshots::list(&env.layout).len(), 1);
+    lumina_services::snapshots::delete(&env.layout, &snap.id).expect("delete");
+    env.stack.stop(kind).await.expect("stop");
+}
+
+#[tokio::test]
+async fn mariadb_snapshot_round_trip() {
+    snapshot_round_trip("LUMINA_TEST_MARIADB_DIR", "mariadb", "mariadb").await;
+}
+
+#[tokio::test]
+async fn postgresql_snapshot_round_trip() {
+    snapshot_round_trip("LUMINA_TEST_POSTGRES_DIR", "postgresql", "postgresql").await;
+}
+
+/// MongoDB, Meilisearch and SeaweedFS from `LUMINA_TEST_EXTRA_BIN` (a `bin/`
+/// folder with `<id>/<version>/` installs, e.g. the one the catalog_real test
+/// of lumina-packages keeps): each starts on its port and does its job.
+#[tokio::test]
+async fn extra_services_start_work_and_stop() {
+    let Some(bin) = std::env::var_os("LUMINA_TEST_EXTRA_BIN").map(PathBuf::from) else {
+        return;
+    };
+    let Some(mut env) = setup(&[]) else { return };
+    let mut started = Vec::new();
+    for def in lumina_services::extra::DEFINITIONS {
+        let Some(install) = std::fs::read_dir(bin.join(def.id))
+            .ok()
+            .and_then(|mut d| d.next())
+            .and_then(Result::ok)
+        else {
+            continue;
+        };
+        link_dir(
+            &install.path(),
+            &env.layout.bin().join(def.id).join(install.file_name()),
+        );
+        env.cfg.services.insert(
+            def.id.into(),
+            lumina_config::schema::ExtraService {
+                enabled: true,
+                port: free_port(),
+                ..Default::default()
+            },
+        );
+        started.push(def.id);
+    }
+    assert!(!started.is_empty(), "no installs in {}", bin.display());
+
+    // Start All starts every enabled one.
+    env.stack.start_all(&env.cfg).await.ok();
+    let port = |id: &str| env.cfg.services[id].port;
+    let http = reqwest::Client::new();
+    for status in env.stack.extras_status(&env.cfg).await {
+        if !started.contains(&status.id.as_str()) {
+            continue;
+        }
+        assert!(
+            status.runtime.is_some(),
+            "{} did not start: {:?}",
+            status.id,
+            status.error
+        );
+    }
+    if started.contains(&"meilisearch") {
+        let body = http
+            .get(format!("http://127.0.0.1:{}/health", port("meilisearch")))
+            .send()
+            .await
+            .expect("health")
+            .text()
+            .await
+            .expect("body");
+        assert!(body.contains("available"), "{body}");
+    }
+    if started.contains(&"seaweedfs") {
+        // S3 without credentials: create a bucket, store an object, read it back.
+        let base = format!("http://127.0.0.1:{}", port("seaweedfs"));
+        let put = http
+            .put(format!("{base}/lumina-test"))
+            .send()
+            .await
+            .expect("bucket");
+        assert!(put.status().is_success(), "create bucket: {}", put.status());
+        let put = http
+            .put(format!("{base}/lumina-test/hello.txt"))
+            .body("hello from lumina")
+            .send()
+            .await
+            .expect("put");
+        assert!(put.status().is_success(), "put object: {}", put.status());
+        let got = http
+            .get(format!("{base}/lumina-test/hello.txt"))
+            .send()
+            .await
+            .expect("get")
+            .text()
+            .await
+            .expect("body");
+        assert_eq!(got, "hello from lumina");
+    }
+    if started.contains(&"mongodb") {
+        assert!(std::net::TcpStream::connect(("127.0.0.1", port("mongodb"))).is_ok());
+        let log =
+            std::fs::read_to_string(env.layout.logs().join("mongodb.log")).unwrap_or_default();
+        assert!(log.contains("Waiting for connections"), "{log}");
+    }
+
+    let failures = env.stack.stop_all().await;
+    assert!(failures.is_empty(), "{failures:?}");
+    for id in started {
+        assert!(
+            processes_under(&env.layout.bin().join(id)).is_empty(),
+            "{id} left processes behind"
+        );
+    }
+}
+
 #[tokio::test]
 async fn mailpit_catches_smtp_and_php_mail() {
     let Some(mut env) = setup(&[("LUMINA_TEST_MAILPIT_DIR", "mailpit")]) else {

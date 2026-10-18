@@ -3,6 +3,7 @@ import { Database, FileCog, FileText, Play, RotateCw, Square } from "lucide-reac
 import { editorOpen } from "@/features/env-path/api";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
+import { InstallButton, NotInstalledBadge } from "@/components/Installable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button, Fact, VersionSelect } from "@/components/ui";
 import {
@@ -19,6 +20,7 @@ import {
 import type { PortConflictRequest } from "@/features/services/PortConflictDialog";
 import { useServiceAction } from "@/features/services/useServiceAction";
 import { dbUiOpen } from "@/features/packages/api";
+import { adminerOpen } from "@/features/services/api";
 import { type DatabaseSettings, settingsUpdate } from "@/features/settings/api";
 import { isCommandError, type PortConflict, portConflictOf } from "@/lib/ipc";
 
@@ -40,6 +42,7 @@ export function DatabaseCard(props: {
   const running = rt !== null;
   const busy = action.isPending;
   const installed = versions.data ?? [];
+  const missing = versions.isSuccess && installed.length === 0;
   const kind = dbKind(engine);
   const versionKey = engine === "mysql" ? "mysql_version" : "mariadb_version";
 
@@ -75,7 +78,7 @@ export function DatabaseCard(props: {
           <h2 id="db-title" className="text-lg font-semibold">
             {t("db.title")}
           </h2>
-          <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />
+          {missing && !running ? <NotInstalledBadge /> : <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />}
         </div>
         <div className="flex flex-wrap gap-2">
           {running ? (
@@ -87,6 +90,8 @@ export function DatabaseCard(props: {
                 {t("actions.stop")}
               </Button>
             </>
+          ) : missing ? (
+            <InstallButton pkg={kind} name={engine === "mysql" ? "MySQL" : "MariaDB"} />
           ) : (
             <Button primary onClick={() => run(() => serviceStart(kind))} disabled={busy || installed.length === 0} icon={<Play />}>
               {t("actions.start")}
@@ -94,6 +99,9 @@ export function DatabaseCard(props: {
           )}
           <Button onClick={() => run(dbUiOpen)} disabled={busy} icon={<Database />}>
             {t("db.openUi")}
+          </Button>
+          <Button onClick={() => run(adminerOpen)} disabled={busy} icon={<Database />}>
+            {t("db.openAdminer")}
           </Button>
           <Button onClick={() => run(() => editorOpen({ kind: "config", file: "database" }))} disabled={busy} icon={<FileCog />}>
             {t("editor.editConfig")}

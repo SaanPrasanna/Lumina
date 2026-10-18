@@ -132,11 +132,14 @@ body,
 }
 
 /* The window itself never scrolls: each screen scrolls inside its own area
-   (the main content, the sidebar, the first-run page). Without this, macOS
-   lets the whole page scroll and bounce past the window's edges. */
+   (the main content, the sidebar, the first-run page). `clip`, unlike
+   `hidden`, also stops scrolling by code (focusing a field, scrollIntoView),
+   which otherwise shifted the whole window up. Without this, macOS lets the
+   whole page scroll and bounce past the window's edges. */
 html,
 body {
   overflow: hidden;
+  overflow: clip;
   overscroll-behavior: none;
 }
 

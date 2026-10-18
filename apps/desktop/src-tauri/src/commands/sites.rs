@@ -12,6 +12,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use lumina_core::Error;
+use lumina_services::apps::AppStatus;
 use lumina_vhost::sync::{self, Attempt, HostsReport};
 use lumina_vhost::watcher::{self, Watcher};
 use lumina_vhost::{Scan, Site};
@@ -97,6 +98,180 @@ pub fn open_site_for(app: &AppHandle, rt: &Runtime, domain: &str) -> CommandResu
         .open_url(url, None::<&str>)
         .map_err(|e| Error::Other(e.to_string()))?;
     Ok(())
+}
+
+/// The dev servers of every site served by one (Vite, Next.js, Django, ...).
+#[tauri::command]
+#[specta::specta]
+pub async fn apps_status(state: State<'_, AppState>) -> CommandResult<Vec<AppStatus>> {
+    let rt = state.runtime()?;
+    Ok(rt.stack.apps_status(&rt.config()).await)
+}
+
+/// Starts the dev server of the site for folder `name` (and the web server
+/// in front of it if none runs).
+#[tauri::command]
+#[specta::specta]
+pub async fn app_start(state: State<'_, AppState>, name: String) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    Ok(rt.stack.start_app(&name, &rt.config()).await?)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn app_stop(state: State<'_, AppState>, name: String) -> CommandResult<()> {
+    Ok(state.runtime()?.stack.stop_app(&name).await?)
+}
+
+/// Stops and starts a dev server, e.g. after its command or port changed.
+#[tauri::command]
+#[specta::specta]
+pub async fn app_restart(state: State<'_, AppState>, name: String) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    Ok(rt.stack.restart_app(&name, &rt.config()).await?)
+}
+
+/// Opens a dev server's log in the system's default viewer.
+#[tauri::command]
+#[specta::specta]
+pub fn app_open_log(app: AppHandle, state: State<'_, AppState>, name: String) -> CommandResult<()> {
+    let log = state.runtime()?.stack.apps().log_file(&name);
+    if !log.exists() {
+        return Err(Error::Other(format!("{} does not exist yet", log.display())).into());
+    }
+    app.opener()
+        .open_path(log.to_string_lossy(), None::<&str>)
+        .map_err(|e| Error::Other(e.to_string()))?;
+    Ok(())
+}
+
+/// `npx playwright install` in the project of folder `name` (browsers for its
+/// end-to-end tests). Takes minutes the first time.
+#[tauri::command]
+#[specta::specta]
+pub async fn site_playwright_install(
+    state: State<'_, AppState>,
+    name: String,
+) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    Ok(rt.stack.playwright_install(&name, &rt.config()).await?)
+}
+
+/// The newest requests to a site (and its subdomains), newest first.
+#[tauri::command]
+#[specta::specta]
+pub fn site_requests(
+    state: State<'_, AppState>,
+    name: String,
+    limit: u32,
+) -> CommandResult<Vec<lumina_services::requests::Request>> {
+    let rt = state.runtime()?;
+    let site = find(&rt, |s| s.name == name)?;
+    let log = lumina_services::requests::log_file(&rt.layout.logs());
+    Ok(lumina_services::requests::recent(
+        &log,
+        &site.domain,
+        limit.min(500) as usize,
+    ))
+}
+
+/// This computer's address on the local network, and every site's address
+/// there (`http://blog.192.168.1.20.nip.io`), with a QR code for phones.
+#[derive(Debug, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LanOverview {
+    /// `[general] lan`.
+    pub enabled: bool,
+    /// `None` without a network connection.
+    pub ip: Option<String>,
+    pub sites: Vec<LanSite>,
+}
+
+#[derive(Debug, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LanSite {
+    pub name: String,
+    pub url: String,
+    pub qr_svg: String,
+}
+
+/// The IPv4 address other devices reach this computer at: the one the
+/// system would use for the internet (no packet is sent).
+fn lan_ip() -> Option<std::net::Ipv4Addr> {
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+    socket.connect("192.0.2.1:80").ok()?;
+    match socket.local_addr().ok()?.ip() {
+        std::net::IpAddr::V4(ip) if !ip.is_loopback() && !ip.is_unspecified() => Some(ip),
+        _ => None,
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn lan_overview(state: State<'_, AppState>) -> CommandResult<LanOverview> {
+    let rt = state.runtime()?;
+    let cfg = rt.config();
+    let ip = lan_ip();
+    let port = match cfg.web.http_port {
+        80 => String::new(),
+        p => format!(":{p}"),
+    };
+    let sites = match (cfg.general.lan, ip) {
+        (true, Some(ip)) => rt
+            .stack
+            .sites(&cfg)
+            .sites
+            .into_iter()
+            .map(|s| {
+                let label = s
+                    .domain
+                    .rsplit_once('.')
+                    .map_or(s.domain.as_str(), |(l, _)| l)
+                    .to_owned();
+                let url = format!("http://{label}.{ip}.nip.io{port}/");
+                LanSite {
+                    qr_svg: lumina_tunnel::qr::svg(&url).unwrap_or_default(),
+                    name: s.name,
+                    url,
+                }
+            })
+            .collect(),
+        _ => Vec::new(),
+    };
+    Ok(LanOverview {
+        enabled: cfg.general.lan,
+        ip: ip.map(|i| i.to_string()),
+        sites,
+    })
+}
+
+/// Writes `.vscode/launch.json` with a "Listen for Xdebug" configuration
+/// into the project folder, unless the project already has one. Returns its
+/// path either way.
+#[tauri::command]
+#[specta::specta]
+pub fn site_xdebug_config(state: State<'_, AppState>, name: String) -> CommandResult<String> {
+    let rt = state.runtime()?;
+    let site = find(&rt, |s| s.name == name)?;
+    let file = site.path.join(".vscode").join("launch.json");
+    if !file.exists() {
+        let text = r#"{
+  // Written by Lumina: start "Listen for Xdebug", then open the site with the
+  // Xdebug browser extension (or ?XDEBUG_TRIGGER=1) to stop at breakpoints.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Listen for Xdebug (Lumina)",
+      "type": "php",
+      "request": "launch",
+      "port": 9003
+    }
+  ]
+}
+"#;
+        lumina_core::fs::write_atomic(&file, text.as_bytes())?;
+    }
+    Ok(file.to_string_lossy().into_owned())
 }
 
 /// Opens a project folder in the file manager.

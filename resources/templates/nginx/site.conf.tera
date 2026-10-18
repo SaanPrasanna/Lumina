@@ -7,23 +7,51 @@
 {%- endif %}
 
 server {
-    listen       127.0.0.1:{{ http_port }};
+    listen       {{ bind }}:{{ http_port }};
 {%- if ssl %}
-    listen       127.0.0.1:{{ https_port }} ssl;
+    listen       {{ bind }}:{{ https_port }} ssl;
     http2        on;
     ssl_certificate      "{{ cert }}";
     ssl_certificate_key  "{{ key }}";
 {%- endif %}
-    server_name  {{ domain }} *.{{ domain }};
+    server_name  {{ domain }} *.{{ domain }}{% if lan %} "~^(.+\.)?{{ lan_label_re }}\.[0-9.]+\.nip\.io$"{% endif %};
+{%- if not app %}
     root         "{{ root }}";
     index        index.php index.html index.htm;
+{%- endif %}
 {%- if ssl and force_https %}
 
     # "Force HTTPS" is on: plain HTTP is redirected (tunnels are already HTTPS).
-    if ($lumina_scheme = http) {
+    if ($lumina_force_https) {
         return  301 https://$host{{ https_suffix }}$request_uri;
     }
 {%- endif %}
+
+{%- if app %}
+
+    # Served by the project's own dev server ({{ app_framework }}), which Lumina runs.
+    location / {
+        proxy_pass          http://127.0.0.1:{{ app_port }};
+        proxy_http_version  1.1;
+        # Hot reload talks over WebSockets.
+        proxy_set_header    Upgrade $http_upgrade;
+        proxy_set_header    Connection $lumina_connection_upgrade;
+        # Dev servers (Vite, Django) only accept their own address as the host;
+        # the address the browser used is passed on as X-Forwarded-Host.
+        proxy_set_header    Host 127.0.0.1:{{ app_port }};
+        proxy_set_header    X-Forwarded-Host $lumina_host;
+        proxy_set_header    X-Forwarded-Proto $lumina_scheme;
+        proxy_set_header    X-Forwarded-For $remote_addr;
+        proxy_buffering     off;
+        proxy_read_timeout  1h;
+    }
+
+    error_page  502 504 = @lumina_app_down;
+    location @lumina_app_down {
+        default_type  text/html;
+        return        502 "<!doctype html><meta charset=utf-8><title>{{ name }}: dev server not running</title><body style='font:16px system-ui;margin:4rem auto;max-width:36rem;padding:0 1rem'><h1 style='font-size:1.4rem'>The dev server of {{ name }} is not running</h1><p>{{ domain }} is served by its {{ app_framework }} dev server on port {{ app_port }}. Start it on the Sites page in Lumina, then reload this page.</p><p style='color:#666'>Command: <code>{{ app_command_html }}</code></p>";
+    }
+{%- else %}
 
     # Front controllers (Laravel, Symfony, WordPress): unknown paths go to index.php.
     location / {
@@ -32,10 +60,17 @@ server {
 
     location ~ \.php$ {
         try_files  $uri =404;
+{%- if php_pool %}
+        # This site's own PHP version.
+        fastcgi_pass  php_{{ php_pool }};
+        include       fastcgi_common.conf;
+{%- else %}
         include    fastcgi.conf;
+{%- endif %}
     }
 
     location ~ /\.(?!well-known) {
         deny  all;
     }
+{%- endif %}
 }

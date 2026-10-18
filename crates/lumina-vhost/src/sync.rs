@@ -265,6 +265,9 @@ mod tests {
             docroot: PathBuf::new(),
             docroot_source: DocrootSource::Detected(None),
             docroot_exists: true,
+            app: None,
+            php: None,
+            node: false,
         }
     }
 

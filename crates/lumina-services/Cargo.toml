@@ -19,12 +19,15 @@ lumina-ssl = { workspace = true }
 lumina-packages = { workspace = true }
 lumina-shim = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
 sysinfo = { workspace = true }
 tera = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
+lumina-tunnel = { workspace = true }
 reqwest = { workspace = true }
 tempfile = { workspace = true }
 

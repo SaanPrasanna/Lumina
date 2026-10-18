@@ -4,8 +4,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use lumina_config::AppConfig;
+use lumina_config::schema::SiteKind;
 use serde::Serialize;
 
+use crate::app;
 use crate::domain::{self, Folder};
 
 /// One automatic virtual host.
@@ -25,6 +27,61 @@ pub struct Site {
     /// `false` when an overridden docroot does not exist (the site still gets
     /// a vhost, which answers 404 until the folder is created).
     pub docroot_exists: bool,
+    /// Set when the site is served by the project's own dev server, which the
+    /// web server forwards to; `None` for PHP and static sites.
+    pub app: Option<AppSite>,
+    /// The PHP version set for this site (`[sites.<name>] php`), as written;
+    /// `None` = the PHP chosen for all sites.
+    pub php: Option<String>,
+    /// The folder has a `package.json` (Node.js tooling, Playwright tests).
+    pub node: bool,
+}
+
+/// A site served by its own dev server (Vite, Next.js, Django, ...).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct AppSite {
+    /// "Next.js", "Vite", ...; "Custom" for a configured command.
+    pub framework: String,
+    /// Run in the project folder, `{port}` already replaced. Empty when the
+    /// site is set to `kind = "app"` but no command was configured or found.
+    pub command: String,
+    pub port: u16,
+    /// Command or kind set in `[sites.<name>]` rather than detected.
+    pub configured: bool,
+    /// Started by "Start All".
+    pub autostart: bool,
+}
+
+/// The dev server for `folder`, from its overrides or detected.
+fn app_for(
+    folder: &Folder,
+    overrides: Option<&lumina_config::schema::SiteOverride>,
+) -> Option<AppSite> {
+    let kind = overrides.map_or(SiteKind::Auto, |o| o.kind);
+    let command = overrides
+        .map(|o| o.command.trim())
+        .filter(|c| !c.is_empty());
+    let (framework, template, configured) = match (kind, command) {
+        (SiteKind::Php, _) => return None,
+        (_, Some(command)) => ("Custom".to_owned(), command.to_owned(), true),
+        (kind, None) => match app::detect(&folder.path) {
+            Some(found) => (found.framework, found.command, kind == SiteKind::App),
+            None if kind == SiteKind::App => ("Custom".to_owned(), String::new(), true),
+            None => return None,
+        },
+    };
+    let port = overrides
+        .map(|o| o.port)
+        .filter(|p| *p != 0)
+        .unwrap_or_else(|| app::stable_port(&folder.name));
+    Some(AppSite {
+        framework,
+        command: template.replace("{port}", &port.to_string()),
+        port,
+        configured,
+        autostart: overrides.is_some_and(|o| o.autostart),
+    })
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
@@ -141,6 +198,12 @@ pub fn plan(folders: &[Folder], cfg: &AppConfig) -> Scan {
             docroot_exists: docroot.is_dir(),
             docroot,
             docroot_source,
+            app: app_for(folder, overrides),
+            php: overrides
+                .map(|o| o.php.trim())
+                .filter(|v| !v.is_empty())
+                .map(str::to_owned),
+            node: folder.path.join("package.json").is_file(),
         });
     }
     scan
@@ -207,15 +270,15 @@ mod tests {
         cfg.sites.insert(
             "app".into(),
             SiteOverride {
-                enabled: true,
                 docroot: "dist".into(),
+                ..SiteOverride::default()
             },
         );
         cfg.sites.insert(
             "old".into(),
             SiteOverride {
                 enabled: false,
-                docroot: String::new(),
+                ..SiteOverride::default()
             },
         );
 
@@ -237,5 +300,56 @@ mod tests {
 
         cfg.general.auto_vhosts = false;
         assert_eq!(super::scan(tmp.path(), &cfg), Scan::default());
+    }
+
+    #[test]
+    fn node_apps_get_a_dev_server_and_overrides_win() {
+        let tmp = setup(&["web", "blog"]);
+        std::fs::write(
+            tmp.path().join("web/package.json"),
+            r#"{"scripts": {"dev": "vite"}, "devDependencies": {"vite": "7"}}"#,
+        )
+        .expect("package.json");
+        let mut cfg = AppConfig::default();
+
+        let found = |cfg: &AppConfig, name: &str| {
+            scan(tmp.path(), cfg)
+                .sites
+                .into_iter()
+                .find(|s| s.name == name)
+                .expect(name)
+        };
+        let app = found(&cfg, "web").app.expect("detected");
+        assert_eq!(app.framework, "Vite");
+        assert_eq!(app.port, crate::app::stable_port("web"));
+        assert!(app.command.contains(&format!("--port {}", app.port)));
+        assert!(!app.configured);
+        assert_eq!(found(&cfg, "blog").app, None, "plain folders stay PHP");
+
+        cfg.sites.insert(
+            "web".into(),
+            SiteOverride {
+                command: "node server.js {port}".into(),
+                port: 45000,
+                autostart: true,
+                ..SiteOverride::default()
+            },
+        );
+        let app = found(&cfg, "web").app.expect("configured");
+        assert_eq!(app.command, "node server.js 45000");
+        assert!(app.configured && app.autostart);
+
+        cfg.sites.get_mut("web").expect("web").kind = SiteKind::Php;
+        assert_eq!(found(&cfg, "web").app, None, "kind = php wins");
+
+        cfg.sites.insert(
+            "blog".into(),
+            SiteOverride {
+                kind: SiteKind::App,
+                ..SiteOverride::default()
+            },
+        );
+        let blog = found(&cfg, "blog").app.expect("app without a command");
+        assert_eq!(blog.command, "");
     }
 }

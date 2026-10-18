@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FileText, Inbox, Play, Square } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
+import { InstallButton, NotInstalledBadge } from "@/components/Installable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button, Fact, VersionSelect } from "@/components/ui";
 import {
@@ -34,6 +35,7 @@ export function MailpitCard(props: {
   const running = rt !== null;
   const busy = action.isPending;
   const installed = versions.data ?? [];
+  const missing = versions.isSuccess && installed.length === 0;
 
   const run = (fn: () => Promise<unknown>) =>
     action.mutate(fn, {
@@ -60,13 +62,15 @@ export function MailpitCard(props: {
           <h2 id="mailpit-title" className="text-lg font-semibold">
             {t("mailpit.title")}
           </h2>
-          <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />
+          {missing && !running ? <NotInstalledBadge /> : <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />}
         </div>
         <div className="flex flex-wrap gap-2">
           {running ? (
             <Button onClick={() => run(() => serviceStop("mailpit"))} disabled={busy} icon={<Square />}>
               {t("actions.stop")}
             </Button>
+          ) : missing ? (
+            <InstallButton pkg="mailpit" name="Mailpit" />
           ) : (
             <Button primary onClick={() => run(() => serviceStart("mailpit"))} disabled={busy || installed.length === 0} icon={<Play />}>
               {t("actions.start")}

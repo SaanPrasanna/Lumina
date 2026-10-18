@@ -33,6 +33,7 @@ pub fn write_shims(dir: &Path, shim_exe: Option<&Path>, shims: &[Shim]) -> Resul
         move |source| Error::Io { path, source }
     };
     std::fs::create_dir_all(dir).map_err(io(dir))?;
+    remove_replaced(dir);
     for shim in shims {
         let target = Target {
             program: shim.program.clone(),
@@ -52,12 +53,10 @@ pub fn write_shims(dir: &Path, shim_exe: Option<&Path>, shims: &[Shim]) -> Resul
             let cmd = dir.join(format!("{}.cmd", shim.name));
             match shim_exe.filter(|p| p.is_file()) {
                 Some(source) => {
-                    if !same_file_content(source, &exe) {
-                        // A shim that is running (e.g. `php artisan serve`) cannot be
-                        // replaced; it keeps working because only the .shim file changes.
-                        if let Err(err) = std::fs::copy(source, &exe) {
-                            tracing::warn!("could not update {}: {err}", exe.display());
-                        }
+                    if !same_file_content(source, &exe)
+                        && let Err(err) = replace_exe(source, &exe)
+                    {
+                        tracing::warn!("could not update {}: {err}", exe.display());
                     }
                     let _ = std::fs::remove_file(&cmd);
                 }
@@ -104,6 +103,34 @@ pub fn write_shims(dir: &Path, shim_exe: Option<&Path>, shims: &[Shim]) -> Resul
         }
     }
     Ok(())
+}
+
+/// Copies `source` over `exe`. A shim that is running (`node` under Vite,
+/// `php artisan serve`) cannot be overwritten on Windows but can be renamed:
+/// it moves aside to `<name>.exe.<n>.old`, keeps running, and the new copy
+/// takes its place. [`remove_replaced`] deletes the old one once it is free.
+fn replace_exe(source: &Path, exe: &Path) -> std::io::Result<()> {
+    let Err(err) = std::fs::copy(source, exe) else {
+        return Ok(());
+    };
+    let aside = (0..100)
+        .map(|n| exe.with_extension(format!("exe.{n}.old")))
+        .find(|p| !p.exists())
+        .ok_or(err)?;
+    std::fs::rename(exe, &aside)?;
+    std::fs::copy(source, exe).map(|_| ())
+}
+
+/// Deletes shims [`replace_exe`] moved aside; one still running stays.
+fn remove_replaced(dir: &Path) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        if entry.file_name().to_string_lossy().ends_with(".old") {
+            let _ = std::fs::remove_file(entry.path());
+        }
+    }
 }
 
 fn write_if_changed(path: &Path, bytes: &[u8]) -> Result<()> {
@@ -218,6 +245,39 @@ mod tests {
     }
 
     #[cfg(windows)]
+    /// Windows: a shim that is running is moved aside and replaced.
+    #[cfg(windows)]
+    #[test]
+    fn a_running_shim_is_replaced() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let exe = tmp.path().join("node.exe");
+        let system = std::path::PathBuf::from(std::env::var_os("SystemRoot").expect("SystemRoot"));
+        std::fs::copy(system.join("System32").join("PING.EXE"), &exe).expect("copy");
+        let mut running = std::process::Command::new(&exe)
+            .args(["-n", "30", "127.0.0.1"])
+            .stdout(std::process::Stdio::null())
+            .spawn()
+            .expect("spawn");
+        let source = tmp.path().join("lumina-shim.exe");
+        std::fs::write(&source, b"new shim").expect("source");
+
+        assert!(
+            std::fs::copy(&source, &exe).is_err(),
+            "a running exe cannot be overwritten"
+        );
+        replace_exe(&source, &exe).expect("replace");
+        assert_eq!(std::fs::read(&exe).expect("read"), b"new shim");
+        let aside = tmp.path().join("node.exe.0.old");
+        assert!(aside.is_file());
+
+        remove_replaced(tmp.path());
+        assert!(aside.is_file(), "still running");
+        running.kill().expect("kill");
+        running.wait().expect("wait");
+        remove_replaced(tmp.path());
+        assert!(!aside.exists());
+    }
+
     #[test]
     fn without_the_shim_binary_cmd_launchers_are_written() {
         let tmp = tempfile::tempdir().expect("tempdir");

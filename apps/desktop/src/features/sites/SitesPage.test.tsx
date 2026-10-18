@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import * as settingsApi from "@/features/settings/api";
@@ -12,6 +12,9 @@ vi.mock("@/features/sites/api", async (orig) => ({
   sitesSync: vi.fn(),
   siteOpen: vi.fn(),
   siteOpenFolder: vi.fn(),
+  appsStatus: vi.fn(),
+  appStart: vi.fn(),
+  webhooksStatus: vi.fn().mockResolvedValue({ port: null, forwardTo: null, hooks: [] }),
 }));
 vi.mock("@/features/sites/ssl", async (orig) => ({
   ...(await orig<typeof import("@/features/sites/ssl")>()),
@@ -51,6 +54,9 @@ const overview: api.SitesOverview = {
       docroot: "C:\\Lumina\\www\\blog\\public",
       docrootSource: { kind: "detected", subdir: "public" },
       docrootExists: true,
+      app: null,
+      php: null,
+      node: false,
     },
   ],
   skipped: [{ name: "old", reason: { kind: "disabled" } }],
@@ -67,7 +73,9 @@ function renderPage() {
   vi.mocked(api.sitesList).mockResolvedValue(overview);
   vi.mocked(settingsApi.settingsGet).mockResolvedValue({
     config: {
-      general: { tld: "test", auto_vhosts: true },
+      general: { tld: "test", auto_vhosts: true, lan: false },
+      php: { version: "", xdebug: false },
+      webhooks: { port: 8787, forward: "" },
       sites: { old: { enabled: false, docroot: "" } },
     },
     warnings: [],
@@ -84,7 +92,8 @@ function renderPage() {
 describe("SitesPage", () => {
   it("lists sites with their docroot and opens them", async () => {
     renderPage();
-    expect(await screen.findByText("blog.test")).toBeInTheDocument();
+    const list = await screen.findByRole("list", { name: "Sites" });
+    expect(within(list).getByText("blog.test")).toBeInTheDocument();
     expect(screen.getByText("Folder blog · serves public/")).toBeInTheDocument();
     expect(screen.getByText("The hosts file has every site.")).toBeInTheDocument();
 
@@ -96,6 +105,39 @@ describe("SitesPage", () => {
     renderPage();
     await userEvent.click(await screen.findByRole("button", { name: "Turn on" }));
     await vi.waitFor(() => expect(settingsApi.settingsUpdate).toHaveBeenCalledWith("sites", {}));
+  });
+});
+
+describe("SitesPage dev servers", () => {
+  it("shows a detected dev server and starts it", async () => {
+    vi.mocked(api.sitesList).mockResolvedValue({
+      ...overview,
+      sites: [
+        {
+          ...overview.sites[0]!,
+          name: "front",
+          domain: "front.test",
+          app: { framework: "Vite", command: "npm run dev -- --port 41234", port: 41234, configured: false, autostart: false },
+        },
+      ],
+    });
+    vi.mocked(api.appsStatus).mockResolvedValue([]);
+    vi.mocked(api.appStart).mockResolvedValue(null);
+    vi.mocked(settingsApi.settingsGet).mockResolvedValue({
+      config: { general: { tld: "test", auto_vhosts: true, lan: false }, php: { version: "", xdebug: false }, webhooks: { port: 8787, forward: "" }, sites: {} },
+      warnings: [],
+      source: "file",
+      path: "x",
+    } as unknown as settingsApi.Settings);
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <SitesPage />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText("Folder front · served by its Vite dev server")).toBeInTheDocument();
+    expect(screen.getByText("npm run dev -- --port 41234")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Start dev server" }));
+    expect(api.appStart).toHaveBeenCalledWith("front");
   });
 });
 

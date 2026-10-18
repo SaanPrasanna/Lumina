@@ -47,6 +47,8 @@ const MODULES: &[&str] = &[
     "setenvif",
     "proxy",
     "proxy_fcgi",
+    // Sites served by a dev server; WebSockets (hot reload) need 2.4.47+.
+    "proxy_http",
     "socache_shmcb",
     "ssl",
 ];
@@ -165,6 +167,7 @@ impl Apache {
             &forward_slashes(&self.conf_dir().join("httpd.pid")),
         );
         c.insert("php_port", &ctx.php_port);
+        c.insert("php_pools", &ctx.php_pools);
         c.insert("http_port", &ctx.http_port);
         c.insert("www_root", &forward_slashes(&ctx.www_root));
         web::insert_tls(&mut c, ctx);
@@ -218,7 +221,7 @@ impl Apache {
     pub async fn start(&self, cfg: &WebConfig, ctx: &WebContext) -> Result<WebRuntime> {
         let mut state = self.inner.state.lock().await;
         let result = self.start_locked(&mut state, cfg, ctx).await;
-        state.last_error = result.as_ref().err().map(ToString::to_string);
+        state.last_error = crate::start_failure(&result);
         result
     }
 
@@ -332,7 +335,7 @@ impl Apache {
             self.inner.supervisor.stop(PROCESS_ID, STOP_TIMEOUT).await?;
             state.runtime = None;
             let result = self.start_locked(&mut state, cfg, ctx).await;
-            state.last_error = result.as_ref().err().map(ToString::to_string);
+            state.last_error = crate::start_failure(&result);
             result?;
             return Ok(ReloadOutcome::Restarted);
         }
@@ -422,6 +425,10 @@ mod tests {
             sites: lumina_vhost::scan(&layout.www(), &lumina_config::AppConfig::default()).sites,
             tls: None,
             db_ui: None,
+            php_pools: Vec::new(),
+            site_php: Default::default(),
+            adminer: None,
+            lan: false,
         };
 
         apache.prepare(&install, &ctx).expect("prepare");
@@ -483,6 +490,10 @@ mod tests {
             sites: Vec::new(),
             tls: None,
             db_ui: None,
+            php_pools: Vec::new(),
+            site_php: Default::default(),
+            adminer: None,
+            lan: false,
         };
 
         apache.prepare(&install, &ctx).expect("prepare");

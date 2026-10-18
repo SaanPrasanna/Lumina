@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-17",
+  "updated": "2026-10-18",
   "packages": [
     {
       "id": "php",
@@ -18,6 +18,7 @@
             "https://downloads.php.net/~windows/releases/archives/php-8.5.11-nts-Win32-vs17-x64.zip"
           ],
           "sha256": "0ea96e0d2b9b737a6036f05cf4e95c49313faa6d0f27bd97edb2742503f0c043",
+          "size": 36048897,
           "archive": "zip",
           "checksum_source": "windows.php.net releases.json"
         },
@@ -30,6 +31,7 @@
             "https://downloads.php.net/~windows/releases/archives/php-8.4.26-nts-Win32-vs17-x64.zip"
           ],
           "sha256": "da68394f9193b7f6b89d0c76861a4034ae10efee7fd55a7255d8118c2acf70d7",
+          "size": 35103568,
           "archive": "zip",
           "checksum_source": "windows.php.net releases.json"
         },
@@ -42,6 +44,7 @@
             "https://downloads.php.net/~windows/releases/archives/php-8.3.35-nts-Win32-vs16-x64.zip"
           ],
           "sha256": "25a8e2ac9ff30f1d768d1447c09a600617fa6e6082729f6e95f008b59c91fe45",
+          "size": 33873909,
           "archive": "zip",
           "checksum_source": "windows.php.net releases.json"
         },
@@ -54,6 +57,7 @@
             "https://downloads.php.net/~windows/releases/archives/php-8.2.34-nts-Win32-vs16-x64.zip"
           ],
           "sha256": "03249b5c9414c6dbe30276f4a7598bd9d2a7417ee81f709b06b99e9c4a2aff4f",
+          "size": 33472978,
           "archive": "zip",
           "channel": "security fixes",
           "checksum_source": "windows.php.net releases.json"
@@ -67,6 +71,7 @@
             "https://downloads.php.net/~windows/releases/archives/php-8.1.34-nts-Win32-vs16-x64.zip"
           ],
           "sha256": "9cfe246cb144076c16f5913a3ef88a474c3dd7e60f0f0c8bb95faf68674016cc",
+          "size": 30822368,
           "archive": "zip",
           "channel": "end of life",
           "checksum_source": "windows.php.net releases.json"
@@ -130,6 +135,7 @@
           "arch": "x86_64",
           "url": "https://www.apachelounge.com/download/VS18/binaries/httpd-2.4.69-261002-Win64-VS18.zip",
           "sha256": "ca272e0b75abad78b1e4029a0753b20ff2232d2d857e8eebeea5d469c5776977",
+          "size": 14495717,
           "archive": "zip",
           "subdir": "Apache24",
           "checksum_source": "apachelounge.com .txt checksum file"
@@ -281,6 +287,7 @@
             "https://archive.mariadb.org/mariadb-12.3.3/winx64-packages/mariadb-12.3.3-winx64.zip"
           ],
           "sha256": "4b5706b47148b47c8f36963c8352d1ddee37a1287b4690428f631a74b09b85a0",
+          "size": 104081715,
           "archive": "zip",
           "strip": 1,
           "channel": "LTS",
@@ -295,6 +302,7 @@
             "https://archive.mariadb.org/mariadb-11.8.9/winx64-packages/mariadb-11.8.9-winx64.zip"
           ],
           "sha256": "830c46727d9278eae212ae3eca44eeb9e71b2a68704e95f344a64fba7b1963f5",
+          "size": 97016251,
           "archive": "zip",
           "strip": 1,
           "channel": "LTS",
@@ -309,6 +317,7 @@
             "https://archive.mariadb.org/mariadb-11.4.13/winx64-packages/mariadb-11.4.13-winx64.zip"
           ],
           "sha256": "d62986d433eeebfde218560b276103831604a61e929e87f1a17f5aebd80257e2",
+          "size": 95024126,
           "archive": "zip",
           "strip": 1,
           "channel": "LTS",
@@ -323,6 +332,7 @@
             "https://archive.mariadb.org/mariadb-10.11.19/winx64-packages/mariadb-10.11.19-winx64.zip"
           ],
           "sha256": "398ea30e5036010bbebe01d2b1804280424dcc2626e36d8e95155c04d25a0490",
+          "size": 93557290,
           "archive": "zip",
           "strip": 1,
           "channel": "LTS",
@@ -513,6 +523,733 @@
           "size": 9766703,
           "archive": "tar.gz",
           "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.30.7",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.30.7/mailpit-windows-amd64.zip",
+          "sha256": "e4815d2c961a4ad024f4d942d0d286fd7b7da49c49fc7f01c565ff296bd3fdce",
+          "size": 10507924,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.30.7",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.30.7/mailpit-windows-arm64.zip",
+          "sha256": "07ee2bee83e5b54f8cd7b013cb4a9d1582665a5280de3b2bdd47b24c7139aa84",
+          "size": 9627937,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.30.7",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.30.7/mailpit-darwin-arm64.tar.gz",
+          "sha256": "27e27abb8ff6604f76d0d82855808761f14e97adfb11f1271d42da8f655a98b9",
+          "size": 9865302,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.30.7",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.30.7/mailpit-darwin-amd64.tar.gz",
+          "sha256": "0eb300122c21f533ddd9f0b85201fe9e06ccd7602e6d56f389d4f808fdb8bbd7",
+          "size": 10422332,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.30.7",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.30.7/mailpit-linux-amd64.tar.gz",
+          "sha256": "a35c053509441b95fb96da6479b3a26b3eb309e223232aced28255c011d29efc",
+          "size": 10367510,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.30.7",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.30.7/mailpit-linux-arm64.tar.gz",
+          "sha256": "12c736a73d122c55d3531ac2fc92cad96dbde283af661b6701fe32892bd438c5",
+          "size": 9595885,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.29.7",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.29.7/mailpit-windows-amd64.zip",
+          "sha256": "ad84a4b552bc667faa744e512884af0a3be655863371c1565e25a8f943e5d09f",
+          "size": 11105104,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.29.7",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.29.7/mailpit-windows-arm64.zip",
+          "sha256": "2cd085d6d8e2ab2a1c97825296ab5cdcd556ef8c056e778f64f4d39327fe39eb",
+          "size": 10087055,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.29.7",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.29.7/mailpit-darwin-arm64.tar.gz",
+          "sha256": "8253b9a1324f67a6a1f8676a827971f5498e33fc90b90788a9c919803c311a40",
+          "size": 10390829,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.29.7",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.29.7/mailpit-darwin-amd64.tar.gz",
+          "sha256": "6bea99f8cf654aa01b3a1555065acab8cc5926ddbae5895ae09934290b910179",
+          "size": 11063032,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.29.7",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.29.7/mailpit-linux-amd64.tar.gz",
+          "sha256": "2ca8202f34b0ce35cf2144671ea6a0e43470c4a3621873e107dad440fd39f2b2",
+          "size": 10987839,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.29.7",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/axllent/mailpit/releases/download/v1.29.7/mailpit-linux-arm64.tar.gz",
+          "sha256": "e782d4d0ab97f03abaab65cb297c5b8a5acc82ad9932bf08a3b9cf69950b862a",
+          "size": 10082881,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "kind": "service",
+      "homepage": "https://www.mongodb.com/try/download/community",
+      "description": "MongoDB Community Server, the document database. The Linux build is for Ubuntu 24.04.",
+      "versions": [
+        {
+          "version": "9.0.4",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-9.0.4.zip",
+          "sha256": "1e6234c8c33e75de3659a7e1104cb12f1cb68ae41cba60b625537c1ed9256d43",
+          "size": 988758776,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/current.json"
+        },
+        {
+          "version": "9.0.4",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-9.0.4.tgz",
+          "sha256": "66b9ebbbb7218cfa774a95172e353698cc214d31cbb6d73be04978a01d5c288c",
+          "size": 172386558,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/current.json"
+        },
+        {
+          "version": "9.0.4",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-9.0.4.tgz",
+          "sha256": "cc7e5a17b9ccff0e1b2dab62858ad17bd519c87c4937fac89721bc4c6d326ef0",
+          "size": 182499475,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/current.json"
+        },
+        {
+          "version": "9.0.4",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2404-9.0.4.tgz",
+          "sha256": "5e85bf685450287a1e7e073da3ae39677ffe7f00c01a86dec31283ccc2cf2dcc",
+          "size": 152034388,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/current.json"
+        },
+        {
+          "version": "9.0.4",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2404-9.0.4.tgz",
+          "sha256": "26ada71d5b6ec02f2975a261b3a321dc1f2a9f61cf29d4b41b4d12a22ebdb627",
+          "size": 141270174,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/current.json"
+        },
+        {
+          "version": "8.0.34",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.34.zip",
+          "sha256": "6b021a0864494e4decf278b36477a29eb36072432773e4e62c2f42c302630db0",
+          "size": 807616685,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "8.0.34",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-8.0.34.tgz",
+          "sha256": "3255cbf2e70cc5de04220046e006067d20068656d1bfa674828768a51d20d5a6",
+          "size": 81742129,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "8.0.34",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-8.0.34.tgz",
+          "sha256": "3d391b8c41df069671afaa88ca21def057178aecce1813437539143b71f28152",
+          "size": 88577312,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "8.0.34",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2404-8.0.34.tgz",
+          "sha256": "3e55cdcf7013fbc805d29d8195230df4b23c7688733ee15ad58ac6bc2a416611",
+          "size": 105552693,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "8.0.34",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2404-8.0.34.tgz",
+          "sha256": "52655dd90adf0dbcbb87011075233285f44e262048ea30a9a48ad2a834c67736",
+          "size": 99406335,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "7.0.45",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-7.0.45.zip",
+          "sha256": "7e3a435fa86e36e8ca4f2618fb41de06d75c28009c63725a20f9badd36eec6f6",
+          "size": 634876648,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "7.0.45",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-7.0.45.tgz",
+          "sha256": "23fa267630e47fb8b95935a4bbb6fed5f43f313735b6e17fe55cacce98403deb",
+          "size": 70733608,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "7.0.45",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-7.0.45.tgz",
+          "sha256": "f9fb2104e7eb525b48b61f7e5ab8af2b2172b031fded1a7f2c5be1b487a20b1a",
+          "size": 76300608,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "7.0.45",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2204-7.0.45.tgz",
+          "sha256": "c2eec1e4aaee967838430ac57fc7d46c22f566c718eda6033e32add80d506f8b",
+          "size": 87174048,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        },
+        {
+          "version": "7.0.45",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2204-7.0.45.tgz",
+          "sha256": "dfdfb314e2f6fc48fe01588d39d2b44b168fa589b5df12d354a0dbd68e71f95a",
+          "size": 82135411,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "downloads.mongodb.org/full.json"
+        }
+      ]
+    },
+    {
+      "id": "valkey",
+      "name": "Valkey",
+      "kind": "service",
+      "homepage": "https://valkey.io/",
+      "description": "Valkey, the open-source (BSD) Redis fork. Linux build for Ubuntu 24.04; on macOS use Homebrew (brew install valkey).",
+      "versions": [
+        {
+          "version": "9.0.6",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://download.valkey.io/releases/valkey-9.0.6-noble-x86_64.tar.gz",
+          "sha256": "ef591b90b1922abce7e95ad238dbf17455393974f25ad131e7fd1c49566f5201",
+          "size": 38558753,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "download.valkey.io .sha256 file"
+        },
+        {
+          "version": "9.0.6",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://download.valkey.io/releases/valkey-9.0.6-noble-arm64.tar.gz",
+          "sha256": "058508f7243c950e2c49a808e40db04e4386ea36ab6ddb1d1f2fe1a76eb341f6",
+          "size": 38264545,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "download.valkey.io .sha256 file"
+        }
+      ]
+    },
+    {
+      "id": "meilisearch",
+      "name": "Meilisearch",
+      "kind": "service",
+      "homepage": "https://www.meilisearch.com/",
+      "description": "Fast search engine with a dashboard (Laravel Scout, InstantSearch).",
+      "versions": [
+        {
+          "version": "1.55.0",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.55.0/meilisearch-windows-amd64.exe",
+          "sha256": "948535579776ea8aeeffd166ac824f26624468b4f82d6e46a613230d8c91e62a",
+          "size": 352880640,
+          "archive": "file",
+          "file_name": "meilisearch.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.55.0",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.55.0/meilisearch-macos-apple-silicon",
+          "sha256": "e02b98f5dc6e4206d1bc7fa755c2649e46143b96f34e7a79ea482c0b5512acfa",
+          "size": 348295984,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.55.0",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.55.0/meilisearch-macos-amd64",
+          "sha256": "6a06877227ddd253a8352b8685e60a8b992f06e7c986af84919bd4faa60957c7",
+          "size": 351225696,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.55.0",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.55.0/meilisearch-linux-amd64",
+          "sha256": "7e33f5889235f14290074a19a6d3574bd9b10fb2ee8731eabb7dafd0714b0513",
+          "size": 357184032,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.55.0",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.55.0/meilisearch-linux-aarch64",
+          "sha256": "f268dde681f20f6fc393d053dab11909d059574e52916355ad1d10212ec8a2a7",
+          "size": 350825800,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.54.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.54.3/meilisearch-windows-amd64.exe",
+          "sha256": "09266bd2c51747cebe908f7373cc6e2e546e3930886bb8c1427f402a0dc4c2dc",
+          "size": 352659456,
+          "archive": "file",
+          "file_name": "meilisearch.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.54.3",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.54.3/meilisearch-macos-apple-silicon",
+          "sha256": "2ce65b8f8e74eee14b8eef8a9d0fc125cdcc9a0227bbba89dca832a93505c714",
+          "size": 348171088,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.54.3",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.54.3/meilisearch-macos-amd64",
+          "sha256": "82126065011d4b2b4d60abbcf467beeb72bd04f0824a24991dfb67bbaaed4e61",
+          "size": 351077200,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.54.3",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.54.3/meilisearch-linux-amd64",
+          "sha256": "0ece934f9791f0db83e1184f4f505a38eae7d93ff1c47efaa9426cf2b3a12ba7",
+          "size": 357021720,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.54.3",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.54.3/meilisearch-linux-aarch64",
+          "sha256": "09ce5f9531bb205a10fe57854f64a4b59d16166a03de7fa76392a629ccfe81c4",
+          "size": 350675896,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.53.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.53.3/meilisearch-windows-amd64.exe",
+          "sha256": "13f03a79d667f75182cb858c91febb65a17f0a9a717f7c7b122a0b5a357133f2",
+          "size": 346641920,
+          "archive": "file",
+          "file_name": "meilisearch.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.53.3",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.53.3/meilisearch-macos-apple-silicon",
+          "sha256": "898c40c3d04f69d15b003668778cb1b533d8c1b5ec0c26feb2a1568177922d07",
+          "size": 341994624,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.53.3",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.53.3/meilisearch-macos-amd64",
+          "sha256": "a6aa9a7740d62db055f046402a7f4c87ac9af42f5d40a80f1c380e9e83906de7",
+          "size": 344573928,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.53.3",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.53.3/meilisearch-linux-amd64",
+          "sha256": "b1ffed74645730b3994afab738e4fc75111761e7069c96470d30fd1c5d80f892",
+          "size": 350814488,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.53.3",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.53.3/meilisearch-linux-aarch64",
+          "sha256": "cf5d9bfe4352d8f87007d3207646408c8421550df526965c5a449440afdb9b5c",
+          "size": 344936888,
+          "archive": "file",
+          "file_name": "meilisearch",
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "typesense",
+      "name": "Typesense",
+      "kind": "service",
+      "homepage": "https://typesense.org/",
+      "description": "Typo-tolerant search engine (macOS and Linux). Local API key: lumina.",
+      "versions": [
+        {
+          "version": "30.2",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://dl.typesense.org/releases/30.2/typesense-server-30.2-darwin-arm64.tar.gz",
+          "sha256": "7d8d6d0c33930ad20ea23dd184250547b16615944be891b2078e8a075152fa7e",
+          "size": 38399663,
+          "archive": "tar.gz",
+          "checksum_source": "SHA-256 of the dl.typesense.org download, computed when added (Typesense publishes no checksums)"
+        },
+        {
+          "version": "30.2",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://dl.typesense.org/releases/30.2/typesense-server-30.2-darwin-amd64.tar.gz",
+          "sha256": "6aa4d2d85838e03fdde9dcef4bf1584a46fc1840a215e5cbed288b63365eae75",
+          "size": 40305723,
+          "archive": "tar.gz",
+          "checksum_source": "SHA-256 of the dl.typesense.org download, computed when added (Typesense publishes no checksums)"
+        },
+        {
+          "version": "30.2",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://dl.typesense.org/releases/30.2/typesense-server-30.2-linux-amd64.tar.gz",
+          "sha256": "cd791605e7c6cc7be457794f534cd4b9f9d361781adb10e40020efc22840ebc3",
+          "size": 139602519,
+          "archive": "tar.gz",
+          "checksum_source": "SHA-256 of the dl.typesense.org download, computed when added (Typesense publishes no checksums)"
+        },
+        {
+          "version": "30.2",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://dl.typesense.org/releases/30.2/typesense-server-30.2-linux-arm64.tar.gz",
+          "sha256": "a9b9d6e2927c863900306290e8532c17f66bdff34ef2ad043b24ed4ccec8a6bc",
+          "size": 135501041,
+          "archive": "tar.gz",
+          "checksum_source": "SHA-256 of the dl.typesense.org download, computed when added (Typesense publishes no checksums)"
+        }
+      ]
+    },
+    {
+      "id": "seaweedfs",
+      "name": "SeaweedFS (S3)",
+      "kind": "service",
+      "homepage": "https://github.com/seaweedfs/seaweedfs",
+      "description": "S3-compatible object storage (weed mini), so uploads work as with Amazon S3.",
+      "versions": [
+        {
+          "version": "4.48",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.48/windows_amd64.zip",
+          "sha256": "fe90c04c0620ad1a1c756f86cd5e1443773f56a446688077a4bb5ec04c3cc874",
+          "size": 47000874,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.48",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.48/darwin_arm64.tar.gz",
+          "sha256": "faa194e72a346755dc4404288b0561eb3c260351702901d8363024d5099bdd7d",
+          "size": 42699632,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.48",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.48/darwin_amd64.tar.gz",
+          "sha256": "425ef61d2ee773d5d5175003f38bd6cc891070ae6319370354aaf5378c45d5b3",
+          "size": 47134256,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.48",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.48/linux_amd64.tar.gz",
+          "sha256": "4a7d108384d044d95212d1342cdda9533fa55842c1c9b41f606ca3c8a9561124",
+          "size": 46067365,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.48",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.48/linux_arm64.tar.gz",
+          "sha256": "557e92c38c5c7d180748eb8e2b2b45e426f8e5282a4caca8e098a90d09f03a07",
+          "size": 40558283,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.47",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.47/windows_amd64.zip",
+          "sha256": "8809359079e62fcd60574ff661449160899622c52072f3f569d346669079efe9",
+          "size": 46718101,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.47",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.47/darwin_arm64.tar.gz",
+          "sha256": "3ad466db33e83d0b103f90a06997feeb1cc42fd536e6cbdcdded975778f64fda",
+          "size": 42495103,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.47",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.47/darwin_amd64.tar.gz",
+          "sha256": "45475223d51b78efb413cb7a29c005c7e9e0cc3f0dfe13d10413e7f85c479b6a",
+          "size": 46856223,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.47",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.47/linux_amd64.tar.gz",
+          "sha256": "31fb804858885f9e7f18b6d3b1da09e824baac3e6a55b5a62c3c4c77e6ed6d7d",
+          "size": 45801355,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.47",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.47/linux_arm64.tar.gz",
+          "sha256": "ba5c9def9ff98f78becdf309a50a9f906922f6383a7c4c772d01ede3cc012e16",
+          "size": 40359016,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.46",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.46/windows_amd64.zip",
+          "sha256": "d89d62fb56595f9ad2f5e62fc76943cded478cf40d0fe69868b52488a8d1d339",
+          "size": 46661837,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.46",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.46/darwin_arm64.tar.gz",
+          "sha256": "1d26b6cd43a6ed4f8c315bac15a19334270e5c84505fbf7cc4fdb1e251a71bc5",
+          "size": 42446529,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.46",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.46/darwin_amd64.tar.gz",
+          "sha256": "7893b1ac54596d828b161fb27700a55f1187e0de365142fa4d7b61553e8375cf",
+          "size": 46788865,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.46",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.46/linux_amd64.tar.gz",
+          "sha256": "f4c654a72353c36bd8ae03c8879b81588dc29ffee0fa87594d8716a3d9347ad5",
+          "size": 45748631,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "4.46",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/seaweedfs/seaweedfs/releases/download/4.46/linux_arm64.tar.gz",
+          "sha256": "524085d3e08a0637c90531ae9a61e26ffa6a44bb35d26902db35ced74df14640",
+          "size": 40312220,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "adminer",
+      "name": "Adminer",
+      "kind": "webapp",
+      "homepage": "https://www.adminer.org/",
+      "description": "Database manager in one PHP file, for MySQL, MariaDB, PostgreSQL and SQLite; served at http://localhost/adminer/.",
+      "versions": [
+        {
+          "version": "6.1.2",
+          "os": "any",
+          "arch": "any",
+          "url": "https://github.com/vrana/adminer/releases/download/v6.1.2/adminer-6.1.2.php",
+          "sha256": "b32316156bd18ffa99c1a27617142c2e5ad72260e37f15da4e9937a3dbb15f57",
+          "size": 569128,
+          "archive": "file",
+          "file_name": "index.php",
+          "checksum_source": "GitHub release asset digest"
         }
       ]
     },
@@ -529,6 +1266,7 @@
           "arch": "any",
           "url": "https://files.phpmyadmin.net/phpMyAdmin/5.2.3/phpMyAdmin-5.2.3-all-languages.zip",
           "sha256": "2d2e13c735366d318425c78e4ee2cc8fc648d77faba3ddea2cd516e43885733f",
+          "size": 16431330,
           "archive": "zip",
           "strip": 1,
           "requires": {
@@ -551,6 +1289,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-win-x64.zip",
           "sha256": "97f36a8a9684ff0d3e35758b4610fef5b628a5880e96f2ccc11240e5daf9934e",
+          "size": 41809787,
           "archive": "zip",
           "strip": 1,
           "channel": "current",
@@ -562,6 +1301,7 @@
           "arch": "aarch64",
           "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-darwin-arm64.tar.gz",
           "sha256": "d916511b55965e91be7a88e17f88d895b6793ceaba3e6c9b194aefe51c2c65ac",
+          "size": 58283153,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "current",
@@ -573,6 +1313,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-darwin-x64.tar.gz",
           "sha256": "9a8129bd9ab08039793dd1143a7aedee6b5d60ac06592ad938d8bddf36142f3a",
+          "size": 59713543,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "current",
@@ -584,6 +1325,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-linux-x64.tar.gz",
           "sha256": "15fc043a51a5783f2f4b634561091658f5a7f0e3db03f997dca3a8033a33e45b",
+          "size": 62798625,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "current",
@@ -595,6 +1337,7 @@
           "arch": "aarch64",
           "url": "https://nodejs.org/dist/v26.11.1/node-v26.11.1-linux-arm64.tar.gz",
           "sha256": "170454fb022f5e9b5f6cc76c25fa32ef5100895be44eb04e92f9780591491bbf",
+          "size": 62559273,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "current",
@@ -606,6 +1349,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-win-x64.zip",
           "sha256": "158f7685b44de51f6c0df1d153526cbcd3e1bc739a8dfc607721cef75de9e541",
+          "size": 37618919,
           "archive": "zip",
           "strip": 1,
           "channel": "LTS",
@@ -617,6 +1361,7 @@
           "arch": "aarch64",
           "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-darwin-arm64.tar.gz",
           "sha256": "bed7eea5325e1108f32ce5228ddd6a5f0f08a499ee42aa7442aea583702f6057",
+          "size": 52909993,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -628,6 +1373,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-darwin-x64.tar.gz",
           "sha256": "1462cb3b3046b815cf8ea436d3da450ec1a9f11dac7e5a46b0ada5305d7e8097",
+          "size": 54203979,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -639,6 +1385,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.gz",
           "sha256": "6e1db87ef58b8819e5d5402eff1536491b18edd8eb7bee5ef7897876e88dc5ff",
+          "size": 58088022,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -650,6 +1397,7 @@
           "arch": "aarch64",
           "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-arm64.tar.gz",
           "sha256": "724282c3b43aec998aa9527380465b45d229e021b58035f5f4f63095eabfe5d5",
+          "size": 57824078,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -661,6 +1409,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-win-x64.zip",
           "sha256": "2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71",
+          "size": 35574076,
           "archive": "zip",
           "strip": 1,
           "channel": "LTS",
@@ -672,6 +1421,7 @@
           "arch": "aarch64",
           "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-darwin-arm64.tar.gz",
           "sha256": "23b25245dcfb9af7262f8ff142e9e2e0af025368117329e7a7458a51e5922f53",
+          "size": 49963763,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -683,6 +1433,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-darwin-x64.tar.gz",
           "sha256": "8a677b0219178efd6eb0e475457c4afb452b521a92f6e67845a73bd85727f2a8",
+          "size": 51142049,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -694,6 +1445,7 @@
           "arch": "x86_64",
           "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-x64.tar.gz",
           "sha256": "1084aa36196bba4c3a5e69a1ee388a6e4ff729dad09445fbcd434b28fe3c24af",
+          "size": 56792076,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -705,6 +1457,7 @@
           "arch": "aarch64",
           "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-arm64.tar.gz",
           "sha256": "5ced2d48d1d7198739b7f86804de0171aefb6823b684b12341d3321afc3cb0b2",
+          "size": 56655163,
           "archive": "tar.gz",
           "strip": 1,
           "channel": "LTS",
@@ -830,6 +1583,856 @@
       ]
     },
     {
+      "id": "bun",
+      "name": "Bun",
+      "kind": "runtime",
+      "homepage": "https://bun.sh/",
+      "description": "A fast JavaScript runtime, package manager and test runner (bun, bunx).",
+      "versions": [
+        {
+          "version": "1.4.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-windows-x64.zip",
+          "sha256": "0bf84e808552beea67bf1202a287a35c6c825d837b287b3f8e9dd513dba35d3d",
+          "size": 44639930,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.4.3",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-windows-aarch64.zip",
+          "sha256": "5e8f142ef722cbc9f67dc068a166e46ee72be8307b38cac7186589d2face668f",
+          "size": 39940383,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.4.3",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-darwin-aarch64.zip",
+          "sha256": "80afd4c069b46a6fa8f3ec520bebc750a7843e4a8d5b9583d29ad436c00a3403",
+          "size": 30530705,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.4.3",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-darwin-x64.zip",
+          "sha256": "62660e6438eb872278877acca77e1152d5d031324df368d4a81b428211489d2d",
+          "size": 33229351,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.4.3",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-linux-x64.zip",
+          "sha256": "3e730528d89775f03f87f05c06787c4df4099d0a37f3f252e7b829cb23816e18",
+          "size": 42015139,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.4.3",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-linux-aarch64.zip",
+          "sha256": "efa9813da5ed72423bf847f916e8d2c47c0d776add972354026a75e10da9aa21",
+          "size": 41786424,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.3.14",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-windows-x64.zip",
+          "sha256": "0a0620930b6675d7ba440e81f4e0e00d3cfbe096c4b140d3fff02205e9e18922",
+          "size": 38366737,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.3.14",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-windows-aarch64.zip",
+          "sha256": "89841f5a57f2348b67ec0839b718f4bf4ea7d07c371c9ba4b77b6c790f918953",
+          "size": 36659109,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.3.14",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-darwin-aarch64.zip",
+          "sha256": "d8b96221828ad6f97ac7ac0ab7e95872341af763001e8803e8267652c2652620",
+          "size": 23586433,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.3.14",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-darwin-x64.zip",
+          "sha256": "4183df3374623e5bab315c547cfa0974533cd457d86b73b639f7a87974cd6633",
+          "size": 26509109,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.3.14",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-linux-x64.zip",
+          "sha256": "951ee2aee855f08595aeec6225226a298d3fea83a3dcd6465c09cbccdf7e848f",
+          "size": 35969274,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.3.14",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-linux-aarch64.zip",
+          "sha256": "a27ffb63a8310375836e0d6f668ae17fa8d8d18b88c37c821c65331973a19a3b",
+          "size": 35700603,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.2.23",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.2.23/bun-windows-x64.zip",
+          "sha256": "2171e94f9d1e0cd6d45bdced38e2dc821f4181a075ed80772e750b3298a9016d",
+          "size": 41793050,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.2.23",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.2.23/bun-darwin-aarch64.zip",
+          "sha256": "22f5fa3fff72b0d3b8e7e0f8051ecadf2e41920d474ac62db5279144809c9005",
+          "size": 22280328,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.2.23",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.2.23/bun-darwin-x64.zip",
+          "sha256": "9729c400e50bc3c86b6640e42af2ff5c057b5df3b27c93b40ed47c16b5e6a5e6",
+          "size": 24828953,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.2.23",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.2.23/bun-linux-x64.zip",
+          "sha256": "cf0ed0a920799d576ffde4e0cae66d732bf23c2530407f26f59c7831dffe1f0e",
+          "size": 39551242,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "1.2.23",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/oven-sh/bun/releases/download/bun-v1.2.23/bun-linux-aarch64.zip",
+          "sha256": "6a7a98c546d084a845deda62eb2a5b94a6a14a63ea81cf9186d46bf55bf910a9",
+          "size": 37926363,
+          "archive": "zip",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "deno",
+      "name": "Deno",
+      "kind": "runtime",
+      "homepage": "https://deno.com/",
+      "description": "A secure JavaScript and TypeScript runtime with built-in tooling.",
+      "versions": [
+        {
+          "version": "2.9.7",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-x86_64-pc-windows-msvc.zip",
+          "sha256": "a0c3101b4158d1dfb7d6a78a7bf0f3de80c96bb423c152beec8beb22786f2238",
+          "size": 42630221,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.9.7",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-aarch64-pc-windows-msvc.zip",
+          "sha256": "c4c4ac8bfdaa37814bda5c05fc9cdf2154904e2ef8277673a30bdceaaa649807",
+          "size": 40847024,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.9.7",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-aarch64-apple-darwin.zip",
+          "sha256": "5cd46d6268f6f78f5d88bdc7159d20bd44cdaa4b3303474839f87ec6fe7ae25c",
+          "size": 38469316,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.9.7",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-x86_64-apple-darwin.zip",
+          "sha256": "95daaff11c116a52ad54785e7914c8e9c9cdcaba793c5ed929c74ca2d8e6259a",
+          "size": 42295422,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.9.7",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-x86_64-unknown-linux-gnu.zip",
+          "sha256": "c6527f24f4b16031d3ae4fa9f658d5f11534c8d84ce7dc8502420280919c3490",
+          "size": 41596794,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.9.7",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.9.7/deno-aarch64-unknown-linux-gnu.zip",
+          "sha256": "c832298b1ad4422481334855f6003e0f54145762c5a134f20a489511d2f65bbf",
+          "size": 39821318,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.8.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.8.3/deno-x86_64-pc-windows-msvc.zip",
+          "sha256": "7fdd1f42e6b0855421ecf27bb406e2492ade1087c85e30ebf0deab6280ea743c",
+          "size": 41638373,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.8.3",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.8.3/deno-aarch64-pc-windows-msvc.zip",
+          "sha256": "243f478ac577ade1bbd980ecf510607a10ed8cc977b462083ada48e5f6580de1",
+          "size": 39589855,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.8.3",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.8.3/deno-aarch64-apple-darwin.zip",
+          "sha256": "88b350be928fdba0e5d8142ff7c101a17133426371e3cf5ed0e0f74e62476f6c",
+          "size": 38084039,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.8.3",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.8.3/deno-x86_64-apple-darwin.zip",
+          "sha256": "4254ec12123cfcf88b87703d7acf092a1ea024bdf9be8dd3cd9d4474761cb74e",
+          "size": 42312633,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.8.3",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.8.3/deno-x86_64-unknown-linux-gnu.zip",
+          "sha256": "30455b845ffa6082209c3590269c910ad3b7efdf28c9879afd4006c47ae54197",
+          "size": 43810239,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.8.3",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.8.3/deno-aarch64-unknown-linux-gnu.zip",
+          "sha256": "d4589cc1ffcbf1995c92a0127d932aaf832ac70cfdcc6d5b7bf38043cf303575",
+          "size": 42042289,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.7.14",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.7.14/deno-x86_64-pc-windows-msvc.zip",
+          "sha256": "25f9871f5c1d9e999d60071f8069767134495fd601d2e2c7ce1e8c641487bda0",
+          "size": 49344425,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.7.14",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.7.14/deno-aarch64-pc-windows-msvc.zip",
+          "sha256": "7f3a4a2568f8b4551bf0bff377652161365c5ce3f594c70ee2ef37edd733e942",
+          "size": 47071789,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.7.14",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.7.14/deno-aarch64-apple-darwin.zip",
+          "sha256": "aeb5825f83b4a9cd7f9355a1c4ddd666205dacf76ccb7b98c2b10e066bc9e4bb",
+          "size": 44594663,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.7.14",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.7.14/deno-x86_64-apple-darwin.zip",
+          "sha256": "c89149513bf8e82ab5b351dac544f8c0cada90753bd2f576f46325fb67997ae1",
+          "size": 47836723,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.7.14",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.7.14/deno-x86_64-unknown-linux-gnu.zip",
+          "sha256": "3287efef53606966469cb6a02781327be22b908959397f976e2996dc1b64ae0f",
+          "size": 50293548,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2.7.14",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/denoland/deno/releases/download/v2.7.14/deno-aarch64-unknown-linux-gnu.zip",
+          "sha256": "b815c919452b5993a7c22df018a88c2f706eea6b5e0aa7802b2b0709edde01e8",
+          "size": 48269059,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "uv",
+      "name": "uv",
+      "kind": "tool",
+      "homepage": "https://docs.astral.sh/uv/",
+      "description": "A fast Python package and project manager (uv, uvx).",
+      "versions": [
+        {
+          "version": "0.13.1",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-x86_64-pc-windows-msvc.zip",
+          "sha256": "3b2661a463a5baea7f5076ea2b25ab71d77f36a6c0d809e5350651792f80a672",
+          "size": 15308685,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.13.1",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-aarch64-pc-windows-msvc.zip",
+          "sha256": "ec7846a5939b4654afee24f2d82bf6fde71bd7a6952d7748f1135ab301dd0a49",
+          "size": 15802989,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.13.1",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-aarch64-apple-darwin.tar.gz",
+          "sha256": "cfe454573412ff7380d15fc7dae5997ab53ffce72fce0a78e91ddbc84001acd2",
+          "size": 14280170,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.13.1",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-x86_64-apple-darwin.tar.gz",
+          "sha256": "bb7b805bdcf3d0bc8c74ceb94569e6b3e8aa35bd492acdbb9d46bf46d9d4ff6b",
+          "size": 17491796,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.13.1",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-x86_64-unknown-linux-gnu.tar.gz",
+          "sha256": "eadd9d27c134ab5ac1ffd4473b97a741407f3ea238288f03121fc4deddf90220",
+          "size": 16738706,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.13.1",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-aarch64-unknown-linux-gnu.tar.gz",
+          "sha256": "9041c73c99fdc5892cf128140beb354eca9231d502068cc36e6cb53a8e59ad14",
+          "size": 15838367,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.12.24",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.12.24/uv-x86_64-pc-windows-msvc.zip",
+          "sha256": "7c38608c8a18ee137d748a1773053b07ec8f3a30fab49aebaa6f4e4efeceb019",
+          "size": 15685515,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.12.24",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.12.24/uv-aarch64-pc-windows-msvc.zip",
+          "sha256": "4b783bda5cc44bbae0651a837223873a7acee31152381aef5fc86ef6bef25997",
+          "size": 16217146,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.12.24",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.12.24/uv-aarch64-apple-darwin.tar.gz",
+          "sha256": "0c4346de7abdb49495b393b9ec809fe387aa43e586be20fecb972216c1e71732",
+          "size": 14650202,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.12.24",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.12.24/uv-x86_64-apple-darwin.tar.gz",
+          "sha256": "4fa82e37cb94767661f532b001e470b67a186c7260e305bd84ddb78fd545c0b6",
+          "size": 18120254,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.12.24",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.12.24/uv-x86_64-unknown-linux-gnu.tar.gz",
+          "sha256": "b4dfaef47d491a7296981f8374a4595f55dbf84e8937c8ecd2983574d8bb3da6",
+          "size": 17249236,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.12.24",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.12.24/uv-aarch64-unknown-linux-gnu.tar.gz",
+          "sha256": "5231be65f496304623895dacdbf1de8504fec90303684bdf05805aa34414dd21",
+          "size": 16478994,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.11.33",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.11.33/uv-x86_64-pc-windows-msvc.zip",
+          "sha256": "c253ce868ad48d29327b661452ce184c9e333e6d6f5bc8d6fcfbf4dd52b83442",
+          "size": 18981332,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.11.33",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.11.33/uv-aarch64-pc-windows-msvc.zip",
+          "sha256": "6eb261d3ad61b35e2a6cfd997b296b908ff74d6199717eca81c3c73e1df7fbc7",
+          "size": 17906241,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.11.33",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.11.33/uv-aarch64-apple-darwin.tar.gz",
+          "sha256": "d75e3d2bfc203d17388edaabd3aa37958edbcbfc36219e3ee0d31bb080b4baa2",
+          "size": 17585565,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.11.33",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.11.33/uv-x86_64-apple-darwin.tar.gz",
+          "sha256": "f1b919f740bd6be1d014ff58c4271b0779a32198adfb19ad9c5d1c4d9b2b4301",
+          "size": 19456887,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.11.33",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.11.33/uv-x86_64-unknown-linux-gnu.tar.gz",
+          "sha256": "aa9fca823c03289fb6e3460b3dc864f3ea895cafaf9b99247701a67b17d1b018",
+          "size": 21599949,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "0.11.33",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/astral-sh/uv/releases/download/0.11.33/uv-aarch64-unknown-linux-gnu.tar.gz",
+          "sha256": "9ed88a9a42de3102f9704d021ab186fdf8a69a7ad9a1d3f3486ac6b1e55d6141",
+          "size": 20408380,
+          "archive": "tar.gz",
+          "strip": 1,
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "pnpm",
+      "name": "pnpm",
+      "kind": "tool",
+      "homepage": "https://pnpm.io/",
+      "description": "Fast, disk-space efficient package manager for Node.js (standalone build).",
+      "versions": [
+        {
+          "version": "12.14.0",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v12.14.0/pnpm-win32-x64.zip",
+          "sha256": "6f0f38e917c8ce76ef31db528c357e2bfa354a1bcb16464e3cdec39e6530d784",
+          "size": 22994360,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "12.14.0",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v12.14.0/pnpm-win32-arm64.zip",
+          "sha256": "97f707ce677b7591bad9d95c1f74635b5b2b9468da92ef94d426db4453524357",
+          "size": 21140838,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "12.14.0",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v12.14.0/pnpm-darwin-arm64.tar.gz",
+          "sha256": "50f48e0e17508952790a3fbf58fcf14f3b82efa5f594ca04ad904e29aaf854b0",
+          "size": 21337766,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "12.14.0",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v12.14.0/pnpm-darwin-x64.tar.gz",
+          "sha256": "2c412e07382049b4edb04fa6da78f3d4ef7810b75853c80544dcfb7c0ed79880",
+          "size": 23947527,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "12.14.0",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v12.14.0/pnpm-linux-x64.tar.gz",
+          "sha256": "3910c3852136bed5bc1511b9137a45fd4357ed6b3970d9d08893641e9005867e",
+          "size": 24713030,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "12.14.0",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v12.14.0/pnpm-linux-arm64.tar.gz",
+          "sha256": "cfc780b9e690549e6633e1045fb1fb6ef84e390711e2099e6ccbae91c32456ea",
+          "size": 22258454,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "11.28.6",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v11.28.6/pnpm-win32-x64.zip",
+          "sha256": "cb8de9e96199295971dc4f320171e363bc39a0b00697744ef6f453ebcf407fe1",
+          "size": 41735193,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "11.28.6",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v11.28.6/pnpm-win32-arm64.zip",
+          "sha256": "2954cc45bbbd0eaccb3370e212cbda7dd9547aaba4b6b64349717e938e4de961",
+          "size": 37701043,
+          "archive": "zip",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "11.28.6",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v11.28.6/pnpm-darwin-arm64.tar.gz",
+          "sha256": "acf4dd667fbf792e45bc3908be89afda098e2e660132b7731bbade7147b4912b",
+          "size": 48624132,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "11.28.6",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v11.28.6/pnpm-linux-x64.tar.gz",
+          "sha256": "10ff3203f3a38d637561182bec457c7abf43658c27c9f4a7d0dd78ac6f4c891c",
+          "size": 51633668,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "11.28.6",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v11.28.6/pnpm-linux-arm64.tar.gz",
+          "sha256": "b3febc1090e252483f4f1d12dcfc9bd27e6e10171885dd4d7dc109ba84183a53",
+          "size": 51905530,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "10.34.7",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v10.34.7/pnpm-win-x64.exe",
+          "sha256": "c81f829bfc672134563f4ba1f00c93917c563acfd08da6e12f03f0f0b44bb9ab",
+          "size": 54672259,
+          "archive": "file",
+          "file_name": "pnpm.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "10.34.7",
+          "os": "windows",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v10.34.7/pnpm-win-arm64.exe",
+          "sha256": "819f26cf63f472be4d86b8d330208bcf051b7284ac2b28b87ade40d74698136d",
+          "size": 42119123,
+          "archive": "file",
+          "file_name": "pnpm.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "10.34.7",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v10.34.7/pnpm-macos-arm64",
+          "sha256": "6381516d15e38b85ef27f00a5ecedaac6824c70d5a01f2c0f44a6d826d90c978",
+          "size": 64183888,
+          "archive": "file",
+          "file_name": "pnpm",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "10.34.7",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v10.34.7/pnpm-macos-x64",
+          "sha256": "07d273bf69d27d97ff27595a590fbe1e9dce74266059a87cbd25b47ab1d78043",
+          "size": 71541072,
+          "archive": "file",
+          "file_name": "pnpm",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "10.34.7",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v10.34.7/pnpm-linux-x64",
+          "sha256": "44af1568f2682877e43d8918c344d420e022c3d1cc88a11b0dba3e20f9261450",
+          "size": 67463135,
+          "archive": "file",
+          "file_name": "pnpm",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "10.34.7",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/pnpm/pnpm/releases/download/v10.34.7/pnpm-linux-arm64",
+          "sha256": "c57bafc919110f5b942b7778bff0f2170a896d6dc0952c2ff042ca1e228655c3",
+          "size": 63488279,
+          "archive": "file",
+          "file_name": "pnpm",
+          "checksum_source": "GitHub release asset digest"
+        }
+      ]
+    },
+    {
+      "id": "xdebug",
+      "name": "Xdebug",
+      "kind": "tool",
+      "homepage": "https://xdebug.org/",
+      "description": "Step debugger and profiler for PHP, switched on in Settings \u203a PHP. Windows builds per PHP version; on macOS and Linux install it with pecl.",
+      "versions": [
+        {
+          "version": "3.5.3-php8.5",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://xdebug.org/files/php_xdebug-3.5.3-8.5-nts-vs17-x86_64.dll",
+          "sha256": "0a0d52bf276dad7e5f90ac30a5110b3119d291b20c118be0cb7f5752064f1811",
+          "size": 331776,
+          "archive": "file",
+          "file_name": "php_xdebug.dll",
+          "requires": {
+            "php": ">=8.5.0, <8.6.0"
+          },
+          "checksum_source": "xdebug.org/download SHA256"
+        },
+        {
+          "version": "3.5.3-php8.4",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://xdebug.org/files/php_xdebug-3.5.3-8.4-nts-vs17-x86_64.dll",
+          "sha256": "a94d4fcfe4086a300b2decaf7c04e59f4981aa5e56992d48b55c5e49dfd9b9ee",
+          "size": 331776,
+          "archive": "file",
+          "file_name": "php_xdebug.dll",
+          "requires": {
+            "php": ">=8.4.0, <8.5.0"
+          },
+          "checksum_source": "xdebug.org/download SHA256"
+        },
+        {
+          "version": "3.5.3-php8.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://xdebug.org/files/php_xdebug-3.5.3-8.3-nts-vs16-x86_64.dll",
+          "sha256": "4c80487592484c36d21a7006a53738dfc07884fc6867720ddc5c11559371cdce",
+          "size": 330240,
+          "archive": "file",
+          "file_name": "php_xdebug.dll",
+          "requires": {
+            "php": ">=8.3.0, <8.4.0"
+          },
+          "checksum_source": "xdebug.org/download SHA256"
+        },
+        {
+          "version": "3.5.3-php8.2",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://xdebug.org/files/php_xdebug-3.5.3-8.2-nts-vs16-x86_64.dll",
+          "sha256": "b449eda7eeefc80c651fac334582c5f0877cd72cfe55fc1c5f0f98bf6a4edb94",
+          "size": 330240,
+          "archive": "file",
+          "file_name": "php_xdebug.dll",
+          "requires": {
+            "php": ">=8.2.0, <8.3.0"
+          },
+          "checksum_source": "xdebug.org/download SHA256"
+        },
+        {
+          "version": "3.5.3-php8.1",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://xdebug.org/files/php_xdebug-3.5.3-8.1-nts-vs16-x86_64.dll",
+          "sha256": "15bb3abcd0755af8378550793bcf7603636add31dc4a04d24bfd2a1f764399b4",
+          "size": 331264,
+          "archive": "file",
+          "file_name": "php_xdebug.dll",
+          "requires": {
+            "php": ">=8.1.0, <8.2.0"
+          },
+          "checksum_source": "xdebug.org/download SHA256"
+        }
+      ]
+    },
+    {
       "id": "composer",
       "name": "Composer",
       "kind": "tool",
@@ -842,6 +2445,7 @@
           "arch": "any",
           "url": "https://getcomposer.org/download/2.10.3/composer.phar",
           "sha256": "7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6",
+          "size": 3642137,
           "archive": "file",
           "file_name": "composer.phar",
           "checksum_source": "getcomposer.org .sha256sum"
@@ -852,10 +2456,179 @@
           "arch": "any",
           "url": "https://getcomposer.org/download/2.2.30/composer.phar",
           "sha256": "8c2b4478b64f8f7cdf1574838fdb0033b29049ca821dad452db7a3dcfcdbffc2",
+          "size": 2412510,
           "archive": "file",
           "file_name": "composer.phar",
           "channel": "LTS",
           "checksum_source": "getcomposer.org .sha256sum"
+        }
+      ]
+    },
+    {
+      "id": "cloudflared",
+      "name": "cloudflared",
+      "kind": "tool",
+      "homepage": "https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/",
+      "description": "Cloudflare Tunnel: shares local sites on a public HTTPS address with no account (quick tunnels).",
+      "versions": [
+        {
+          "version": "2026.10.1",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.10.1/cloudflared-windows-amd64.exe",
+          "sha256": "4d2490e74082c5d48dbfedaf92576fa5bd1702379ab88eb7faa0cfbe8dc891b6",
+          "size": 55325120,
+          "archive": "file",
+          "file_name": "cloudflared.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.10.1",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.10.1/cloudflared-darwin-arm64.tgz",
+          "sha256": "647615df99d49cd179ea5e13ef760b9bbfb33630f6ae62f87e33dfadda60adcc",
+          "size": 19807806,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.10.1",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.10.1/cloudflared-darwin-amd64.tgz",
+          "sha256": "3b0dbaf378337e9d7fb6cd235a76d1d6a7dee434c2d8edf9281164fb6a3837ab",
+          "size": 21768449,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.10.1",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.10.1/cloudflared-linux-amd64",
+          "sha256": "3bfc539f45d2620c71debb7a86be0efa737ed5ccbad9eb85c787116900e5c586",
+          "size": 40227032,
+          "archive": "file",
+          "file_name": "cloudflared",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.10.1",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.10.1/cloudflared-linux-arm64",
+          "sha256": "2c65dfabf616c40efc7545d107d7a57ad5e21377e2964b7e88af19a238074a46",
+          "size": 37651992,
+          "archive": "file",
+          "file_name": "cloudflared",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.9.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.9.3/cloudflared-windows-amd64.exe",
+          "sha256": "f096265ec2fcbe9bb6e2d64268db167ced3fcbb83d894bdb9e2fcdb26f2ea7e2",
+          "size": 55366080,
+          "archive": "file",
+          "file_name": "cloudflared.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.9.3",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.9.3/cloudflared-darwin-arm64.tgz",
+          "sha256": "587c2cfb1c230fe36c7fa7727da78be459dae028cabe8c001291999350f07095",
+          "size": 19784166,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.9.3",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.9.3/cloudflared-darwin-amd64.tgz",
+          "sha256": "d1155d0837487f261183b15c1eab6c4ebcad9dc49b94675f1524c3564cea3977",
+          "size": 21740193,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.9.3",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.9.3/cloudflared-linux-amd64",
+          "sha256": "77e26d8d900e0b8469f416239d14b5f296525fdf79fee6f511ef55609e3fbac2",
+          "size": 40122749,
+          "archive": "file",
+          "file_name": "cloudflared",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.9.3",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.9.3/cloudflared-linux-arm64",
+          "sha256": "aaeb2d7d0da3614634c7e03ab13487a1522c2e79165ed2929cfe23d5e95b326d",
+          "size": 37685657,
+          "archive": "file",
+          "file_name": "cloudflared",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.8.3",
+          "os": "windows",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.8.3/cloudflared-windows-amd64.exe",
+          "sha256": "83e726ed18ea78c5ad5213c4c3a3a27051393950d2bc8ed4de69bec12d14eaae",
+          "size": 54841128,
+          "archive": "file",
+          "file_name": "cloudflared.exe",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.8.3",
+          "os": "macos",
+          "arch": "aarch64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.8.3/cloudflared-darwin-arm64.tgz",
+          "sha256": "40c9144d86df8937c5b43293a1f7d2d2107029aa74725023dd46b1b27154352f",
+          "size": 19197606,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.8.3",
+          "os": "macos",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.8.3/cloudflared-darwin-amd64.tgz",
+          "sha256": "61e1316266a00fd70ce40da011d612badc805367fb65293dd1925f938f704c99",
+          "size": 21094303,
+          "archive": "tar.gz",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.8.3",
+          "os": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.8.3/cloudflared-linux-amd64",
+          "sha256": "f29324fe934d1e100617484c78deef803c4dc2cd351d645bbde42e96b4fccc5e",
+          "size": 39763452,
+          "archive": "file",
+          "file_name": "cloudflared",
+          "checksum_source": "GitHub release asset digest"
+        },
+        {
+          "version": "2026.8.3",
+          "os": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.8.3/cloudflared-linux-arm64",
+          "sha256": "4bcfd35521a7cbc545ebfd5d57334a71ee180e2a64874981f374c81472118391",
+          "size": 37382432,
+          "archive": "file",
+          "file_name": "cloudflared",
+          "checksum_source": "GitHub release asset digest"
         }
       ]
     },
@@ -872,6 +2645,7 @@
           "arch": "x86_64",
           "url": "https://bin.equinox.io/a/P2eJimSQ97/ngrok-v3-3.39.11-windows-amd64.zip",
           "sha256": "699bbf1932ec43a573b764bd03e6568efa2c4e45955eb3cc2089c19bb4be4464",
+          "size": 12257844,
           "archive": "zip",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -881,6 +2655,7 @@
           "arch": "aarch64",
           "url": "https://bin.equinox.io/a/6nG16rF52TE/ngrok-v3-3.39.11-darwin-arm64.tar.gz",
           "sha256": "cdf75135a6a7962dd368c0d4ec1bad2312420d933a41296a146fffcc6be13ee8",
+          "size": 11285736,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -890,6 +2665,7 @@
           "arch": "x86_64",
           "url": "https://bin.equinox.io/a/jPvqdBYWoCy/ngrok-v3-3.39.11-darwin-amd64.tar.gz",
           "sha256": "098a72a436276227f71ea6a57f3560d47e15135b4c5c6ba605cd63edba386987",
+          "size": 12401743,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -899,6 +2675,7 @@
           "arch": "x86_64",
           "url": "https://bin.equinox.io/a/5Mrhp7gRDVb/ngrok-v3-3.39.11-linux-amd64.tar.gz",
           "sha256": "cec0b4997fcc5f529dfc74bac89050354d11a915f968720600039738fdf330cf",
+          "size": 12104579,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -908,6 +2685,7 @@
           "arch": "aarch64",
           "url": "https://bin.equinox.io/a/dg26hrkwY2F/ngrok-v3-3.39.11-linux-arm64.tar.gz",
           "sha256": "3b6ba05a9d9585c34157fa0819fa95cdb13839f5b506b9e63204705cf7f79e29",
+          "size": 10994396,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -917,6 +2695,7 @@
           "arch": "x86_64",
           "url": "https://bin.equinox.io/a/4L7aVh5HPND/ngrok-v3-3.39.10-windows-amd64.zip",
           "sha256": "34a62ff5869c6d217502432475419a43c79ca3d8264ae0332a1f02a4bf35dd31",
+          "size": 12258109,
           "archive": "zip",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -926,6 +2705,7 @@
           "arch": "aarch64",
           "url": "https://bin.equinox.io/a/d4y6xywa8vd/ngrok-v3-3.39.10-darwin-arm64.tar.gz",
           "sha256": "2729dcfd0b4263c87c5bf63d75f54098dcd993d78ab8892a93626f7c9f6163d5",
+          "size": 11285691,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -935,6 +2715,7 @@
           "arch": "x86_64",
           "url": "https://bin.equinox.io/a/ikK4V9Njqke/ngrok-v3-3.39.10-darwin-amd64.tar.gz",
           "sha256": "9a55f7edbe0f356659a404231357ee230e8fd50773346c9d313ec022b72ac3ae",
+          "size": 12402127,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -944,6 +2725,7 @@
           "arch": "x86_64",
           "url": "https://bin.equinox.io/a/9sRAW6esxUB/ngrok-v3-3.39.10-linux-amd64.tar.gz",
           "sha256": "9dfbe1a914e69cc7e980d61e6bd5a642025918102c5bc69905d1c57703aca3e8",
+          "size": 12099070,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         },
@@ -953,6 +2735,7 @@
           "arch": "aarch64",
           "url": "https://bin.equinox.io/a/hqQ7mubGtHu/ngrok-v3-3.39.10-linux-arm64.tar.gz",
           "sha256": "7176f5e5d5a2f6c332ff911ef895741f13168f1f0c225492c4412bde8b2f9a0d",
+          "size": 10991824,
           "archive": "tar.gz",
           "checksum_source": "dl.equinox.io ngrok-v3 stable archive"
         }

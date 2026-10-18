@@ -109,6 +109,96 @@ pub async fn postgresql_versions(state: State<'_, AppState>) -> CommandResult<Ve
     Ok(state.runtime()?.stack.postgresql().versions().await)
 }
 
+/// MongoDB, Valkey, Meilisearch, Typesense and SeaweedFS (S3).
+#[tauri::command]
+#[specta::specta]
+pub async fn extras_status(
+    state: State<'_, AppState>,
+) -> CommandResult<Vec<lumina_services::extra::ExtraStatus>> {
+    let rt = state.runtime()?;
+    let mut extras = rt.stack.extras_status(&rt.config()).await;
+    // A service this system cannot get only shows once someone installed it.
+    extras.retain(|e| {
+        !e.versions.is_empty() || e.runtime.is_some() || super::packages::offered_here(&rt, &e.id)
+    });
+    Ok(extras)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn extra_start(state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    Ok(rt.stack.start_extra(&id, &rt.config()).await?)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn extra_stop(state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    Ok(state.runtime()?.stack.stop_extra(&id).await?)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn extra_restart(state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    Ok(rt.stack.restart_extra(&id, &rt.config()).await?)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn extra_open_log(app: AppHandle, state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    let def = lumina_services::extra::definition(&id)
+        .ok_or_else(|| Error::Other(format!("no service `{id}`")))?;
+    let log = rt.stack.extras().log_file(def);
+    if !log.exists() {
+        return Err(Error::Other(format!("{} does not exist yet", log.display())).into());
+    }
+    open_path(&app, &log.to_string_lossy())
+}
+
+/// Opens a service's web page (Meilisearch's dashboard).
+#[tauri::command]
+#[specta::specta]
+pub fn extra_open_ui(app: AppHandle, state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    let def = lumina_services::extra::definition(&id)
+        .ok_or_else(|| Error::Other(format!("no service `{id}`")))?;
+    let Some(url) = def.web_ui else {
+        return Err(Error::Other(format!("{} has no web page", def.name)).into());
+    };
+    let port = lumina_services::extra::settings(&rt.config().services, def).port;
+    app.opener()
+        .open_url(url.replace("{port}", &port.to_string()), None::<&str>)
+        .map_err(|e| Error::Other(e.to_string()))?;
+    Ok(())
+}
+
+/// Opens http://localhost/adminer/ in the default browser.
+#[tauri::command]
+#[specta::specta]
+pub async fn adminer_open(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
+    let rt = state.runtime()?;
+    let cfg = rt.config();
+    if rt.packages.installed("adminer").is_empty() {
+        return Err(Error::not_installed("adminer", "Adminer").into());
+    }
+    if rt.stack.running_web().await.is_none() {
+        return Err(Error::Other("start the web server first".into()).into());
+    }
+    let https = cfg.general.auto_ssl && rt.stack.tls_error().is_none();
+    let url = match (https, cfg.web.https_port, cfg.web.http_port) {
+        (true, 443, _) => "https://localhost/adminer/".to_owned(),
+        (true, port, _) => format!("https://localhost:{port}/adminer/"),
+        (false, _, 80) => "http://localhost/adminer/".to_owned(),
+        (false, _, port) => format!("http://localhost:{port}/adminer/"),
+    };
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|e| Error::Other(e.to_string()))?;
+    Ok(())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn mailpit_versions(state: State<'_, AppState>) -> CommandResult<Vec<Install>> {

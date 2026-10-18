@@ -50,7 +50,7 @@ pub fn service_name(id: &str) -> Option<&'static str> {
         "postgresql" => "PostgreSQL",
         "mailpit" => "Mailpit",
         // The tunnel agent's exits are shown on the Sharing page.
-        _ => return None,
+        id => return lumina_services::extra::definition(id).map(|d| d.name),
     })
 }
 

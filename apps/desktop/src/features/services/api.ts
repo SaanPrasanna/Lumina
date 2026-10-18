@@ -6,6 +6,8 @@ export type {
   DatabaseEngine,
   DbRuntime,
   DbStatus,
+  ExtraStatus,
+  Snapshot,
   Install,
   MailpitStatus,
   PhpRuntime,
@@ -29,6 +31,8 @@ export const dbVersionsKey = (engine: DatabaseEngine) => ["db", "versions", engi
 export const REDIS_VERSIONS_KEY = ["redis", "versions"] as const;
 export const POSTGRESQL_VERSIONS_KEY = ["postgresql", "versions"] as const;
 export const MAILPIT_VERSIONS_KEY = ["mailpit", "versions"] as const;
+/** Under ["services"], so service-status events refresh it. */
+export const EXTRAS_KEY = ["services", "extras"] as const;
 
 export const servicesStatus = () => commands.servicesStatus();
 export const serviceStart = (kind: ServiceKind) => commands.serviceStart(kind);
@@ -45,6 +49,20 @@ export const redisVersions = () => commands.redisVersions();
 export const postgresqlVersions = () => commands.postgresqlVersions();
 export const mailpitVersions = () => commands.mailpitVersions();
 export const mailpitOpen = () => commands.mailpitOpen();
+export const extrasStatus = () => commands.extrasStatus();
+export const extraStart = (id: string) => commands.extraStart(id);
+export const extraStop = (id: string) => commands.extraStop(id);
+export const extraRestart = (id: string) => commands.extraRestart(id);
+export const extraOpenLog = (id: string) => commands.extraOpenLog(id);
+export const extraOpenUi = (id: string) => commands.extraOpenUi(id);
+export const adminerOpen = () => commands.adminerOpen();
+
+export const SNAPSHOTS_KEY = ["services", "snapshots"] as const;
+export const snapshotsList = () => commands.snapshotsList();
+export const snapshotDatabases = (engine: string) => commands.snapshotDatabases(engine);
+export const snapshotCreate = (engine: string, database: string) => commands.snapshotCreate(engine, database);
+export const snapshotRestore = (id: string) => commands.snapshotRestore(id);
+export const snapshotDelete = (id: string) => commands.snapshotDelete(id);
 export const phpSetVersion = (version: string) => commands.phpSetVersion(version);
 export const openLocalhost = () => commands.openLocalhost();
 export const openWww = () => commands.openWww();

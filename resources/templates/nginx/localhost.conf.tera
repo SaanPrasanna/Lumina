@@ -4,9 +4,9 @@
 {%- endif %}
 
 server {
-    listen       127.0.0.1:{{ http_port }} default_server;
+    listen       {{ bind }}:{{ http_port }} default_server;
 {%- if ssl %}
-    listen       127.0.0.1:{{ https_port }} ssl default_server;
+    listen       {{ bind }}:{{ https_port }} ssl default_server;
     http2        on;
     ssl_certificate      "{{ localhost_cert }}";
     ssl_certificate_key  "{{ localhost_key }}";
@@ -32,11 +32,41 @@ server {
     }
     location ^~ /phpmyadmin/ {
         alias  "{{ db_ui_dir }}/";
+        # Database tools answer this computer only (LAN sharing included).
+        allow  127.0.0.1;
+        allow  ::1;
+        deny   all;
         index  index.php;
 
         location ~ ^/phpmyadmin/(libraries|setup/lib|templates|tmp|vendor)/ {
             deny  all;
         }
+        location ~ \.php$ {
+            if (!-f $request_filename) {
+                return  404;
+            }
+            include        fastcgi_params;
+            fastcgi_param  SCRIPT_FILENAME  $request_filename;
+            fastcgi_param  REDIRECT_STATUS  200;
+            fastcgi_pass   php_upstream;
+            fastcgi_read_timeout  300s;
+        }
+    }
+{%- endif %}
+{%- if adminer_dir %}
+
+    # Adminer: one PHP file for MySQL, MariaDB, PostgreSQL and SQLite.
+    location = /adminer {
+        return  301 /adminer/;
+    }
+    location ^~ /adminer/ {
+        alias  "{{ adminer_dir }}/";
+        # Database tools answer this computer only (LAN sharing included).
+        allow  127.0.0.1;
+        allow  ::1;
+        deny   all;
+        index  index.php;
+
         location ~ \.php$ {
             if (!-f $request_filename) {
                 return  404;

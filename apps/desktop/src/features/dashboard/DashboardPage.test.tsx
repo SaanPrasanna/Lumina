@@ -27,6 +27,8 @@ vi.mock("@/features/services/api", async (orig) => ({
   servicesStatus: vi.fn(),
   serviceStart: vi.fn(),
   serviceStop: vi.fn(),
+  postgresqlVersions: vi.fn().mockResolvedValue([]),
+  redisVersions: vi.fn().mockResolvedValue([{ version: "8.10.2" }]),
 }));
 
 const stack = {
@@ -36,6 +38,7 @@ const stack = {
   redis: { status: "failed", runtime: null, error: "port 6379 is already in use" },
   postgresql: { status: "stopped", runtime: null, error: null },
   mailpit: { status: "stopped", runtime: null, error: null },
+  phpPools: [],
 } as unknown as services.StackStatus;
 
 describe("DashboardPage", () => {
@@ -62,5 +65,22 @@ describe("DashboardPage", () => {
     expect(await screen.findByRole("link", { name: /Sites\s*2/ })).toHaveAttribute("href", "/sites");
     expect(await screen.findByRole("link", { name: /Shared now\s*1/ })).toHaveAttribute("href", "/tunnel");
     expect(screen.getByText("C:\\Lumina")).toBeInTheDocument();
+  });
+
+  it("marks what is not installed and links to Quick Add", async () => {
+    vi.mocked(services.servicesStatus).mockResolvedValue(stack);
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    const install = await screen.findByRole("link", { name: "Install PostgreSQL" });
+    expect(install).toHaveAttribute("href", "#/packages?package=postgresql");
+    expect(screen.getByText("Not installed")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Start PostgreSQL" })).not.toBeInTheDocument();
+    // Redis is installed: it keeps its Start button.
+    expect(screen.getByRole("button", { name: "Start Redis" })).toBeInTheDocument();
   });
 });

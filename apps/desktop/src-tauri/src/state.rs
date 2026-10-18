@@ -63,6 +63,8 @@ pub struct Runtime {
     pub watcher: Mutex<Option<(PathBuf, Watcher)>>,
     /// Ngrok tunnels ("Share" on the Sites page).
     pub tunnels: lumina_tunnel::ngrok::Ngrok,
+    /// Cloudflare quick tunnels, when `[tunnel] provider = "cloudflare"`.
+    pub cloudflare: lumina_tunnel::cloudflare::Cloudflare,
     /// The ngrok authtoken in the system keychain.
     pub tunnel_token: lumina_tunnel::token::TokenStore,
 }
@@ -146,8 +148,11 @@ impl Runtime {
             &layout.etc().join("ngrok"),
             &layout.logs(),
         );
+        let cloudflare =
+            lumina_tunnel::cloudflare::Cloudflare::new(supervisor.clone(), &layout.logs());
         Ok(Self {
             tunnels,
+            cloudflare,
             tunnel_token: lumina_tunnel::token::TokenStore::ngrok(),
             hosts,
             helper,

@@ -32,6 +32,40 @@ pub struct AppConfig {
     pub packages: Packages,
     /// Per-site settings, keyed by the project's folder name.
     pub sites: BTreeMap<String, SiteOverride>,
+    /// More services from Quick Add (MongoDB, Valkey, Meilisearch, ...),
+    /// keyed by package ID.
+    pub services: BTreeMap<String, ExtraService>,
+    pub webhooks: Webhooks,
+}
+
+/// The webhook catcher (`[webhooks]`).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(default)]
+pub struct Webhooks {
+    pub port: u16,
+    /// A site (folder name) every webhook is passed on to; empty = only record.
+    pub forward: String,
+}
+
+impl Default for Webhooks {
+    fn default() -> Self {
+        Self {
+            port: 8787,
+            forward: String::new(),
+        }
+    }
+}
+
+/// One of the services in `[services.<id>]`.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(default)]
+pub struct ExtraService {
+    /// Start it with "Start All".
+    pub enabled: bool,
+    /// Empty = newest installed.
+    pub version: String,
+    /// 0 = the service's usual port.
+    pub port: u16,
 }
 
 impl Default for AppConfig {
@@ -52,6 +86,8 @@ impl Default for AppConfig {
             tools: Tools::default(),
             packages: Packages::default(),
             sites: BTreeMap::new(),
+            services: BTreeMap::new(),
+            webhooks: Webhooks::default(),
         }
     }
 }
@@ -76,6 +112,9 @@ pub struct General {
     pub autostart_services: bool,
     /// Closing the window hides Lumina in the tray instead of quitting.
     pub close_to_tray: bool,
+    /// Serve the sites to other devices on the local network (phones,
+    /// tablets) at `http://<site>.<lan-ip>.nip.io`, not only to this computer.
+    pub lan: bool,
 }
 
 impl Default for General {
@@ -89,6 +128,7 @@ impl Default for General {
             start_on_login: false,
             autostart_services: false,
             close_to_tray: true,
+            lan: false,
         }
     }
 }
@@ -104,6 +144,9 @@ pub struct Php {
     pub fcgi_children: u32,
     /// `PHP_FCGI_MAX_REQUESTS`; 0 = unlimited.
     pub fcgi_max_requests: u32,
+    /// Load Xdebug (step debugging when a request carries the trigger, plus
+    /// its development helpers), if this PHP version has it.
+    pub xdebug: bool,
 }
 
 impl Default for Php {
@@ -114,6 +157,7 @@ impl Default for Php {
             fcgi_fallback_port: defaults::PHP_FCGI_FALLBACK_PORT,
             fcgi_children: defaults::PHP_FCGI_CHILDREN,
             fcgi_max_requests: defaults::PHP_FCGI_MAX_REQUESTS,
+            xdebug: false,
         }
     }
 }
@@ -256,6 +300,11 @@ pub struct Tools {
     pub composer: String,
     pub phpmyadmin: String,
     pub ngrok: String,
+    pub bun: String,
+    pub deno: String,
+    pub uv: String,
+    pub pnpm: String,
+    pub cloudflared: String,
 }
 
 /// Quick Add (downloads).
@@ -275,6 +324,20 @@ pub struct SiteOverride {
     /// Document root relative to the project folder, or absolute; empty =
     /// detect (`public/`, `web/`, `public_html/`, then the folder itself).
     pub docroot: String,
+    /// How the site is served: by PHP, by the project's own dev server, or
+    /// detected from the folder.
+    pub kind: SiteKind,
+    /// The dev server's command for `kind = "app"`, run in the project folder;
+    /// `{port}` is replaced with its port. Empty = detected (`npm run dev`
+    /// with the framework's port flags, `manage.py runserver`, ...).
+    pub command: String,
+    /// The dev server's port; 0 = a fixed port Lumina derives from the name.
+    pub port: u16,
+    /// Start the dev server with "Start All".
+    pub autostart: bool,
+    /// PHP version for this site (`"8.3"` = newest 8.3.x); empty = the PHP
+    /// chosen for all sites. Another version runs in its own php-cgi pool.
+    pub php: String,
 }
 
 impl Default for SiteOverride {
@@ -282,8 +345,26 @@ impl Default for SiteOverride {
         Self {
             enabled: true,
             docroot: String::new(),
+            kind: SiteKind::Auto,
+            command: String::new(),
+            port: 0,
+            autostart: false,
+            php: String::new(),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "lowercase")]
+pub enum SiteKind {
+    /// A dev server if the folder is a Node.js or Python web app without
+    /// PHP, else PHP.
+    #[default]
+    Auto,
+    /// Files and PHP through the web server.
+    Php,
+    /// The project's own dev server, behind the web server.
+    App,
 }
 
 /// The user's code editor (blueprint: custom editor support).

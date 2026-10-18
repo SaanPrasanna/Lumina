@@ -75,6 +75,9 @@ mod tests {
             docroot: dir.into(),
             docroot_source: DocrootSource::Detected(None),
             docroot_exists: true,
+            app: None,
+            php: None,
+            node: false,
         };
         assert!(needs_auto_file(dir, &site("blog.test")));
         assert!(!needs_auto_file(dir, &site("shop.test")));

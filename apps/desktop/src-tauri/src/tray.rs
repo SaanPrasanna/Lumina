@@ -248,7 +248,12 @@ async fn snapshot(app: &AppHandle) -> Snapshot {
     Snapshot {
         configured: true,
         services,
-        tools: vec![tool("node", "Node.js"), tool("python", "Python")],
+        tools: vec![
+            tool("node", "Node.js"),
+            tool("python", "Python"),
+            tool("bun", "Bun"),
+            tool("deno", "Deno"),
+        ],
         sites: stack
             .sites(&cfg)
             .sites

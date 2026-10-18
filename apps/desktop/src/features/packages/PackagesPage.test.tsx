@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { PackagesPage } from "@/features/packages";
 import * as api from "@/features/packages/api";
@@ -13,6 +14,7 @@ vi.mock("@/features/packages/api", async (orig) => ({
   packageUninstall: vi.fn(),
   packageSetActive: vi.fn(),
   packageCancel: vi.fn(),
+  packageDiscard: vi.fn(),
 }));
 
 const php: api.PackageView = {
@@ -22,6 +24,7 @@ const php: api.PackageView = {
   description: "PHP builds",
   homepage: "",
   selected: "",
+  pickable: true,
   active: "8.4.26",
   running: "8.4.26",
   installed: [
@@ -50,7 +53,7 @@ const pma: api.PackageView = {
   jobs: [{ id: "phpmyadmin", version: "5.2.3", stage: null, received: 0, total: null, error: "download failed: timeout", done: true }],
 };
 
-function renderPage() {
+function renderPage(route = "/packages") {
   vi.mocked(api.packagesList).mockResolvedValue({
     packages: [php, pma],
     phpVersion: "8.4.26",
@@ -59,7 +62,9 @@ function renderPage() {
   });
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <PackagesPage />
+      <MemoryRouter initialEntries={[route]}>
+        <PackagesPage />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -88,5 +93,18 @@ describe("PackagesPage", () => {
     expect(screen.getByText("Not installed: download failed: timeout")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Resume" }));
     expect(api.packageInstall).toHaveBeenCalledWith("phpmyadmin", "5.2.3");
+  });
+
+  it("opens the package named in the address", async () => {
+    renderPage("/packages?package=phpmyadmin");
+    expect(await screen.findByRole("tab", { name: "phpMyAdmin", selected: true })).toBeInTheDocument();
+  });
+
+  it("discards an interrupted download", async () => {
+    renderPage();
+    await userEvent.click(await screen.findByRole("tab", { name: "phpMyAdmin" }));
+    expect(screen.getByText("Paused, 3.8 MB downloaded")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Discard" }));
+    expect(api.packageDiscard).toHaveBeenCalledWith("phpmyadmin", "5.2.3");
   });
 });

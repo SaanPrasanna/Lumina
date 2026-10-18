@@ -24,7 +24,7 @@ export function useSiteShare(name: string, overview: TunnelOverview | undefined,
   const [conflict, setConflict] = useState<PortConflictRequest | null>(null);
   const tunnel = overview?.tunnels.find((x) => x.name === name);
   // The saved reserved domain, unless another site already uses it.
-  const domain = overview?.domain && !overview.tunnels.some((x) => x.publicUrl.endsWith(`//${overview.domain}`)) ? overview.domain : null;
+  const domain = overview?.provider !== "cloudflare" && overview?.domain && !overview.tunnels.some((x) => x.publicUrl.endsWith(`//${overview.domain}`)) ? overview.domain : null;
   const start = useMutation({
     mutationFn: () => tunnelStart(name, domain),
     onSettled: () => queryClient.invalidateQueries({ queryKey: TUNNEL_KEY }),

@@ -71,25 +71,38 @@ pub fn extract(archive: &Path, release: &Release, dest: &Path) -> Result<()> {
         source,
     })?;
 
-    let result = match release.archive {
-        Archive::Zip => unzip(archive, release, &partial),
-        Archive::TarGz | Archive::TarXz => untar(archive, release, &partial),
-        Archive::File => {
-            let name = release
-                .file_name
-                .as_deref()
-                .ok_or_else(|| Error::Archive("a single-file release needs file_name".into()))?;
-            if !crate::catalog::is_safe_id(name) {
-                return Err(Error::Archive(format!("bad file name {name:?}")));
+    let result =
+        match release.archive {
+            Archive::Zip => unzip(archive, release, &partial),
+            Archive::TarGz | Archive::TarXz => untar(archive, release, &partial),
+            Archive::File => {
+                let name = release.file_name.as_deref().ok_or_else(|| {
+                    Error::Archive("a single-file release needs file_name".into())
+                })?;
+                if !crate::catalog::is_safe_id(name) {
+                    return Err(Error::Archive(format!("bad file name {name:?}")));
+                }
+                let out = partial.join(name);
+                std::fs::copy(archive, &out)
+                    .map(|_| ())
+                    .map_err(|source| Error::Io {
+                        path: out.clone(),
+                        source,
+                    })?;
+                // A bare program (`meilisearch`) must be executable; files with an
+                // extension (`composer.phar`, `index.php`) are run by something else.
+                #[cfg(unix)]
+                if !name.contains('.') {
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::set_permissions(&out, std::fs::Permissions::from_mode(0o755))
+                        .map_err(|source| Error::Io {
+                            path: out.clone(),
+                            source,
+                        })?;
+                }
+                Ok(())
             }
-            std::fs::copy(archive, partial.join(name))
-                .map(|_| ())
-                .map_err(|source| Error::Io {
-                    path: partial.join(name),
-                    source,
-                })
-        }
-    };
+        };
     if let Err(err) = result {
         let _ = std::fs::remove_dir_all(long(&partial));
         return Err(err);

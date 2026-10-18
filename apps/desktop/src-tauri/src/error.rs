@@ -26,6 +26,15 @@ impl From<lumina_core::Error> for CommandError {
                 Some(serde_json::json!({ "port": port, "owner": owner })),
             ),
             E::Service(..) => ("service", None),
+            E::NotInstalled {
+                package,
+                name,
+                version,
+                ..
+            } => (
+                "not_installed",
+                Some(serde_json::json!({ "package": package, "name": name, "version": version })),
+            ),
             E::ElevationRequired => ("elevation_required", None),
             E::Other(_) => ("other", None),
         };

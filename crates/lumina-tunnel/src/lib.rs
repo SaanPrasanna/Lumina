@@ -1,4 +1,5 @@
-//! Tunnel providers. Ngrok first; the trait allows adding others (e.g. Cloudflare Tunnel) later.
+//! Tunnel providers: ngrok (an account, reserved domains) and Cloudflare quick
+//! tunnels (no account, a random address).
 //!
 //! A tunnel forwards a public HTTPS address to a site's plain-HTTP virtual
 //! host on 127.0.0.1. The provider rewrites the `Host` header to the site's
@@ -7,6 +8,7 @@
 //! public host and `HTTPS=on`: links, assets and redirects then use the
 //! public address instead of `<site>.test`.
 
+pub mod cloudflare;
 pub mod ngrok;
 pub mod provider;
 pub mod qr;

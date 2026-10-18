@@ -3,6 +3,7 @@ import { FileCog, FileText, Play, Square } from "lucide-react";
 import { editorOpen } from "@/features/env-path/api";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
+import { InstallButton, NotInstalledBadge } from "@/components/Installable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button, Fact, VersionSelect } from "@/components/ui";
 import {
@@ -34,6 +35,7 @@ export function PostgresCard(props: {
   const running = rt !== null;
   const busy = action.isPending;
   const installed = versions.data ?? [];
+  const missing = versions.isSuccess && installed.length === 0;
 
   const run = (fn: () => Promise<unknown>) =>
     action.mutate(fn, {
@@ -60,13 +62,15 @@ export function PostgresCard(props: {
           <h2 id="postgresql-title" className="text-lg font-semibold">
             {t("postgresql.title")}
           </h2>
-          <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />
+          {missing && !running ? <NotInstalledBadge /> : <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />}
         </div>
         <div className="flex flex-wrap gap-2">
           {running ? (
             <Button onClick={() => run(() => serviceStop("postgresql"))} disabled={busy} icon={<Square />}>
               {t("actions.stop")}
             </Button>
+          ) : missing ? (
+            <InstallButton pkg="postgresql" name="PostgreSQL" />
           ) : (
             <Button primary onClick={() => run(() => serviceStart("postgresql"))} disabled={busy || installed.length === 0} icon={<Play />}>
               {t("actions.start")}

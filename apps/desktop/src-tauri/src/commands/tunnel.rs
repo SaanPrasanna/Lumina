@@ -8,6 +8,7 @@
 
 use std::path::PathBuf;
 
+use lumina_tunnel::cloudflare;
 use lumina_tunnel::ngrok::{self, Settings};
 use lumina_tunnel::{Tunnel, TunnelProvider, TunnelSpec};
 use serde::Serialize;
@@ -44,6 +45,29 @@ pub struct TunnelOverview {
     /// Why the agent stopped by itself, if it did.
     pub stopped: Option<String>,
     pub log_file: PathBuf,
+    /// `ngrok` or `cloudflare` (`[tunnel] provider`).
+    pub provider: String,
+    /// The cloudflared version that runs, if one is installed.
+    pub cloudflared_installed: Option<String>,
+    /// The newest cloudflared Quick Add can install on this system.
+    pub cloudflared_available: Option<String>,
+}
+
+/// Whether sharing uses Cloudflare quick tunnels instead of ngrok.
+fn uses_cloudflare(rt: &Runtime) -> bool {
+    rt.config().tunnel.provider == "cloudflare"
+}
+
+/// The cloudflared program and its version: `[tools] cloudflared`, else the newest.
+fn cloudflared(rt: &Runtime) -> Option<(String, PathBuf)> {
+    let wanted = rt.config().tools.cloudflared;
+    let installed = rt.packages.installed("cloudflared");
+    let pick = installed
+        .iter()
+        .find(|i| !wanted.is_empty() && i.version == wanted)
+        .or_else(|| installed.first())?;
+    let exe = pick.dir.join(cloudflare::program_name());
+    exe.is_file().then(|| (pick.version.clone(), exe))
 }
 
 fn tunnel_error(err: lumina_tunnel::Error) -> CommandError {
@@ -74,10 +98,14 @@ fn program(rt: &Runtime) -> Option<(String, PathBuf)> {
 }
 
 fn available(rt: &Runtime) -> Option<String> {
+    available_of(rt, "ngrok")
+}
+
+fn available_of(rt: &Runtime, id: &str) -> Option<String> {
     let (os, arch) = lumina_packages::catalog::platform();
     rt.packages
         .catalog()
-        .package("ngrok")?
+        .package(id)?
         .versions
         .iter()
         .find(|r| r.fits(os, arch))
@@ -103,10 +131,43 @@ pub async fn tunnel_overview(state: State<'_, AppState>) -> CommandResult<Tunnel
         has_token,
         token_error,
         domain: rt.config().tunnel.domain,
-        tunnels: rt.tunnels.tunnels().await.into_iter().map(view).collect(),
+        tunnels: rt
+            .tunnels
+            .tunnels()
+            .await
+            .into_iter()
+            .chain(rt.cloudflare.tunnels().await)
+            .map(view)
+            .collect(),
         stopped: rt.tunnels.stopped_reason(),
         log_file: rt.tunnels.log_file().to_path_buf(),
+        provider: rt.config().tunnel.provider,
+        cloudflared_installed: cloudflared(&rt).map(|(version, _)| version),
+        cloudflared_available: available_of(&rt, "cloudflared"),
     })
+}
+
+/// Chooses how sites are shared: `ngrok` or `cloudflare`.
+#[tauri::command]
+#[specta::specta]
+pub fn tunnel_set_provider(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    provider: String,
+) -> CommandResult<()> {
+    if provider != "ngrok" && provider != "cloudflare" {
+        return Err(
+            lumina_core::Error::Other(format!("unknown tunnel provider `{provider}`")).into(),
+        );
+    }
+    let rt = state.runtime()?;
+    let mut cfg = rt.config();
+    cfg.tunnel.provider = provider;
+    lumina_config::save(&rt.layout.config_file(), &cfg)?;
+    *rt.config.write().unwrap_or_else(|e| e.into_inner()) = cfg;
+    let _ = app.emit(events::CONFIG_CHANGED, "tunnel");
+    let _ = app.emit(events::TUNNELS_CHANGED, ());
+    Ok(())
 }
 
 /// Saves the authtoken in the system keychain (replacing a saved one).
@@ -175,20 +236,34 @@ pub async fn tunnel_start(
         .into_iter()
         .find(|s| s.name == name)
         .ok_or_else(|| lumina_core::Error::Other(format!("no site named `{name}`")))?;
-    let Some((_, program)) = program(&rt) else {
+    let use_cloudflare = uses_cloudflare(&rt);
+    let program = if use_cloudflare {
+        cloudflared(&rt).map(|(_, p)| p)
+    } else {
+        program(&rt).map(|(_, p)| p)
+    };
+    let Some(program) = program else {
         return Err(CommandError {
             code: "tunnel_not_installed",
-            message: "ngrok is not installed".into(),
+            message: if use_cloudflare {
+                "cloudflared is not installed".into()
+            } else {
+                "ngrok is not installed".into()
+            },
             details: None,
         });
     };
-    let authtoken = rt
-        .tunnel_token
-        .load()
-        .await
-        .map_err(tunnel_error)?
-        .ok_or_else(|| tunnel_error(lumina_tunnel::Error::NoToken))?;
-    let domain = match domain {
+    let authtoken = if use_cloudflare {
+        String::new()
+    } else {
+        rt.tunnel_token
+            .load()
+            .await
+            .map_err(tunnel_error)?
+            .ok_or_else(|| tunnel_error(lumina_tunnel::Error::NoToken))?
+    };
+    // Quick tunnels always get a random address.
+    let domain = match domain.filter(|_| !use_cloudflare) {
         Some(d) => ngrok::normalize_domain(&d).map_err(tunnel_error)?,
         None => None,
     };
@@ -216,10 +291,15 @@ pub async fn tunnel_start(
         port,
         domain,
     };
-    let result = rt
-        .tunnels
-        .open(&Settings { program, authtoken }, &spec)
-        .await;
+    let result = if use_cloudflare {
+        rt.cloudflare
+            .open(&cloudflare::Settings { program }, &spec)
+            .await
+    } else {
+        rt.tunnels
+            .open(&Settings { program, authtoken }, &spec)
+            .await
+    };
     let _ = app.emit(events::TUNNELS_CHANGED, ());
     Ok(view(result.map_err(tunnel_error)?))
 }
@@ -232,7 +312,12 @@ pub async fn tunnel_stop(
     name: String,
 ) -> CommandResult<()> {
     let rt = state.runtime()?;
-    let result = rt.tunnels.close(&name).await;
+    let on_cloudflare = rt.cloudflare.tunnels().await.iter().any(|t| t.name == name);
+    let result = if on_cloudflare {
+        rt.cloudflare.close(&name).await
+    } else {
+        rt.tunnels.close(&name).await
+    };
     let _ = app.emit(events::TUNNELS_CHANGED, ());
     result.map_err(tunnel_error)
 }
@@ -241,9 +326,10 @@ pub async fn tunnel_stop(
 #[specta::specta]
 pub async fn tunnel_stop_all(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
     let rt = state.runtime()?;
-    let result = rt.tunnels.shutdown().await;
+    let ngrok = rt.tunnels.shutdown().await;
+    let cloudflare = rt.cloudflare.shutdown().await;
     let _ = app.emit(events::TUNNELS_CHANGED, ());
-    result.map_err(tunnel_error)
+    ngrok.and(cloudflare).map_err(tunnel_error)
 }
 
 /// Opens the agent's log in the system's default viewer.
@@ -251,7 +337,21 @@ pub async fn tunnel_stop_all(app: AppHandle, state: State<'_, AppState>) -> Comm
 #[specta::specta]
 pub fn tunnel_open_log(app: AppHandle, state: State<'_, AppState>) -> CommandResult<()> {
     let rt = state.runtime()?;
-    let log = rt.tunnels.log_file();
+    // Cloudflare: the newest tunnel log (one per shared site).
+    let newest_cloudflare = || {
+        std::fs::read_dir(rt.layout.logs())
+            .ok()?
+            .flatten()
+            .filter(|e| e.file_name().to_string_lossy().starts_with("cloudflared-"))
+            .max_by_key(|e| e.metadata().and_then(|m| m.modified()).ok())
+            .map(|e| e.path())
+    };
+    let log = if uses_cloudflare(&rt) {
+        newest_cloudflare().unwrap_or_else(|| rt.layout.logs().join("cloudflared.log"))
+    } else {
+        rt.tunnels.log_file().to_path_buf()
+    };
+    let log = log.as_path();
     if !log.exists() {
         return Err(
             lumina_core::Error::Other(format!("{} does not exist yet", log.display())).into(),

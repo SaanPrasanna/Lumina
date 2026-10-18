@@ -200,14 +200,23 @@ pub fn select<'a>(installs: &'a [Install], wanted: &str) -> Option<&'a Install> 
         .find(|i| i.version == wanted || i.version.starts_with(&format!("{wanted}.")))
 }
 
-/// `Error::Service` explaining that `wanted` (or anything) is not installed.
+/// [`Error::NotInstalled`]: `wanted` (or any version) of `tool`, which the
+/// process `service` runs, is not installed under `root`.
 pub fn not_installed(service: &str, tool: &str, wanted: &str, root: &Path) -> Error {
-    let what = if wanted.trim().is_empty() {
-        format!("{tool} is not installed")
+    tracing::debug!("{tool} {wanted} is not installed in {}", root.display());
+    // Process ids are package ids, apart from PHP's (`php-fcgi`, `php-fcgi@8.3`).
+    let package = service.split('@').next().unwrap_or(service);
+    let package = if package.starts_with("php") {
+        "php"
     } else {
-        format!("{tool} {wanted} is not installed")
+        package
     };
-    Error::Service(service.into(), format!("{what} in {}", root.display()))
+    Error::NotInstalled {
+        service: service.into(),
+        package: package.into(),
+        name: tool.into(),
+        version: wanted.trim().into(),
+    }
 }
 
 /// Runs a short-lived helper command (version query, config test, signal)

@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { Check, Copy, Download, Play, RefreshCw, RotateCw, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router";
 import { ErrorBox } from "@/components/ErrorBox";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui";
@@ -15,6 +16,7 @@ import {
   type PackagesOverview,
   type PackageView,
   packageCancel,
+  packageDiscard,
   packageDismiss,
   packageInstall,
   packagesList,
@@ -42,7 +44,11 @@ function useProgress() {
 export function PackagesPage() {
   const { t } = useTranslation();
   const list = useQuery({ queryKey: PACKAGES_KEY, queryFn: packagesList });
-  const [tab, setTab] = useState("php");
+  // The open tab lives in the address (`?package=mysql`), so an "Install
+  // MySQL" button elsewhere can open it.
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("package") ?? "php";
+  const setTab = (id: string) => setParams({ package: id }, { replace: true });
   const progress = useProgress();
   const data = list.data;
   const current = data?.packages.find((p) => p.id === tab) ?? data?.packages[0];
@@ -149,7 +155,7 @@ function PackagePanel(props: { pkg: PackageView; overview: PackagesOverview; pro
                     {v.requiresPhp && <span className="text-xs text-muted">PHP {v.requiresPhp}</span>}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {pkg.selected !== v.version && (
+                    {pkg.pickable && pkg.selected !== v.version && (
                       <Button onClick={() => action.mutate(() => packageSetActive(pkg.id, v.version))} disabled={busy} icon={<Play />}>
                         {t("packages.use")}
                       </Button>
@@ -272,6 +278,9 @@ function AvailableRow(props: {
           {release.size !== null && <span className="text-xs text-muted">{formatBytes(release.size)}</span>}
           {release.requiresPhp && <span className="text-xs text-muted">PHP {release.requiresPhp}</span>}
           {props.showCompat && !release.compatible && <Badge tone="warn">{t("packages.incompatible")}</Badge>}
+          {release.partial !== null && !running && !release.installed && (
+            <span className="text-xs text-muted">{t("packages.paused", { done: formatBytes(release.partial) })}</span>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           {release.installed ? (
@@ -283,14 +292,26 @@ function AvailableRow(props: {
               {t("actions.cancel")}
             </Button>
           ) : (
-            <Button
-              primary
-              onClick={() => action.mutate(() => packageInstall(pkg.id, release.version))}
-              disabled={action.isPending}
-              icon={release.partial ? <RotateCw /> : <Download />}
-            >
-              {release.partial ? t("packages.resume") : t("packages.install")}
-            </Button>
+            <>
+              {release.partial !== null && (
+                <Button
+                  onClick={() => action.mutate(() => packageDiscard(pkg.id, release.version))}
+                  disabled={action.isPending}
+                  title={t("packages.discardHint")}
+                  icon={<Trash2 />}
+                >
+                  {t("packages.discard")}
+                </Button>
+              )}
+              <Button
+                primary
+                onClick={() => action.mutate(() => packageInstall(pkg.id, release.version))}
+                disabled={action.isPending}
+                icon={release.partial ? <RotateCw /> : <Download />}
+              >
+                {release.partial ? t("packages.resume") : t("packages.install")}
+              </Button>
+            </>
           )}
         </div>
       </div>

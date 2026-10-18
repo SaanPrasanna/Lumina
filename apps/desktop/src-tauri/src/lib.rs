@@ -67,6 +67,13 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::services::postgresql_versions,
             commands::services::mailpit_versions,
             commands::services::mailpit_open,
+            commands::services::extras_status,
+            commands::services::extra_start,
+            commands::services::extra_stop,
+            commands::services::extra_restart,
+            commands::services::extra_open_log,
+            commands::services::extra_open_ui,
+            commands::services::adminer_open,
             commands::services::php_set_version,
             commands::services::service_open_log,
             commands::services::open_localhost,
@@ -75,6 +82,24 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::sites::sites_sync,
             commands::sites::site_open,
             commands::sites::site_open_folder,
+            commands::sites::apps_status,
+            commands::sites::app_start,
+            commands::sites::app_stop,
+            commands::sites::app_restart,
+            commands::sites::app_open_log,
+            commands::sites::site_xdebug_config,
+            commands::sites::site_requests,
+            commands::sites::site_playwright_install,
+            commands::webhooks::webhooks_status,
+            commands::webhooks::webhooks_start,
+            commands::webhooks::webhooks_stop,
+            commands::webhooks::webhooks_clear,
+            commands::webhooks::webhook_replay,
+            commands::snapshots::snapshots_list,
+            commands::snapshots::snapshot_databases,
+            commands::snapshots::snapshot_create,
+            commands::snapshots::snapshot_restore,
+            commands::snapshots::snapshot_delete,
             commands::ssl::ssl_status,
             commands::ssl::ssl_set_enabled,
             commands::ssl::ssl_set_force_https,
@@ -85,6 +110,7 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::packages::package_install,
             commands::packages::package_cancel,
             commands::packages::package_dismiss,
+            commands::packages::package_discard,
             commands::packages::package_uninstall,
             commands::packages::package_set_active,
             commands::packages::db_ui_open,
@@ -113,6 +139,8 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::tunnel::tunnel_stop,
             commands::tunnel::tunnel_stop_all,
             commands::tunnel::tunnel_open_log,
+            commands::tunnel::tunnel_set_provider,
+            commands::sites::lan_overview,
             commands::logs::logs_list,
             commands::logs::logs_read,
             commands::logs::logs_open,
@@ -217,6 +245,11 @@ fn stop_services(app: &tauri::AppHandle) {
         tauri::async_runtime::block_on(lumina_tunnel::TunnelProvider::shutdown(&runtime.tunnels))
     {
         log::error!("could not stop the ngrok agent on exit: {err}");
+    }
+    if let Err(err) =
+        tauri::async_runtime::block_on(lumina_tunnel::TunnelProvider::shutdown(&runtime.cloudflare))
+    {
+        log::error!("could not stop the Cloudflare tunnels on exit: {err}");
     }
     let failures = tauri::async_runtime::block_on(runtime.stack.stop_all());
     for (kind, err) in failures {

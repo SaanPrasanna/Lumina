@@ -279,9 +279,7 @@ pub fn open_terminal(dir: &Path, path_prefix: &Path) -> std::io::Result<()> {
         // running) process, so the PATH is set inside the new tab's shell.
         if let Some(wt) = path_env::which("wt") {
             return Command::new(wt)
-                .arg("-d")
-                .arg(dir)
-                .args(["cmd.exe", "/k", &set_path])
+                .raw_arg(wt_command_line(dir, &set_path))
                 .spawn()
                 .map(|_| ());
         }
@@ -323,9 +321,35 @@ pub fn open_terminal(dir: &Path, path_prefix: &Path) -> std::io::Result<()> {
     }
 }
 
+/// `wt` arguments for a cmd tab in `dir` that runs `command` first. `wt`
+/// splits its command line at every `;` (one tab per part), so the `;` in a
+/// PATH must be written `\;`; the line is passed as written, since std's
+/// quoting would wrap it in a way `wt` does not undo.
+#[cfg(any(windows, test))]
+fn wt_command_line(dir: &Path, command: &str) -> String {
+    let mut dir = dir.display().to_string();
+    if dir.ends_with('\\') {
+        // `"C:\"` would escape the closing quote.
+        dir.push('.');
+    }
+    format!("-d \"{dir}\" cmd.exe /k {}", command.replace(';', "\\;"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn windows_terminal_keeps_the_path_in_one_tab() {
+        let line = wt_command_line(
+            Path::new(r"C:\Lumina\www"),
+            r#"set "PATH=C:\Lumina\bin\.shims;%PATH%""#,
+        );
+        assert_eq!(
+            line,
+            r#"-d "C:\Lumina\www" cmd.exe /k set "PATH=C:\Lumina\bin\.shims\;%PATH%""#
+        );
+    }
 
     #[test]
     fn editor_arguments() {

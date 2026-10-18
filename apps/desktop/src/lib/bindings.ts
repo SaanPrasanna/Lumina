@@ -35,6 +35,16 @@ export const commands = {
 	mailpitVersions: () => __TAURI_INVOKE<Install[]>("mailpit_versions"),
 	/**  Opens Mailpit's inbox in the default browser. */
 	mailpitOpen: () => __TAURI_INVOKE<null>("mailpit_open"),
+	/**  MongoDB, Valkey, Meilisearch, Typesense and SeaweedFS (S3). */
+	extrasStatus: () => __TAURI_INVOKE<ExtraStatus[]>("extras_status"),
+	extraStart: (id: string) => __TAURI_INVOKE<null>("extra_start", { id }),
+	extraStop: (id: string) => __TAURI_INVOKE<null>("extra_stop", { id }),
+	extraRestart: (id: string) => __TAURI_INVOKE<null>("extra_restart", { id }),
+	extraOpenLog: (id: string) => __TAURI_INVOKE<null>("extra_open_log", { id }),
+	/**  Opens a service's web page (Meilisearch's dashboard). */
+	extraOpenUi: (id: string) => __TAURI_INVOKE<null>("extra_open_ui", { id }),
+	/**  Opens http://localhost/adminer/ in the default browser. */
+	adminerOpen: () => __TAURI_INVOKE<null>("adminer_open"),
 	/**
 	 *  Saves `version` ("" = newest) as the PHP version and, if PHP is running,
 	 *  switches to it: the old pool is stopped and verified gone before the new
@@ -61,6 +71,48 @@ export const commands = {
 	siteOpen: (domain: string) => __TAURI_INVOKE<null>("site_open", { domain }),
 	/**  Opens a project folder in the file manager. */
 	siteOpenFolder: (name: string) => __TAURI_INVOKE<null>("site_open_folder", { name }),
+	/**  The dev servers of every site served by one (Vite, Next.js, Django, ...). */
+	appsStatus: () => __TAURI_INVOKE<AppStatus[]>("apps_status"),
+	/**
+	 *  Starts the dev server of the site for folder `name` (and the web server
+	 *  in front of it if none runs).
+	 */
+	appStart: (name: string) => __TAURI_INVOKE<null>("app_start", { name }),
+	appStop: (name: string) => __TAURI_INVOKE<null>("app_stop", { name }),
+	/**  Stops and starts a dev server, e.g. after its command or port changed. */
+	appRestart: (name: string) => __TAURI_INVOKE<null>("app_restart", { name }),
+	/**  Opens a dev server's log in the system's default viewer. */
+	appOpenLog: (name: string) => __TAURI_INVOKE<null>("app_open_log", { name }),
+	/**
+	 *  Writes `.vscode/launch.json` with a "Listen for Xdebug" configuration
+	 *  into the project folder, unless the project already has one. Returns its
+	 *  path either way.
+	 */
+	siteXdebugConfig: (name: string) => __TAURI_INVOKE<string>("site_xdebug_config", { name }),
+	/**  The newest requests to a site (and its subdomains), newest first. */
+	siteRequests: (name: string, limit: number) => __TAURI_INVOKE<Request[]>("site_requests", { name, limit }),
+	/**
+	 *  `npx playwright install` in the project of folder `name` (browsers for its
+	 *  end-to-end tests). Takes minutes the first time.
+	 */
+	sitePlaywrightInstall: (name: string) => __TAURI_INVOKE<null>("site_playwright_install", { name }),
+	webhooksStatus: () => __TAURI_INVOKE<WebhooksStatus>("webhooks_status"),
+	/**  Starts (or restarts) the catcher with the saved `[webhooks]` settings. */
+	webhooksStart: () => __TAURI_INVOKE<null>("webhooks_start"),
+	webhooksStop: () => __TAURI_INVOKE<null>("webhooks_stop"),
+	webhooksClear: () => __TAURI_INVOKE<null>("webhooks_clear"),
+	/**
+	 *  Sends recorded webhook `id` to the site of folder `site`; returns the
+	 *  site's HTTP status.
+	 */
+	webhookReplay: (id: number, site: string) => __TAURI_INVOKE<number>("webhook_replay", { id, site }),
+	snapshotsList: () => __TAURI_INVOKE<Snapshot[]>("snapshots_list"),
+	/**  The databases of the running `engine` (`mysql`, `mariadb`, `postgresql`). */
+	snapshotDatabases: (engine: string) => __TAURI_INVOKE<string[]>("snapshot_databases", { engine }),
+	snapshotCreate: (engine: string, database: string) => __TAURI_INVOKE<Snapshot>("snapshot_create", { engine, database }),
+	/**  Replaces the snapshot's database with its content (its server must run). */
+	snapshotRestore: (id: string) => __TAURI_INVOKE<null>("snapshot_restore", { id }),
+	snapshotDelete: (id: string) => __TAURI_INVOKE<null>("snapshot_delete", { id }),
 	sslStatus: () => __TAURI_INVOKE<SslOverview>("ssl_status"),
 	/**
 	 *  Turns HTTPS on or off. Turning it on creates the CA if needed and asks
@@ -90,6 +142,8 @@ export const commands = {
 	packageCancel: (id: string, version: string) => __TAURI_INVOKE<void>("package_cancel", { id, version }),
 	/**  Forgets a failed or cancelled job (the "x" on its message). */
 	packageDismiss: (id: string, version: string) => __TAURI_INVOKE<void>("package_dismiss", { id, version }),
+	/**  Deletes a paused download (the "Discard" next to "Resume"). */
+	packageDiscard: (id: string, version: string) => __TAURI_INVOKE<null>("package_discard", { id, version }),
 	packageUninstall: (id: string, version: string) => __TAURI_INVOKE<null>("package_uninstall", { id, version }),
 	/**
 	 *  Selects `version` ("" = newest) and applies it: a running service is
@@ -156,6 +210,9 @@ export const commands = {
 	tunnelStopAll: () => __TAURI_INVOKE<null>("tunnel_stop_all"),
 	/**  Opens the agent's log in the system's default viewer. */
 	tunnelOpenLog: () => __TAURI_INVOKE<null>("tunnel_open_log"),
+	/**  Chooses how sites are shared: `ngrok` or `cloudflare`. */
+	tunnelSetProvider: (provider: string) => __TAURI_INVOKE<null>("tunnel_set_provider", { provider }),
+	lanOverview: () => __TAURI_INVOKE<LanOverview>("lan_overview"),
 	logsList: () => __TAURI_INVOKE<LogSource[]>("logs_list"),
 	/**  What `id` gained since `offset` (`None`: its last part, to start a tail). */
 	logsRead: (id: string, offset: number | null) => __TAURI_INVOKE<Chunk>("logs_read", { id, offset }),
@@ -197,6 +254,12 @@ export type AppConfig_Deserialize = {
 	packages?: Packages,
 	/**  Per-site settings, keyed by the project's folder name. */
 	sites?: { [key in string]: SiteOverride },
+	/**
+	 *  More services from Quick Add (MongoDB, Valkey, Meilisearch, ...),
+	 *  keyed by package ID.
+	 */
+	services?: { [key in string]: ExtraService },
+	webhooks?: Webhooks,
 };
 
 export type AppConfig_Serialize = {
@@ -216,6 +279,48 @@ export type AppConfig_Serialize = {
 	packages: Packages,
 	/**  Per-site settings, keyed by the project's folder name. */
 	sites: { [key in string]: SiteOverride },
+	/**
+	 *  More services from Quick Add (MongoDB, Valkey, Meilisearch, ...),
+	 *  keyed by package ID.
+	 */
+	services: { [key in string]: ExtraService },
+	webhooks: Webhooks,
+};
+
+/**  A site served by its own dev server (Vite, Next.js, Django, ...). */
+export type AppSite = {
+	/**  "Next.js", "Vite", ...; "Custom" for a configured command. */
+	framework: string,
+	/**
+	 *  Run in the project folder, `{port}` already replaced. Empty when the
+	 *  site is set to `kind = "app"` but no command was configured or found.
+	 */
+	command: string,
+	port: number,
+	/**  Command or kind set in `[sites.<name>]` rather than detected. */
+	configured: boolean,
+	/**  Started by "Start All". */
+	autostart: boolean,
+};
+
+/**  A site's dev server, for the Sites page. */
+export type AppStatus = {
+	/**  The project folder's name (the site's key). */
+	name: string,
+	domain: string,
+	framework: string,
+	command: string,
+	port: number,
+	status: ServiceStatus,
+	pid: number | null,
+	/**  Why the last start failed or the server stopped. */
+	error: string | null,
+	logFile: string,
+	/**
+	 *  Runtimes picked by the project's version files at the last start,
+	 *  e.g. "Node.js 22.11.0 (.nvmrc)".
+	 */
+	runtimes: string[],
 };
 
 /**  The result of the last [`HostsSync::ensure`]. */
@@ -395,6 +500,42 @@ export type EditorPreset = {
 	argsLine: string[],
 };
 
+export type ExtraRuntime = {
+	version: string,
+	port: number,
+};
+
+/**  One of the services in `[services.<id>]`. */
+export type ExtraService = {
+	/**  Start it with "Start All". */
+	enabled?: boolean,
+	/**  Empty = newest installed. */
+	version?: string,
+	/**  0 = the service's usual port. */
+	port?: number,
+};
+
+/**  One service for the Services page. */
+export type ExtraStatus = {
+	id: string,
+	name: string,
+	status: ServiceStatus,
+	runtime: ExtraRuntime | null,
+	pid: number | null,
+	error: string | null,
+	logFile: string,
+	/**  Installed versions, newest first. */
+	versions: string[],
+	/**  How apps connect, for the configured port. */
+	connect: string,
+	/**  A web page the service serves (dashboard), for the configured port. */
+	webUi: string | null,
+	/**  Settings with defaults filled in. */
+	enabled: boolean,
+	version: string,
+	port: number,
+};
+
 export type General = General_Serialize | General_Deserialize;
 
 export type General_Deserialize = {
@@ -413,6 +554,11 @@ export type General_Deserialize = {
 	autostart_services?: boolean,
 	/**  Closing the window hides Lumina in the tray instead of quitting. */
 	close_to_tray?: boolean,
+	/**
+	 *  Serve the sites to other devices on the local network (phones,
+	 *  tablets) at `http://<site>.<lan-ip>.nip.io`, not only to this computer.
+	 */
+	lan?: boolean,
 };
 
 export type General_Serialize = {
@@ -431,6 +577,11 @@ export type General_Serialize = {
 	autostart_services: boolean,
 	/**  Closing the window hides Lumina in the tray instead of quitting. */
 	close_to_tray: boolean,
+	/**
+	 *  Serve the sites to other devices on the local network (phones,
+	 *  tablets) at `http://<site>.<lan-ip>.nip.io`, not only to this computer.
+	 */
+	lan: boolean,
 };
 
 /**
@@ -442,6 +593,22 @@ export type HomebrewView = {
 	found: boolean,
 	/**  `brew install …` for the newest version. */
 	installCommand: string,
+};
+
+export type Hook = {
+	id: number,
+	/**  Unix milliseconds. */
+	receivedAt: number,
+	method: string,
+	/**  Path and query. */
+	path: string,
+	headers: ([string, string])[],
+	/**  As text (invalid UTF-8 shown with replacement characters). */
+	body: string,
+	size: number,
+	truncated: boolean,
+	/**  Status of the last forward or replay, or why it failed. */
+	forwarded: string | null,
 };
 
 /**  What the Sites page shows about the hosts file. */
@@ -496,6 +663,24 @@ export type Kind =
 "tool" | 
 /**  PHP applications Lumina serves (phpMyAdmin). */
 "webapp";
+
+/**
+ *  This computer's address on the local network, and every site's address
+ *  there (`http://blog.192.168.1.20.nip.io`), with a QR code for phones.
+ */
+export type LanOverview = {
+	/**  `[general] lan`. */
+	enabled: boolean,
+	/**  `None` without a network connection. */
+	ip: string | null,
+	sites: LanSite[],
+};
+
+export type LanSite = {
+	name: string,
+	url: string,
+	qrSvg: string,
+};
 
 export type LogSource = {
 	id: string,
@@ -582,6 +767,11 @@ export type PackageView = {
 	homepage: string,
 	/**  The configured choice: "" = newest (phpMyAdmin: newest compatible). */
 	selected: string,
+	/**
+	 *  Whether a version can be chosen. Adminer always uses the newest and
+	 *  Xdebug the build for the active PHP.
+	 */
+	pickable: boolean,
 	/**  The version that is used: the running one, else the selected one. */
 	active: string | null,
 	running: string | null,
@@ -655,6 +845,11 @@ export type Php = {
 	fcgi_children?: number,
 	/**  `PHP_FCGI_MAX_REQUESTS`; 0 = unlimited. */
 	fcgi_max_requests?: number,
+	/**
+	 *  Load Xdebug (step debugging when a request carries the trigger, plus
+	 *  its development helpers), if this PHP version has it.
+	 */
+	xdebug?: boolean,
 };
 
 /**  What is running right now. */
@@ -663,6 +858,8 @@ export type PhpRuntime = {
 	port: number,
 	/**  `true` when the configured port was busy and the fallback port is used. */
 	fellBack: boolean,
+	/**  Xdebug is loaded (it is on and this PHP version has it). */
+	xdebug: boolean,
 	/**  Effective PHP_FCGI_CHILDREN (after enforcing the minimum). */
 	children: number,
 	maxRequests: number,
@@ -878,6 +1075,18 @@ export type ReloadOutcome =
  */
 { kind: "restarted" };
 
+export type Request = {
+	/**  ISO 8601, as the web server wrote it. */
+	time: string,
+	host: string,
+	method: string,
+	uri: string,
+	status: number,
+	/**  Time to answer, in milliseconds. */
+	ms: number | null,
+	bytes: number,
+};
+
 /**  Every project folder, sorted by name, as sites or as skipped folders. */
 export type Scan = {
 	sites: Site[],
@@ -959,6 +1168,18 @@ export type Site = {
 	 *  a vhost, which answers 404 until the folder is created).
 	 */
 	docrootExists: boolean,
+	/**
+	 *  Set when the site is served by the project's own dev server, which the
+	 *  web server forwards to; `None` for PHP and static sites.
+	 */
+	app: AppSite | null,
+	/**
+	 *  The PHP version set for this site (`[sites.<name>] php`), as written;
+	 *  `None` = the PHP chosen for all sites.
+	 */
+	php: string | null,
+	/**  The folder has a `package.json` (Node.js tooling, Playwright tests). */
+	node: boolean,
 };
 
 export type SiteCert = {
@@ -966,6 +1187,17 @@ export type SiteCert = {
 	/**  Unix seconds. */
 	notAfter: number,
 };
+
+export type SiteKind = 
+/**
+ *  A dev server if the folder is a Node.js or Python web app without
+ *  PHP, else PHP.
+ */
+"auto" | 
+/**  Files and PHP through the web server. */
+"php" | 
+/**  The project's own dev server, behind the web server. */
+"app";
 
 /**  Settings for one automatic site (`[sites.<folder>]`). */
 export type SiteOverride = {
@@ -976,6 +1208,26 @@ export type SiteOverride = {
 	 *  detect (`public/`, `web/`, `public_html/`, then the folder itself).
 	 */
 	docroot?: string,
+	/**
+	 *  How the site is served: by PHP, by the project's own dev server, or
+	 *  detected from the folder.
+	 */
+	kind?: SiteKind,
+	/**
+	 *  The dev server's command for `kind = "app"`, run in the project folder;
+	 *  `{port}` is replaced with its port. Empty = detected (`npm run dev`
+	 *  with the framework's port flags, `manage.py runserver`, ...).
+	 */
+	command?: string,
+	/**  The dev server's port; 0 = a fixed port Lumina derives from the name. */
+	port?: number,
+	/**  Start the dev server with "Start All". */
+	autostart?: boolean,
+	/**
+	 *  PHP version for this site (`"8.3"` = newest 8.3.x); empty = the PHP
+	 *  chosen for all sites. Another version runs in its own php-cgi pool.
+	 */
+	php?: string,
 };
 
 export type SitesOverview = {
@@ -1009,6 +1261,16 @@ export type Skipped = {
 	reason: SkipReason,
 };
 
+export type Snapshot = {
+	/**  `<engine>/<database>/<file>`, the handle the UI passes back. */
+	id: string,
+	engine: string,
+	database: string,
+	/**  Unix seconds. */
+	created: number,
+	size: number,
+};
+
 export type SslOverview = {
 	enabled: boolean,
 	forceHttps: boolean,
@@ -1035,6 +1297,8 @@ export type StackStatus = {
 	redis: RedisStatus,
 	postgresql: PgStatus,
 	mailpit: MailpitStatus,
+	/**  php-cgi pools of other PHP versions, for sites set to one. */
+	phpPools: PhpStatus[],
 };
 
 export type Stage = "downloading" | "verifying" | "extracting";
@@ -1055,6 +1319,11 @@ export type Tools = {
 	composer?: string,
 	phpmyadmin?: string,
 	ngrok?: string,
+	bun?: string,
+	deno?: string,
+	uv?: string,
+	pnpm?: string,
+	cloudflared?: string,
 };
 
 /**  What a trust change did. */
@@ -1086,6 +1355,12 @@ export type TunnelOverview = {
 	/**  Why the agent stopped by itself, if it did. */
 	stopped: string | null,
 	logFile: string,
+	/**  `ngrok` or `cloudflare` (`[tunnel] provider`). */
+	provider: string,
+	/**  The cloudflared version that runs, if one is installed. */
+	cloudflaredInstalled: string | null,
+	/**  The newest cloudflared Quick Add can install on this system. */
+	cloudflaredAvailable: string | null,
 };
 
 export type TunnelView = {
@@ -1171,5 +1446,21 @@ export type WebStatus = {
 	error: string | null,
 	/**  The server's error log. */
 	logFile: string,
+};
+
+/**  The webhook catcher (`[webhooks]`). */
+export type Webhooks = {
+	port?: number,
+	/**  A site (folder name) every webhook is passed on to; empty = only record. */
+	forward?: string,
+};
+
+export type WebhooksStatus = {
+	/**  Set while the catcher listens. */
+	port: number | null,
+	/**  The site requests are forwarded to as they arrive. */
+	forwardTo: string | null,
+	/**  Newest first. */
+	hooks: Hook[],
 };
 

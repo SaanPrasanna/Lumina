@@ -16,7 +16,12 @@
 //! one argument placed before the user's own. So PATH points at one folder
 //! forever, and `php -v` follows the version chosen in Lumina.
 
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+
+/// Set for a program a shim falls back to, so two shim folders on PATH can
+/// never hand a command back and forth.
+pub const FALLBACK_ENV: &str = "LUMINA_SHIM_FALLBACK";
 
 /// What a shim runs.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,6 +65,33 @@ pub fn command_name(exe: &Path) -> String {
         .unwrap_or_else(|| "shim".into())
 }
 
+/// The next `name` on `path` (PATH) after Lumina's own shims: folders that
+/// are `shim_dir` or hold a `<name>.shim` (another Lumina shim folder) are
+/// skipped. On Windows `.exe`, `.cmd`, `.bat` and `.com` count.
+pub fn find_on_path(name: &str, path: &OsStr, shim_dir: &Path) -> Option<PathBuf> {
+    let extensions: &[&str] = if cfg!(windows) {
+        &[".exe", ".cmd", ".bat", ".com"]
+    } else {
+        &[""]
+    };
+    std::env::split_paths(path)
+        .filter(|dir| !dir.as_os_str().is_empty() && !same_dir(dir, shim_dir))
+        .filter(|dir| !dir.join(format!("{name}.shim")).exists())
+        .find_map(|dir| {
+            extensions
+                .iter()
+                .map(|ext| dir.join(format!("{name}{ext}")))
+                .find(|candidate| candidate.is_file())
+        })
+}
+
+fn same_dir(a: &Path, b: &Path) -> bool {
+    match (std::fs::canonicalize(a), std::fs::canonicalize(b)) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => a == b,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,5 +119,25 @@ mod tests {
             shim_file(Path::new("/x/.shims/node")),
             PathBuf::from("/x/.shims/node.shim")
         );
+    }
+
+    #[test]
+    fn falls_back_to_the_next_program_on_path() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let exe = format!("node{}", if cfg!(windows) { ".exe" } else { "" });
+        let shims = tmp.path().join("shims");
+        let other_shims = tmp.path().join("other-lumina");
+        let real = tmp.path().join("nodejs");
+        for dir in [&shims, &other_shims, &real] {
+            std::fs::create_dir_all(dir).expect("mkdir");
+            std::fs::write(dir.join(&exe), b"x").expect("exe");
+        }
+        std::fs::write(other_shims.join("node.shim"), b"").expect("shim");
+        let path = std::env::join_paths([&shims, &other_shims, &tmp.path().join("missing"), &real])
+            .expect("path");
+
+        assert_eq!(find_on_path("node", &path, &shims), Some(real.join(&exe)));
+        let only_shims = std::env::join_paths([&shims, &other_shims]).expect("path");
+        assert_eq!(find_on_path("node", &only_shims, &shims), None);
     }
 }

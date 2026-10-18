@@ -7,17 +7,33 @@
 # Certificate serial {{ serial }}, valid until {{ cert_expires }}.
 {%- endif %}
 
-<VirtualHost 127.0.0.1:{{ http_port }}>
+<VirtualHost {{ vhost_ip }}:{{ http_port }}>
     ServerName {{ domain }}
-    ServerAlias *.{{ domain }}
+    ServerAlias *.{{ domain }}{% if lan %} {{ lan_label }}.*.nip.io *.{{ lan_label }}.*.nip.io{% endif %}
+{%- if not app %}
     DocumentRoot "{{ root }}"
+{%- endif %}
 {%- if ssl and force_https %}
 
     # "Force HTTPS" is on: plain HTTP is redirected (tunnels are already HTTPS).
     RewriteEngine On
     RewriteCond %{HTTP:X-Lumina-Tunnel} ^$
+    RewriteCond %{HTTP:Cf-Warp-Tag-Id} ^$
+    # LAN sharing (nip.io names) stays on HTTP: the certificates do not cover them.
+    RewriteCond %{HTTP_HOST} !\.nip\.io(:[0-9]+)?$
     RewriteRule ^ https://%{SERVER_NAME}{{ https_suffix }}%{REQUEST_URI} [R=301,L]
 {%- endif %}
+{%- if app %}
+
+    # Served by the project's own dev server ({{ app_framework }}), which Lumina
+    # runs. The dev server sees 127.0.0.1 as the host (Vite and Django accept
+    # nothing else); mod_proxy passes the browser's host as X-Forwarded-Host.
+    ProxyPreserveHost Off
+    ProxyPass        / http://127.0.0.1:{{ app_port }}/ upgrade=websocket
+    ProxyPassReverse / http://127.0.0.1:{{ app_port }}/
+    RequestHeader set X-Forwarded-Proto "http"
+    ErrorDocument 503 "<!doctype html><meta charset=utf-8><title>{{ name }}: dev server not running</title><body style='font:16px system-ui;margin:4rem auto;max-width:36rem;padding:0 1rem'><h1 style='font-size:1.4rem'>The dev server of {{ name }} is not running</h1><p>{{ domain }} is served by its {{ app_framework }} dev server on port {{ app_port }}. Start it on the Sites page in Lumina, then reload this page.</p><p style='color:#666'>Command: <code>{{ app_command_html }}</code></p>"
+{%- else %}
 
     <Directory "{{ root }}">
         Options Indexes FollowSymLinks
@@ -27,16 +43,37 @@
         # index.php, as with nginx; a project's .htaccess can still override it.
         FallbackResource /index.php
     </Directory>
+{%- if php_pool %}
+
+    # This site's own PHP version (overrides the shared handler in httpd.conf).
+    <FilesMatch "\.php$">
+        <If "-f %{REQUEST_FILENAME}">
+            SetHandler "proxy:fcgi://127.0.0.1:{{ php_pool_port }}/"
+        </If>
+    </FilesMatch>
+{%- endif %}
+{%- endif %}
 </VirtualHost>
 {%- if ssl %}
 
-<VirtualHost 127.0.0.1:{{ https_port }}>
+<VirtualHost {{ vhost_ip }}:{{ https_port }}>
     ServerName {{ domain }}
-    ServerAlias *.{{ domain }}
-    DocumentRoot "{{ root }}"
+    ServerAlias *.{{ domain }}{% if lan %} {{ lan_label }}.*.nip.io *.{{ lan_label }}.*.nip.io{% endif %}
     SSLEngine on
     SSLCertificateFile "{{ cert }}"
     SSLCertificateKeyFile "{{ key }}"
+{%- if app %}
+
+    # Served by the project's own dev server ({{ app_framework }}), which Lumina
+    # runs. The dev server sees 127.0.0.1 as the host (Vite and Django accept
+    # nothing else); mod_proxy passes the browser's host as X-Forwarded-Host.
+    ProxyPreserveHost Off
+    ProxyPass        / http://127.0.0.1:{{ app_port }}/ upgrade=websocket
+    ProxyPassReverse / http://127.0.0.1:{{ app_port }}/
+    RequestHeader set X-Forwarded-Proto "https"
+    ErrorDocument 503 "<!doctype html><meta charset=utf-8><title>{{ name }}: dev server not running</title><body style='font:16px system-ui;margin:4rem auto;max-width:36rem;padding:0 1rem'><h1 style='font-size:1.4rem'>The dev server of {{ name }} is not running</h1><p>{{ domain }} is served by its {{ app_framework }} dev server on port {{ app_port }}. Start it on the Sites page in Lumina, then reload this page.</p><p style='color:#666'>Command: <code>{{ app_command_html }}</code></p>"
+{%- else %}
+    DocumentRoot "{{ root }}"
 
     <Directory "{{ root }}">
         Options Indexes FollowSymLinks
@@ -44,5 +81,15 @@
         Require all granted
         FallbackResource /index.php
     </Directory>
+{%- if php_pool %}
+
+    # This site's own PHP version (overrides the shared handler in httpd.conf).
+    <FilesMatch "\.php$">
+        <If "-f %{REQUEST_FILENAME}">
+            SetHandler "proxy:fcgi://127.0.0.1:{{ php_pool_port }}/"
+        </If>
+    </FilesMatch>
+{%- endif %}
+{%- endif %}
 </VirtualHost>
 {%- endif %}

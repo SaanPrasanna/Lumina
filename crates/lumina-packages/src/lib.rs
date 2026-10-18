@@ -42,6 +42,9 @@ pub enum Error {
     Archive(String),
     #[error("cancelled")]
     Cancelled,
+    /// A program still runs from the version, or holds one of its files open.
+    #[error("{0}")]
+    InUse(String),
 }
 
 impl From<Error> for lumina_core::Error {
@@ -181,16 +184,40 @@ impl PackageManager {
         if !catalog::is_safe_id(id) || !catalog::is_safe_id(version) {
             return Err(Error::Catalog(format!("bad package {id} {version}")));
         }
-        let dir = self.root(id).join(version);
+        let root = self.root(id);
+        let dir = root.join(version);
         if !dir.is_dir() {
             return Err(Error::Catalog(format!("{id} {version} is not installed")));
         }
-        std::fs::remove_dir_all(lumina_platform::long_path::long(&dir)).map_err(|source| {
-            Error::Io {
-                path: dir.clone(),
-                source,
-            }
-        })?;
+        sweep_removed(&root);
+
+        let running = processes_in(&dir);
+        if !running.is_empty() {
+            return Err(Error::InUse(format!(
+                "{id} {version} cannot be removed while {} runs from it; close it first",
+                running.join(", ")
+            )));
+        }
+        // Rename first: Windows refuses while any file inside is in use, so a
+        // program not seen above leaves the version whole, never half-deleted.
+        let trash = root.join(format!(".removing-{version}-{}", std::process::id()));
+        let long = lumina_platform::long_path::long;
+        if let Err(source) = std::fs::rename(long(&dir), long(&trash)) {
+            return Err(if in_use(&source) {
+                Error::InUse(format!(
+                    "{id} {version} cannot be removed: another program has one of its files open; close it first"
+                ))
+            } else {
+                Error::Io { path: dir, source }
+            });
+        }
+        if let Err(err) = std::fs::remove_dir_all(long(&trash)) {
+            // The version is gone either way; the rest goes at the next removal.
+            tracing::warn!(
+                "removed {id} {version}, but {} is left: {err}",
+                trash.display()
+            );
+        }
         tracing::info!("removed {id} {version}");
         Ok(())
     }
@@ -201,6 +228,73 @@ impl PackageManager {
         let part = download::part_path(&self.downloads.join(download_name(id, release)));
         std::fs::metadata(part).ok().map(|m| m.len())
     }
+
+    /// Deletes an interrupted download, so the next install starts afresh.
+    pub fn discard_partial(&self, id: &str, version: &str) -> Result<()> {
+        let release = self
+            .catalog
+            .release(id, version)
+            .ok_or_else(|| Error::Catalog(format!("{id} {version} is not in the catalog")))?;
+        let part = download::part_path(&self.downloads.join(download_name(id, release)));
+        match std::fs::remove_file(&part) {
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => Err(Error::Io {
+                path: part,
+                source: e,
+            }),
+            _ => Ok(()),
+        }
+    }
+}
+
+/// Deletes what earlier removals could not (`.removing-*` folders).
+fn sweep_removed(root: &Path) {
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        if entry
+            .file_name()
+            .to_string_lossy()
+            .starts_with(".removing-")
+        {
+            let _ = std::fs::remove_dir_all(lumina_platform::long_path::long(&entry.path()));
+        }
+    }
+}
+
+/// Programs running from inside `dir`, as "node.exe (process 1234)".
+fn processes_in(dir: &Path) -> Vec<String> {
+    use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
+    let dir = std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf());
+    let mut sys = System::new();
+    sys.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        ProcessRefreshKind::nothing().with_exe(UpdateKind::Always),
+    );
+    let mut found: Vec<String> = sys
+        .processes()
+        .iter()
+        .filter_map(|(pid, p)| {
+            let exe = p.exe()?;
+            let exe = std::fs::canonicalize(exe).unwrap_or_else(|_| exe.to_path_buf());
+            exe.starts_with(&dir).then(|| {
+                let name = exe.file_name().map_or_else(
+                    || "a program".to_owned(),
+                    |n| n.to_string_lossy().into_owned(),
+                );
+                format!("{name} (process {pid})")
+            })
+        })
+        .collect();
+    found.sort();
+    found
+}
+
+/// Windows: "access denied" or "sharing violation" when renaming a folder
+/// whose files are open in another program.
+fn in_use(err: &std::io::Error) -> bool {
+    err.kind() == std::io::ErrorKind::PermissionDenied || err.raw_os_error() == Some(32)
 }
 
 /// `php-8.4.26-php-8.4.26-nts-Win32-vs17-x64.zip`-style names, unique per release.
@@ -287,6 +381,23 @@ mod tests {
         .expect("manager")
     }
 
+    #[test]
+    fn an_interrupted_download_can_be_discarded() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let pm = manager(tmp.path(), "http://127.0.0.1:9/tool.zip", &"0".repeat(64));
+        let release = pm.catalog.release("tool", "1.0").expect("release");
+        let part = download::part_path(&pm.downloads.join(download_name("tool", release)));
+        std::fs::create_dir_all(part.parent().expect("parent")).expect("mkdir");
+        std::fs::write(&part, b"half").expect("part");
+        assert_eq!(pm.partial_download("tool", "1.0"), Some(4));
+
+        pm.discard_partial("tool", "1.0").expect("discard");
+        assert_eq!(pm.partial_download("tool", "1.0"), None);
+        pm.discard_partial("tool", "1.0")
+            .expect("nothing left is fine");
+        assert!(pm.discard_partial("tool", "9.9").is_err());
+    }
+
     #[tokio::test]
     async fn installs_verifies_and_uninstalls() {
         let body = zip_bytes();
@@ -330,6 +441,41 @@ mod tests {
         pm.uninstall("tool", "1.0").expect("uninstall");
         assert!(pm.installed("tool").is_empty());
         assert!(pm.uninstall("tool", "../bin").is_err());
+    }
+
+    #[test]
+    fn a_version_in_use_is_kept_whole() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let pm = manager(tmp.path(), "http://127.0.0.1/unused", &"0".repeat(64));
+        let dir = tmp.path().join("bin/tool/1.0");
+        std::fs::create_dir_all(&dir).expect("mkdir");
+        // A long-running program started from inside the version folder.
+        let (system, args): (&str, &[&str]) = if cfg!(windows) {
+            (r"C:\Windows\System32\PING.EXE", &["-n", "30", "127.0.0.1"])
+        } else {
+            ("/bin/sleep", &["30"])
+        };
+        let exe = dir.join(Path::new(system).file_name().expect("name"));
+        std::fs::copy(system, &exe).expect("copy");
+        std::fs::write(dir.join("data.txt"), b"keep").expect("data");
+        let mut child = std::process::Command::new(&exe)
+            .args(args)
+            .stdout(std::process::Stdio::null())
+            .spawn()
+            .expect("spawn");
+        std::thread::sleep(std::time::Duration::from_millis(500));
+
+        let err = pm.uninstall("tool", "1.0").expect_err("in use");
+        assert!(matches!(err, Error::InUse(_)), "{err}");
+        assert!(err.to_string().contains("process"), "{err}");
+        assert!(dir.join("data.txt").is_file(), "nothing was deleted");
+        assert_eq!(pm.installed("tool").len(), 1);
+
+        child.kill().expect("kill");
+        child.wait().expect("wait");
+        pm.uninstall("tool", "1.0").expect("uninstall after exit");
+        assert!(pm.installed("tool").is_empty());
+        assert!(!dir.exists());
     }
 
     #[tokio::test]

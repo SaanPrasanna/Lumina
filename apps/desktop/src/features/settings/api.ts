@@ -16,13 +16,15 @@ export type PostgresqlSettings = Required<B.Postgresql>;
 export type MailpitSettings = Required<B.Mailpit>;
 export type EditorSettings = Required<B.Editor>;
 export type SiteOverride = Required<B.SiteOverride>;
-export type AppConfig = Omit<B.AppConfig_Serialize, "php" | "web" | "database" | "redis" | "postgresql" | "mailpit" | "editor" | "tunnel" | "tools" | "packages" | "sites" | "updates"> & {
+export type AppConfig = Omit<B.AppConfig_Serialize, "php" | "web" | "database" | "redis" | "postgresql" | "mailpit" | "services" | "webhooks" | "editor" | "tunnel" | "tools" | "packages" | "sites" | "updates"> & {
   php: PhpSettings;
   web: WebSettings;
   database: DatabaseSettings;
   redis: RedisSettings;
   postgresql: PostgresqlSettings;
   mailpit: MailpitSettings;
+  services: Record<string, Required<B.ExtraService>>;
+  webhooks: Required<B.Webhooks>;
   editor: EditorSettings;
   tunnel: Required<B.Tunnel>;
   tools: Required<B.Tools>;

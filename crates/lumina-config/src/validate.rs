@@ -102,6 +102,7 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
         1025,
         &mut warnings,
     );
+    reset_zero_port(&mut cfg.webhooks.port, "webhooks.port", 8787, &mut warnings);
     reset_zero_port(
         &mut cfg.mailpit.ui_port,
         "mailpit.ui_port",
@@ -140,6 +141,16 @@ pub fn validate(cfg: &mut AppConfig) -> Vec<Warning> {
     if cfg.mailpit.enabled {
         ports.push(("mailpit.smtp_port", cfg.mailpit.smtp_port));
         ports.push(("mailpit.ui_port", cfg.mailpit.ui_port));
+    }
+    // More services: only explicit ports (0 means the service's own default).
+    let extra_fields: Vec<(String, u16)> = cfg
+        .services
+        .iter()
+        .filter(|(_, s)| s.enabled && s.port != 0)
+        .map(|(id, s)| (format!("services.{id}.port"), s.port))
+        .collect();
+    for (field, port) in &extra_fields {
+        ports.push((field.as_str(), *port));
     }
     for (i, (field_a, port_a)) in ports.iter().enumerate() {
         for (field_b, port_b) in &ports[i + 1..] {

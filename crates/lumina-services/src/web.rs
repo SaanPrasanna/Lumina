@@ -28,6 +28,23 @@ pub struct WebContext {
     /// phpMyAdmin at /phpmyadmin/ on localhost, if one is installed that runs
     /// on the active PHP.
     pub db_ui: Option<DbUi>,
+    /// php-cgi pools of other PHP versions, for sites that ask for one.
+    pub php_pools: Vec<PhpPool>,
+    /// Site name → the pool it uses; sites not listed use `php_port`.
+    pub site_php: std::collections::BTreeMap<String, PhpPool>,
+    /// Adminer at /adminer/ on localhost: the newest installed one's folder.
+    pub adminer: Option<PathBuf>,
+    /// Listen on every interface (LAN sharing), not only 127.0.0.1.
+    pub lan: bool,
+}
+
+/// A php-cgi pool for sites with their own PHP version.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct PhpPool {
+    /// Usable in config names: `8_3_12`.
+    pub key: String,
+    pub version: String,
+    pub port: u16,
 }
 
 /// The phpMyAdmin install served at http://localhost/phpmyadmin/.
@@ -54,6 +71,13 @@ pub fn render_db_ui(
     c: &mut tera::Context,
     ctx: &WebContext,
 ) -> Result<()> {
+    c.insert(
+        "adminer_dir",
+        &ctx.adminer
+            .as_deref()
+            .map(forward_slashes)
+            .unwrap_or_default(),
+    );
     c.insert("db_ui", &ctx.db_ui.is_some());
     let Some(ui) = &ctx.db_ui else {
         return Ok(());
@@ -86,8 +110,13 @@ impl WebContext {
 }
 
 /// Template values shared by every config file: `ssl`, `https_port`,
-/// `localhost_cert`/`_key`/`_serial`.
+/// `localhost_cert`/`_key`/`_serial`, and where to listen: `bind`
+/// (`127.0.0.1`, or `0.0.0.0` with LAN sharing) and `vhost_ip` (Apache's
+/// `<VirtualHost>` address: `127.0.0.1` or `*`).
 pub fn insert_tls(c: &mut tera::Context, ctx: &WebContext) {
+    c.insert("lan", &ctx.lan);
+    c.insert("bind", if ctx.lan { "0.0.0.0" } else { "127.0.0.1" });
+    c.insert("vhost_ip", if ctx.lan { "*" } else { "127.0.0.1" });
     c.insert("ssl", &ctx.tls.is_some());
     if let Some(tls) = &ctx.tls {
         c.insert("https_port", &tls.https_port);
@@ -135,6 +164,25 @@ pub fn render_sites(
         c.insert("http_port", &ctx.http_port);
         c.insert("user_file", &render::user_file_name(&site.domain));
         c.insert("auto_file", &file);
+        // `blog.test` → `blog`: also answered as blog.<lan-ip>.nip.io.
+        let label = site
+            .domain
+            .rsplit_once('.')
+            .map_or(site.domain.as_str(), |(l, _)| l);
+        c.insert("lan", &ctx.lan);
+        c.insert("bind", if ctx.lan { "0.0.0.0" } else { "127.0.0.1" });
+        c.insert("vhost_ip", if ctx.lan { "*" } else { "127.0.0.1" });
+        c.insert("lan_label", label);
+        c.insert("lan_label_re", &label.replace('.', "\\."));
+        c.insert("app", &site.app.is_some());
+        let pool = ctx.site_php.get(&site.name);
+        c.insert("php_pool", &pool.map_or("", |p| p.key.as_str()));
+        c.insert("php_pool_port", &pool.map_or(0, |p| p.port));
+        if let Some(app) = &site.app {
+            c.insert("app_port", &app.port);
+            c.insert("app_framework", &app.framework);
+            c.insert("app_command_html", &html_for_config(&app.command));
+        }
         let leaf = ctx.tls.as_ref().and_then(|t| t.sites.get(&site.domain));
         c.insert("ssl", &leaf.is_some());
         if let (Some(tls), Some(leaf)) = (&ctx.tls, leaf) {
@@ -157,6 +205,38 @@ pub fn render_sites(
         changes.remove(&stale)?;
     }
     Ok(())
+}
+
+/// `text` for an HTML page inside a double-quoted nginx or Apache string:
+/// HTML-escaped, so no quote, `$`, `%` or backslash of a command reaches the
+/// config (inside a quoted string nothing else is special to either server).
+fn html_for_config(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    for c in text.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            '$' => out.push_str("&#36;"),
+            '\\' => out.push_str("&#92;"),
+            '%' => out.push_str("&#37;"),
+            c if c.is_control() => out.push(' '),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod html_tests {
+    #[test]
+    fn commands_cannot_break_out_of_the_config_string() {
+        let html = super::html_for_config(r#"a "b" $x\y %z <i> & 'q'"#);
+        assert!(!html.contains(['"', '$', '\\', '%', '<', '\'']), "{html}");
+        assert_eq!(super::html_for_config("npm run dev"), "npm run dev");
+    }
 }
 
 /// What is running right now.

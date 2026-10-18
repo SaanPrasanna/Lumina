@@ -3,6 +3,7 @@ import { FileCog, FileText, Play, Square } from "lucide-react";
 import { editorOpen } from "@/features/env-path/api";
 import { useTranslation } from "react-i18next";
 import { ErrorBox } from "@/components/ErrorBox";
+import { InstallButton, NotInstalledBadge } from "@/components/Installable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button, Fact, VersionSelect } from "@/components/ui";
 import {
@@ -34,6 +35,7 @@ export function RedisCard(props: {
   const running = rt !== null;
   const busy = action.isPending;
   const installed = versions.data ?? [];
+  const missing = versions.isSuccess && installed.length === 0;
 
   const run = (fn: () => Promise<unknown>) =>
     action.mutate(fn, {
@@ -60,13 +62,15 @@ export function RedisCard(props: {
           <h2 id="redis-title" className="text-lg font-semibold">
             {t("redis.title")}
           </h2>
-          <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />
+          {missing && !running ? <NotInstalledBadge /> : <StatusBadge status={busy ? (running ? "stopping" : "starting") : status.status} />}
         </div>
         <div className="flex flex-wrap gap-2">
           {running ? (
             <Button onClick={() => run(() => serviceStop("redis"))} disabled={busy} icon={<Square />}>
               {t("actions.stop")}
             </Button>
+          ) : missing ? (
+            <InstallButton pkg="redis" name="Redis" />
           ) : (
             <Button primary onClick={() => run(() => serviceStart("redis"))} disabled={busy || installed.length === 0} icon={<Play />}>
               {t("actions.start")}
