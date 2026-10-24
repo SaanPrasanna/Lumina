@@ -44,7 +44,7 @@ zip          = { version = "9", default-features = false, features = ["deflate-f
 tar          = "0.4"
 flate2       = "1"
 # .tar.xz packages (MySQL for Linux); pure Rust, decoder only.
-lzma-rust2   = { version = "0.22", default-features = false, features = ["std", "xz", "optimization"] }
+lzma-rust2   = { version = "0.23", default-features = false, features = ["std", "xz", "optimization"] }
 semver       = { version = "1", features = ["serde"] }
 sysinfo      = "0.38"
 log          = "0.4"
