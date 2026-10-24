@@ -105,6 +105,12 @@ pub fn ready_url(log: &str) -> Option<String> {
         .map(str::to_owned)
 }
 
+pub fn blocked(log: &str) -> bool {
+    log.contains("precheck complete hard_fail=true")
+}
+
+const BLOCKED: &str = "this network blocks Cloudflare Tunnel (outbound port 7844); share with ngrok instead, or try another network";
+
 /// The log written since byte `from` (this run only).
 fn log_since(path: &Path, from: u64) -> String {
     let Ok(mut file) = std::fs::File::open(path) else {
@@ -169,12 +175,15 @@ impl TunnelProvider for Cloudflare {
                 .info(&id)
                 .await
                 .is_some_and(|i| i.state == ProcessState::Running);
+            let text = log_since(&log, from);
+            if blocked(&text) {
+                let _ = self.supervisor.stop(&id, STOP_TIMEOUT).await;
+                return Err(Error::Invalid(BLOCKED.into()));
+            }
             if !running || Instant::now() >= deadline {
                 let _ = self.supervisor.stop(&id, STOP_TIMEOUT).await;
-                if log_since(&log, from).contains("port 7844") {
-                    return Err(Error::Invalid(
-                        "this network blocks Cloudflare Tunnel (outbound port 7844); share with ngrok instead, or try another network".into(),
-                    ));
+                if text.contains("port 7844") {
+                    return Err(Error::Invalid(BLOCKED.into()));
                 }
                 return Err(Error::Invalid(format!(
                     "cloudflared did not open a tunnel for {}.\n{}",
@@ -247,6 +256,18 @@ mod tests {
         );
         let other = "INF Registered tunnel connection\nhttps://developers.cloudflare.com/x\n";
         assert_eq!(ready_url(other), None);
+    }
+
+    #[test]
+    fn notices_a_network_that_blocks_cloudflare() {
+        let log = "2026-10-18T05:40:20Z INF |  ERROR: Allow outbound TCP on port 7844.  |
+                   2026-10-18T05:40:20Z INF precheck complete hard_fail=true run_id=90a5c756
+";
+        assert!(blocked(log));
+        assert!(!blocked(
+            "2026-10-18T05:40:20Z INF precheck complete hard_fail=false run_id=1
+"
+        ));
     }
 
     #[test]
