@@ -306,20 +306,44 @@ pub fn check_port(port: u16) -> Result<()> {
     })
 }
 
-/// Puts Lumina's welcome page into `www_root` if it has no index file yet, so
-/// http://localhost shows something on a fresh install. Never overwrites.
+const SHIPPED_LANDING_PAGES: [&str; 5] = [
+    "3599fdd03ebd57c4565406205dd43a468f52bb39e5976b9221f15e8c865786a9",
+    "55d5faf3c5a0fa6a003d6833152a2d1358ec44f34e278ccde75bc3c6825ca0ab",
+    "6e70f1f03937e7358b486523b29fbb4a7e258fd455d464a9bf3314b6c4262c45",
+    "cb804e7fb1699b5a8410a268dd6027ebd0e00106b4a402f9f4f83d4d0624dcc9",
+    "5f8cd5ff029e0088a97b45ef8049bda33406d3df30b53dfafdb9cc744c373e3a",
+];
+
+fn page_hash(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    let text = String::from_utf8_lossy(bytes).replace("\r\n", "\n");
+    Sha256::digest(text.as_bytes())
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
+}
+
 pub fn ensure_landing_page(www_root: &Path, bundled_page: &Path) -> Result<()> {
     std::fs::create_dir_all(www_root).map_err(|source| Error::Io {
         path: www_root.to_path_buf(),
         source,
     })?;
-    let has_index = ["index.php", "index.html", "index.htm"]
+    let target = www_root.join("index.html");
+    if ["index.php", "index.htm"]
         .iter()
-        .any(|name| www_root.join(name).exists());
-    if has_index {
+        .any(|name| www_root.join(name).exists())
+    {
         return Ok(());
     }
-    let target = www_root.join("index.html");
+    if let Ok(current) = std::fs::read(&target) {
+        let current = page_hash(&current);
+        let bundled = std::fs::read(bundled_page).map(|b| page_hash(&b));
+        if !SHIPPED_LANDING_PAGES.contains(&current.as_str()) || bundled.is_ok_and(|b| b == current)
+        {
+            return Ok(());
+        }
+        tracing::info!("updating the welcome page {}", target.display());
+    }
     std::fs::copy(bundled_page, &target).map_err(|source| Error::Io {
         path: target,
         source,
@@ -388,6 +412,47 @@ mod tests {
         assert_eq!(
             std::fs::read_to_string(www.join("index.html")).expect("read"),
             "mine"
+        );
+    }
+
+    #[test]
+    fn an_untouched_older_landing_page_is_replaced() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let www = tmp.path().join("www");
+        std::fs::create_dir_all(&www).expect("mkdir");
+        let page = tmp.path().join("bundled.html");
+        std::fs::write(&page, "new welcome").expect("write");
+        // A page someone wrote: not on the list, so it is kept.
+        let old = "old welcome\r\n";
+        std::fs::write(www.join("index.html"), old).expect("old");
+
+        assert!(!SHIPPED_LANDING_PAGES.contains(&page_hash(old.as_bytes()).as_str()));
+        ensure_landing_page(&www, &page).expect("kept");
+        assert_eq!(
+            std::fs::read_to_string(www.join("index.html")).expect("read"),
+            old
+        );
+
+        // An unedited copy of what Lumina shipped is replaced.
+        let shipped = std::fs::read(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/www/index.html"),
+        )
+        .expect("bundled page");
+        std::fs::write(www.join("index.html"), &shipped).expect("shipped copy");
+        ensure_landing_page(&www, &page).expect("replace");
+        assert_eq!(
+            std::fs::read_to_string(www.join("index.html")).expect("read"),
+            "new welcome"
+        );
+    }
+
+    #[test]
+    fn the_current_landing_page_is_listed() {
+        let page = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../resources/www/index.html");
+        let hash = page_hash(&std::fs::read(page).expect("bundled page"));
+        assert!(
+            SHIPPED_LANDING_PAGES.contains(&hash.as_str()),
+            "add {hash} to SHIPPED_LANDING_PAGES"
         );
     }
 

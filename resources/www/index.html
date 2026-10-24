@@ -1,328 +1,628 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="generator" content="Lumina">
-<meta name="color-scheme" content="dark light">
-<title>Lumina is running</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366F1'/%3E%3Cstop offset='1' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='64' y='64' width='896' height='896' rx='208' fill='url(%23b)'/%3E%3Cpath d='M380 280V700H680' fill='none' stroke='%23fff' stroke-width='112' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='668' cy='336' r='92' fill='%23F59E0B'/%3E%3C/svg%3E">
-<!--
-  Lumina's welcome page, copied into your projects folder on first start.
-  It is yours now: edit it, replace it with an index.php, or delete it.
-  Lumina never overwrites it.
--->
-<style>
-  /* The colours of the Lumina app: graphite dark, clean light, amber accent. */
-  :root {
-    --surface: #ffffff;
-    --raised: #f7f7f5;
-    --fg: #1d1d1f;
-    --fg-soft: #48484c;
-    --muted: #6a6a6f;
-    --line: #e4e4e1;
-    --accent: #d97706;
-    --accent-strong: #ea8c1e;
-    --accent-soft: #fdf3e3;
-    --accent-ink: #a8530a;
-    --on-accent: #2b1a04;
-    --ok: #17765f;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.06);
-    --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --mono: ui-monospace, "Cascadia Mono", SFMono-Regular, Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="Lumina">
+  <meta name="color-scheme" content="light dark">
+  <title>Lumina is running</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366F1'/%3E%3Cstop offset='1' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='64' y='64' width='896' height='896' rx='208' fill='url(%23b)'/%3E%3Cpath d='M380 280V700H680' fill='none' stroke='%23fff' stroke-width='112' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='668' cy='336' r='92' fill='%23F59E0B'/%3E%3C/svg%3E">
+
+  <style>
     :root {
-      --surface: #1b1e20;
-      --raised: #202325;
-      --fg: #eae7e2;
-      --fg-soft: #b6b9bd;
-      --muted: #959a9f;
-      --line: #2b2f33;
-      --accent: #d8a44c;
-      --accent-strong: #e8bb6d;
-      --accent-soft: #33291a;
-      --accent-ink: #d8a44c;
-      --on-accent: #1b1408;
-      --ok: #4ea89a;
-      --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.35);
+      --page: #f6f5f2;
+      --panel: #ffffff;
+      --sunken: #f1f0ec;
+      --fg: #18181a;
+      --fg-soft: #46464b;
+      --muted: #6b6b70;
+      --line: #e3e1db;
+      --line-strong: #cfccc4;
+      --accent: #b45f06;
+      --accent-ink: #9a4d05;
+      --ok: #157a55;
+      --ok-soft: #e3f3ec;
+      --btn: #18181a;
+      --on-btn: #ffffff;
+      --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: ui-monospace, "Cascadia Mono", SFMono-Regular, Consolas, monospace;
     }
-  }
 
-  *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--surface);
-    color: var(--fg);
-    font: 16px/1.6 var(--font);
-    -webkit-font-smoothing: antialiased;
-  }
-  a { color: var(--accent-ink); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
-  code {
-    font: 0.86em/1.5 var(--mono);
-    background: var(--raised);
-    border: 1px solid var(--line);
-    border-radius: 5px;
-    padding: 0.05em 0.35em;
-  }
-  ::selection { background: color-mix(in oklch, var(--accent) 30%, transparent); }
-  .wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding-inline: 24px; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #161819;
+        --panel: #1d2022;
+        --sunken: #191b1d;
+        --fg: #eae7e2;
+        --fg-soft: #b6b9bd;
+        --muted: #8f949a;
+        --line: #2b2f33;
+        --line-strong: #3a3f44;
+        --accent: #d8a44c;
+        --accent-ink: #e0b062;
+        --ok: #4ea89a;
+        --ok-soft: #1b2b28;
+        --btn: #eae7e2;
+        --on-btn: #161819;
+      }
+    }
 
-  /* Header */
-  .top { border-bottom: 1px solid var(--line); }
-  .nav { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
-  .brand { display: flex; align-items: center; gap: 10px; color: var(--fg); font-weight: 800; font-size: 1.1rem; }
-  .brand:hover { text-decoration: none; }
-  .brand svg { width: 28px; height: 28px; }
-  .nav-links { display: flex; gap: 20px; font-size: 0.93rem; }
-  .nav-links a { color: var(--fg-soft); }
-  .nav-links a:hover { color: var(--fg); text-decoration: none; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-  /* Hero */
-  main { flex: 1; }
-  .hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    gap: 48px;
-    align-items: center;
-    padding-top: 64px;
-    padding-bottom: 40px;
-  }
-  .hero > * { min-width: 0; }
-  .status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 12px;
-    border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent-ink);
-    font-size: 0.85rem;
-    font-weight: 700;
-  }
-  .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: glow 2.4s ease-in-out infinite; }
-  h1 { margin: 18px 0 0; font-size: clamp(2rem, 4.5vw, 3rem); line-height: 1.1; letter-spacing: -0.03em; font-weight: 800; }
-  h1 span { color: var(--accent); }
-  .lead { margin: 18px 0 0; color: var(--fg-soft); font-size: 1.1rem; max-width: 34em; }
-  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 18px;
-    border: 1px solid var(--line);
-    border-radius: 9px;
-    color: var(--fg);
-    font-weight: 700;
-    font-size: 0.97rem;
-    transition: border-color 120ms ease-out, background-color 120ms ease-out, transform 120ms ease-out;
-  }
-  .btn:hover { text-decoration: none; border-color: var(--muted); }
-  .btn:active { transform: translateY(1px); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  .btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
-  .btn svg { width: 16px; height: 16px; }
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
 
-  /* The app's Services screen, drawn in CSS. */
-  .window {
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    animation: rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  .w-bar { display: flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--raised); }
-  .w-bar span { width: 11px; height: 11px; border-radius: 50%; background: var(--line); }
-  .w-bar b { margin-left: 10px; font-size: 0.8rem; color: var(--muted); font-weight: 600; }
-  .w-body { padding: 16px 20px 20px; }
-  .w-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .w-head strong { font-size: 0.95rem; }
-  .w-btn { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: var(--accent); color: var(--on-accent); }
-  .row { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem; }
-  .row i { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); animation: glow 2.4s ease-in-out infinite; }
-  .row b { font-weight: 700; }
-  .row span { color: var(--muted); font: 0.8rem var(--mono); }
-  .w-url { display: inline-flex; gap: 8px; margin-top: 14px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font: 0.8rem var(--mono); color: var(--fg-soft); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--page);
+      color: var(--fg);
+      font: 15px/1.6 var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
 
-  /* Sections */
-  .section { padding-top: 56px; }
-  h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.9rem); letter-spacing: -0.02em; line-height: 1.2; }
-  .section-lead { margin: 8px 0 0; color: var(--fg-soft); }
-  .grid { display: grid; gap: 16px; margin: 28px 0 0; padding: 0; list-style: none; }
-  .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .features { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .card {
-    border: 1px solid var(--line);
-    border-radius: 11px;
-    padding: 20px;
-    transition: border-color 160ms ease-out, transform 160ms ease-out;
-  }
-  .card:hover { border-color: color-mix(in oklch, var(--accent) 55%, var(--line)); transform: translateY(-2px); }
-  .card h3 { margin: 12px 0 6px; font-size: 1.03rem; }
-  .card p { margin: 0; color: var(--fg-soft); font-size: 0.95rem; }
-  .n {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--accent); color: var(--on-accent); font-weight: 800;
-  }
-  .icon {
-    display: inline-flex; padding: 8px; border-radius: 9px;
-    background: var(--accent-soft); color: var(--accent-ink);
-  }
-  .icon svg { width: 20px; height: 20px; }
+    a {
+      color: var(--accent-ink);
+      text-decoration: underline;
+      text-decoration-color: color-mix(in oklch, currentColor 35%, transparent);
+      text-underline-offset: 3px;
+    }
 
-  /* Footer */
-  .foot { margin-top: 64px; border-top: 1px solid var(--line); background: var(--raised); color: var(--muted); font-size: 0.88rem; }
-  .foot-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 20px; padding-bottom: 20px; }
+    a:hover {
+      text-decoration-color: currentColor;
+    }
 
-  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-  @keyframes glow { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
 
-  @media (max-width: 900px) {
-    .hero { grid-template-columns: minmax(0, 1fr); padding-top: 40px; gap: 32px; }
-    .steps, .features { grid-template-columns: minmax(0, 1fr); }
-  }
-  @media (min-width: 620px) and (max-width: 900px) {
-    .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (max-width: 620px) {
-    body { font-size: 15px; }
-    .wrap { padding-inline: 16px; }
-    .nav-links a:not(:last-child) { display: none; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; }
-  }
-</style>
+    code,
+    .mono {
+      font-family: var(--mono);
+      font-size: 0.88em;
+    }
+
+    code {
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+      background: var(--sunken);
+      border: 1px solid var(--line);
+    }
+
+    ::selection {
+      background: color-mix(in oklch, var(--accent) 28%, transparent);
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding-inline: 24px;
+    }
+
+    /* Header */
+    .top {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--fg);
+      font-weight: 800;
+      font-size: 1.02rem;
+      text-decoration: none;
+    }
+
+    .brand svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      font-size: 0.9rem;
+    }
+
+    .nav-links a {
+      color: var(--fg-soft);
+      text-decoration: none;
+    }
+
+    .nav-links a:hover {
+      color: var(--fg);
+    }
+
+    /* Intro */
+    main {
+      flex: 1;
+    }
+
+    .intro {
+      padding-top: 56px;
+      padding-bottom: 40px;
+    }
+
+    .status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      font: 0.82rem/1.4 var(--mono);
+      color: var(--muted);
+    }
+
+    .status .ok {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 2px 9px 2px 7px;
+      border-radius: 5px;
+      background: var(--ok-soft);
+      color: var(--ok);
+      font-weight: 600;
+    }
+
+    .status .ok::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 18px 0 0;
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      font-weight: 800;
+    }
+
+    .lead {
+      margin: 12px 0 0;
+      max-width: 40em;
+      color: var(--fg-soft);
+      font-size: 1.05rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: 7px;
+      border: 1px solid var(--line-strong);
+      background: var(--panel);
+      color: var(--fg);
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: border-color 120ms ease-out, background-color 120ms ease-out;
+    }
+
+    .btn:hover {
+      border-color: var(--muted);
+    }
+
+    .btn.primary {
+      background: var(--btn);
+      border-color: var(--btn);
+      color: var(--on-btn);
+    }
+
+    .btn.primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Reference sections: a label column and a content column. */
+    .sheet {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    .block {
+      display: grid;
+      grid-template-columns: 200px minmax(0, 1fr);
+      gap: 32px;
+      padding: 28px;
+    }
+
+    .block+.block {
+      border-top: 1px solid var(--line);
+    }
+
+    .block h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      letter-spacing: -0.005em;
+    }
+
+    .block .hint {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .block p {
+      margin: 0;
+      color: var(--fg-soft);
+    }
+
+    .block p+p {
+      margin-top: 10px;
+    }
+
+    .tree {
+      margin: 16px 0 0;
+      padding: 14px 16px;
+      border-radius: 7px;
+      background: var(--sunken);
+      border: 1px solid var(--line);
+      font: 0.84rem/1.75 var(--mono);
+      color: var(--fg-soft);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .tree .dim {
+      color: var(--muted);
+    }
+
+    .tree a {
+      text-decoration: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0 12px 8px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    td {
+      padding: 9px 12px 9px 0;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    td:first-child {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    td .mono {
+      color: var(--fg-soft);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    .note {
+      margin-top: 12px !important;
+      font-size: 0.85rem;
+      color: var(--muted) !important;
+    }
+
+    .links {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .links li {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      align-items: baseline;
+    }
+
+    .links a {
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      min-width: 12.5em;
+    }
+
+    .links span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .facts {
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 32px;
+    }
+
+    .facts dt {
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .facts dd {
+      margin: 2px 0 0;
+      color: var(--fg-soft);
+      font-size: 0.9rem;
+    }
+
+    /* Footer */
+    .foot {
+      margin-top: 48px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .foot-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px 24px;
+      padding-top: 18px;
+      padding-bottom: 18px;
+    }
+
+    @media (max-width: 760px) {
+      .block {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        padding: 22px 18px;
+      }
+
+      .facts {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .links li {
+        flex-direction: column;
+        gap: 0;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .wrap {
+        padding-inline: 16px;
+      }
+
+      .intro {
+        padding-top: 36px;
+      }
+
+      .nav-links a:not(:last-child) {
+        display: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<header class="top">
-  <nav class="wrap nav" aria-label="Main">
-    <a class="brand" href="/">
-      <svg viewBox="0 0 1024 1024" aria-hidden="true">
-        <defs>
-          <linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366F1"/><stop offset="1" stop-color="#7C3AED"/></linearGradient>
-          <radialGradient id="hg" cx="0.4" cy="0.4" r="0.6"><stop offset="0" stop-color="#FEF3C7"/><stop offset="1" stop-color="#F59E0B"/></radialGradient>
-        </defs>
-        <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#hb)"/>
-        <path d="M380 280V700H680" fill="none" stroke="#fff" stroke-width="112" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="668" cy="336" r="92" fill="url(#hg)"/>
-      </svg>
-      <span>Lumina</span>
-    </a>
-    <div class="nav-links">
-      <a href="https://lumina.hexdev.tech/">Website</a>
-      <a href="https://github.com/SaanPrasanna/Lumina/issues">Report an issue</a>
-      <a href="https://github.com/SaanPrasanna/Lumina">GitHub</a>
-    </div>
-  </nav>
-</header>
+  <header class="top">
+    <nav class="wrap nav" aria-label="Main">
+      <a class="brand" href="/">
+        <svg viewBox="0 0 1024 1024" aria-hidden="true">
+          <defs>
+            <linearGradient id="hb" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#6366F1" />
+              <stop offset="1" stop-color="#7C3AED" />
+            </linearGradient>
+            <radialGradient id="hg" cx="0.4" cy="0.4" r="0.6">
+              <stop offset="0" stop-color="#FEF3C7" />
+              <stop offset="1" stop-color="#F59E0B" />
+            </radialGradient>
+          </defs>
+          <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#hb)" />
+          <path d="M380 280V700H680" fill="none" stroke="#fff" stroke-width="112" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <circle cx="668" cy="336" r="92" fill="url(#hg)" />
+        </svg>
+        <span>Lumina</span>
+      </a>
+      <div class="nav-links">
+        <a href="https://lumina.hexdev.tech/changelog/">Changelog</a>
+        <a href="https://github.com/SaanPrasanna/Lumina/issues">Report an issue</a>
+        <a href="https://github.com/SaanPrasanna/Lumina">GitHub</a>
+      </div>
+    </nav>
+  </header>
 
-<main>
-  <section class="wrap hero">
-    <div>
-      <span class="status"><i></i>Web server running</span>
-      <h1>It works.<br><span>Lumina is running.</span></h1>
-      <p class="lead">Your local stack is up: a web server, PHP and your databases, with a real <code>.test</code> address for every project.</p>
-      <div class="cta">
-        <a class="btn primary" href="https://lumina.hexdev.tech/">
-          Lumina website
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
+  <main>
+    <section class="wrap intro">
+      <div class="status"><span class="ok">Running</span><span id="served">localhost</span></div>
+      <h1>Lumina is running.</h1>
+      <p class="lead">Your web server answered. Put a project in this folder and it gets its own <code>.test</code>
+        address, with HTTPS, a database and mail ready to use.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://lumina.hexdev.tech/">Lumina website</a>
         <a class="btn" href="https://github.com/SaanPrasanna/Lumina">
-          GitHub
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+          Source on GitHub
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 17 17 7M8 7h9v9" />
+          </svg>
         </a>
       </div>
-    </div>
-    <div class="window" aria-hidden="true">
-      <div class="w-bar"><span></span><span></span><span></span><b>Lumina</b></div>
-      <div class="w-body">
-        <div class="w-head"><strong>Services</strong><span class="w-btn">Stop All</span></div>
-        <div class="row"><i></i><b>PHP</b><span>FastCGI</span></div>
-        <div class="row"><i></i><b>Web server</b><span id="served">localhost</span></div>
-        <div class="row"><i></i><b>Database</b><span>127.0.0.1</span></div>
-        <div class="w-url">https://blog.test <span>🔒</span></div>
+    </section>
+
+    <div class="wrap">
+      <div class="sheet">
+        <section class="block" aria-labelledby="projects-title">
+          <div>
+            <h2 id="projects-title">Your projects</h2>
+            <p class="hint">One folder, one site.</p>
+          </div>
+          <div>
+            <p>Every folder next to this page becomes a site. Lumina writes its server config and hosts entry and gives
+              it a trusted certificate. Laravel's <code>public/</code> is found on its own; Vite, Next.js, Nuxt, Django
+              and FastAPI projects run behind their own dev server. New projects can also be created with QuickApp.</p>
+            <pre class="tree"><span class="dim">www/</span>
+├── index.html      <span class="dim">this page</span>
+├── blog/           <span class="dim">→</span> <a href="https://blog.test/">https://blog.test</a>
+└── shop/public/    <span class="dim">→</span> <a href="https://shop.test/">https://shop.test</a></pre>
+          </div>
+        </section>
+
+        <section class="block" aria-labelledby="connect-title">
+          <div>
+            <h2 id="connect-title">Connections</h2>
+            <p class="hint">Default addresses for apps and database clients.</p>
+          </div>
+          <div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Address</th>
+                    <th>User</th>
+                    <th>Password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>MySQL, MariaDB</td>
+                    <td><span class="mono">127.0.0.1:3306</span></td>
+                    <td><span class="mono">root</span></td>
+                    <td>none</td>
+                  </tr>
+                  <tr>
+                    <td>PostgreSQL</td>
+                    <td><span class="mono">127.0.0.1:5432</span></td>
+                    <td><span class="mono">postgres</span></td>
+                    <td>none</td>
+                  </tr>
+                  <tr>
+                    <td>Redis</td>
+                    <td><span class="mono">127.0.0.1:6379</span></td>
+                    <td>–</td>
+                    <td>none</td>
+                  </tr>
+                  <tr>
+                    <td>MongoDB</td>
+                    <td><span class="mono">127.0.0.1:27017</span></td>
+                    <td>–</td>
+                    <td>none</td>
+                  </tr>
+                  <tr>
+                    <td>Mail (SMTP)</td>
+                    <td><span class="mono">127.0.0.1:1025</span></td>
+                    <td>any</td>
+                    <td>any</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="note">Ports can be changed in Settings. Services are installed from Quick Add and started on the
+              Services page.</p>
+          </div>
+        </section>
+
+        <section class="block" aria-labelledby="tools-title">
+          <div>
+            <h2 id="tools-title">Tools</h2>
+            <p class="hint">Available once installed.</p>
+          </div>
+          <ul class="links">
+            <li><a href="/adminer/">/adminer/</a><span>MySQL, MariaDB, PostgreSQL and SQLite</span></li>
+            <li><a href="/phpmyadmin/">/phpmyadmin/</a><span>MySQL and MariaDB</span></li>
+            <li><a href="http://localhost:8025/">localhost:8025</a><span>Mailpit inbox for mail your sites send</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="block" aria-labelledby="more-title">
+          <div>
+            <h2 id="more-title">Also in Lumina</h2>
+          </div>
+          <dl class="facts">
+            <div>
+              <dt>Versions side by side</dt>
+              <dd>PHP, Node.js, Python, Bun and Deno, plus servers and databases, each download checked first. A PHP
+                version per site.</dd>
+            </div>
+            <div>
+              <dt>Debugging</dt>
+              <dd>Xdebug in one switch, the latest requests of every site, and a webhook catcher that replays.</dd>
+            </div>
+            <div>
+              <dt>Snapshots</dt>
+              <dd>Save a MySQL, MariaDB or PostgreSQL database before a migration and restore it in one click.</dd>
+            </div>
+            <div>
+              <dt>Sharing</dt>
+              <dd>A public HTTPS address through Cloudflare Tunnel or ngrok, or your sites on phones on the same Wi-Fi.
+              </dd>
+            </div>
+          </dl>
+        </section>
       </div>
     </div>
-  </section>
+  </main>
 
-  <section class="wrap section" aria-labelledby="start-title">
-    <h2 id="start-title">Get started</h2>
-    <ol class="grid steps">
-      <li class="card">
-        <span class="n">1</span>
-        <h3>Add a project</h3>
-        <p>Put a folder next to this page. A folder named <code>blog</code> opens at <a href="http://blog.test/">http://blog.test</a>; Lumina writes its site and hosts entry for you. Or create one with QuickApp.</p>
-      </li>
-      <li class="card">
-        <span class="n">2</span>
-        <h3>Choose your stack</h3>
-        <p>On the Services page: nginx or Apache, any installed PHP version, MySQL or MariaDB, PostgreSQL and Redis. Install more versions from Quick Add.</p>
-      </li>
-      <li class="card">
-        <span class="n">3</span>
-        <h3>Connect to a database</h3>
-        <p>MySQL and MariaDB: <code>root</code> at <code>127.0.0.1</code>, no password. PostgreSQL: <code>postgres</code>, no password. The ports are on the Services page.</p>
-      </li>
-    </ol>
-  </section>
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <span>This page is <code>www/index.html</code>. Edit it or replace it with your own <code>index.php</code>; Lumina
+        keeps your changes.</span>
+      <span><a href="https://github.com/SaanPrasanna/Lumina/blob/master/LICENSE">GNU GPL v3.0</a></span>
+    </div>
+  </footer>
 
-  <section class="wrap section" aria-labelledby="features-title">
-    <h2 id="features-title">What Lumina does for you</h2>
-    <p class="section-lead">Fast to start, quiet in the background, and nothing left running when you quit.</p>
-    <ul class="grid features">
-      <li class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
-        <h3>Automatic sites</h3>
-        <p>Every folder becomes <code>folder.test</code>. Laravel's <code>public/</code> and similar folders are found on their own.</p>
-      </li>
-      <li class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
-        <h3>Trusted HTTPS</h3>
-        <p>A certificate authority that exists only on your computer gives every site a padlock your browsers trust.</p>
-      </li>
-      <li class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg></span>
-        <h3>Quick Add</h3>
-        <p>Install and switch versions of PHP, servers, databases, Node.js and Python. Every download is checked first.</p>
-      </li>
-      <li class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2"/><path d="M9 15 6 12c1-4 5-9 12-9 0 7-5 11-9 12Z"/><circle cx="14.5" cy="9.5" r="1.5"/></svg></span>
-        <h3>QuickApp</h3>
-        <p>Laravel, WordPress, Symfony, Drupal and more in one click, with the database created and the site ready.</p>
-      </li>
-      <li class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg></span>
-        <h3>Profiles</h3>
-        <p>Save stacks like "nginx · PHP 8.3 · MySQL 8.4" and switch between them in one click.</p>
-      </li>
-      <li class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></svg></span>
-        <h3>Share a site</h3>
-        <p>Put a site on a public HTTPS address through ngrok, with a QR code for your phone.</p>
-      </li>
-    </ul>
-  </section>
-</main>
-
-<footer class="foot">
-  <div class="wrap foot-inner">
-    <span>This page is <code>www/index.html</code>: edit it, or replace it with your own <code>index.php</code>.</span>
-    <span>© 2026 Sandun Prasanna · <a href="https://github.com/SaanPrasanna/Lumina/blob/master/LICENSE">GNU GPL v3.0</a></span>
-  </div>
-</footer>
-
-<script>
-  // Which address answered, e.g. "localhost:8080".
-  if (location.host) document.getElementById("served").textContent = location.host;
-</script>
+  <script>
+    if (location.host) document.getElementById("served").textContent = location.host;
+  </script>
 </body>
+
 </html>
