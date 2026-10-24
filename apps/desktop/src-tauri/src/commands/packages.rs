@@ -76,7 +76,16 @@ pub struct InstalledVersion {
 pub struct HomebrewView {
     /// Whether Homebrew is installed on this computer.
     pub found: bool,
-    /// `brew install …` for the newest version.
+    /// One `brew install …` per version line, newest first.
+    pub formulas: Vec<HomebrewFormula>,
+}
+
+#[derive(Debug, PartialEq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct HomebrewFormula {
+    /// The version line ("8.4"); `None` for the unversioned formula, which
+    /// is Homebrew's newest.
+    pub line: Option<String>,
     pub install_command: String,
 }
 
@@ -349,7 +358,7 @@ async fn view(
         jobs,
         homebrew: formula.map(|formula| HomebrewView {
             found: !lumina_services::install::homebrew_prefixes().is_empty(),
-            install_command: format!("brew install {formula}"),
+            formulas: homebrew_formulas(formula, homebrew_older(&package.id)),
         }),
     }
 }
@@ -385,6 +394,76 @@ fn homebrew_formula(id: &str) -> Option<&'static str> {
         "mailpit" => "mailpit",
         id => return lumina_services::extra::definition(id).map(|d| d.homebrew),
     })
+}
+
+/// Older version lines Homebrew still installs, newest first. PHP 8.0 and 7.4
+/// come from the shivammathur/php tap; they install as `php@8.0`, a keg
+/// Lumina finds like any other.
+fn homebrew_older(id: &str) -> &'static [&'static str] {
+    match id {
+        "php" => &[
+            "php@8.4",
+            "php@8.3",
+            "php@8.2",
+            "php@8.1",
+            "shivammathur/php/php@8.0",
+            "shivammathur/php/php@7.4",
+        ],
+        "mariadb" => &[
+            "mariadb@12.3",
+            "mariadb@11.8",
+            "mariadb@11.4",
+            "mariadb@10.11",
+            "mariadb@10.6",
+        ],
+        "redis" => &["redis@8.2"],
+        "postgresql" => &[
+            "postgresql@17",
+            "postgresql@16",
+            "postgresql@15",
+            "postgresql@14",
+        ],
+        _ => &[],
+    }
+}
+
+/// The `brew install` commands for `newest` and the `older` lines.
+fn homebrew_formulas(newest: &str, older: &[&str]) -> Vec<HomebrewFormula> {
+    std::iter::once(newest)
+        .chain(older.iter().copied())
+        .map(|formula| HomebrewFormula {
+            line: formula.rsplit_once('@').map(|(_, line)| line.to_owned()),
+            install_command: format!("brew install {formula}"),
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lists_a_brew_command_per_version_line() {
+        let formulas = homebrew_formulas("php", homebrew_older("php"));
+        assert_eq!(
+            formulas.first(),
+            Some(&HomebrewFormula {
+                line: None,
+                install_command: "brew install php".into()
+            })
+        );
+        assert_eq!(
+            formulas.last(),
+            Some(&HomebrewFormula {
+                line: Some("7.4".into()),
+                install_command: "brew install shivammathur/php/php@7.4".into()
+            })
+        );
+        let pg = homebrew_formulas("postgresql@18", homebrew_older("postgresql"));
+        let lines: Vec<_> = pg.iter().filter_map(|f| f.line.as_deref()).collect();
+        assert_eq!(lines, ["18", "17", "16", "15", "14"]);
+        assert_eq!(homebrew_formulas("nginx", homebrew_older("nginx")).len(), 1);
+    }
 }
 
 /// Every version of a server that Lumina can run, from any source.

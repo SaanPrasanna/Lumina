@@ -224,24 +224,34 @@ function PackagePanel(props: { pkg: PackageView; overview: PackagesOverview; pro
  */
 function HomebrewBox(props: { brew: HomebrewView; busy: boolean; onCheck: () => void }) {
   const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    void navigator.clipboard.writeText(props.brew.installCommand).then(() => {
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+  const [copied, setCopied] = useState<string | null>(null);
+  const copy = (command: string) => {
+    void navigator.clipboard.writeText(command).then(() => {
+      setCopied(command);
+      window.setTimeout(() => setCopied(null), 1500);
     });
   };
+  const labelled = props.brew.formulas.length > 1;
   return (
     <div className="space-y-3 rounded-lg border border-line p-4 text-sm">
       <p>{t(props.brew.found ? "packages.homebrew.intro" : "packages.homebrew.notFound")}</p>
-      <div className="flex flex-wrap items-center gap-2">
-        <code dir="ltr" className="rounded-md border border-line bg-hover px-3 py-1.5 font-mono">
-          {props.brew.installCommand}
-        </code>
-        <Button onClick={copy} icon={copied ? <Check /> : <Copy />}>
-          {t(copied ? "packages.homebrew.copied" : "packages.homebrew.copy")}
-        </Button>
-      </div>
+      <ul className="space-y-2">
+        {props.brew.formulas.map((f) => (
+          <li key={f.installCommand} className="flex flex-wrap items-center gap-2">
+            {labelled && (
+              <span className="w-16 font-mono font-medium" dir="ltr">
+                {f.line ?? t("packages.homebrew.newest")}
+              </span>
+            )}
+            <code dir="ltr" className="rounded-md border border-line bg-hover px-3 py-1.5 font-mono">
+              {f.installCommand}
+            </code>
+            <Button onClick={() => copy(f.installCommand)} icon={copied === f.installCommand ? <Check /> : <Copy />}>
+              {t(copied === f.installCommand ? "packages.homebrew.copied" : "packages.homebrew.copy")}
+            </Button>
+          </li>
+        ))}
+      </ul>
       <p className="text-muted">{t("packages.homebrew.after")}</p>
       <Button onClick={props.onCheck} disabled={props.busy} icon={<RefreshCw />}>
         {t("packages.homebrew.check")}

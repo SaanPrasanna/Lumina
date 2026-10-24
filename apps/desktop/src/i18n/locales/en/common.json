@@ -449,11 +449,12 @@
     "dismiss": "Dismiss",
     "homebrew": {
       "badge": "Homebrew",
-      "intro": "Its project publishes no download for this system. Install it with Homebrew, the standard way on macOS and Linux, by running this in Terminal:",
-      "notFound": "Its project publishes no download for this system. Install Homebrew first (see brew.sh), then run this in Terminal:",
+      "intro": "Its project publishes no download for this system. Install it with Homebrew, the standard way on macOS and Linux, by running the command for the version you want in Terminal:",
+      "notFound": "Its project publishes no download for this system. Install Homebrew first (see brew.sh), then run the command for the version you want in Terminal:",
       "copy": "Copy",
       "copied": "Copied",
-      "after": "Lumina finds Homebrew versions on its own and runs them with its own settings. For another version, use the formula with the version, for example brew install php@8.3.",
+      "newest": "Newest",
+      "after": "Lumina finds Homebrew versions on its own and runs them with its own settings.",
       "check": "Check again",
       "removeHint": "Remove with {{command}}"
     }

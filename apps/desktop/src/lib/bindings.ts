@@ -584,6 +584,15 @@ export type General_Serialize = {
 	lan: boolean,
 };
 
+export type HomebrewFormula = {
+	/**
+	 *  The version line ("8.4"); `None` for the unversioned formula, which
+	 *  is Homebrew's newest.
+	 */
+	line: string | null,
+	installCommand: string,
+};
+
 /**
  *  How to get a server with Homebrew on macOS and Linux, where its project
  *  publishes no download Lumina can install: the standard way there.
@@ -591,8 +600,8 @@ export type General_Serialize = {
 export type HomebrewView = {
 	/**  Whether Homebrew is installed on this computer. */
 	found: boolean,
-	/**  `brew install …` for the newest version. */
-	installCommand: string,
+	/**  One `brew install …` per version line, newest first. */
+	formulas: HomebrewFormula[],
 };
 
 export type Hook = {

@@ -53,9 +53,26 @@ const pma: api.PackageView = {
   jobs: [{ id: "phpmyadmin", version: "5.2.3", stage: null, received: 0, total: null, error: "download failed: timeout", done: true }],
 };
 
-function renderPage(route = "/packages") {
+// macOS/Linux: PHP comes from Homebrew, one formula per version line.
+const brewPhp: api.PackageView = {
+  ...php,
+  active: null,
+  running: null,
+  installed: [],
+  available: [],
+  homebrew: {
+    found: true,
+    formulas: [
+      { line: null, installCommand: "brew install php" },
+      { line: "8.4", installCommand: "brew install php@8.4" },
+      { line: "7.4", installCommand: "brew install shivammathur/php/php@7.4" },
+    ],
+  },
+};
+
+function renderPage(route = "/packages", packages = [php, pma]) {
   vi.mocked(api.packagesList).mockResolvedValue({
-    packages: [php, pma],
+    packages,
     phpVersion: "8.4.26",
     dbUi: null,
     catalogUpdated: "2026-10-14",
@@ -106,5 +123,17 @@ describe("PackagesPage", () => {
     expect(screen.getByText("Paused, 3.8 MB downloaded")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(api.packageDiscard).toHaveBeenCalledWith("phpmyadmin", "5.2.3");
+  });
+
+  it("lists a Homebrew command per version line and copies one", async () => {
+    const user = userEvent.setup();
+    renderPage("/packages", [brewPhp]);
+    expect(await screen.findByText("brew install php")).toBeInTheDocument();
+    expect(screen.getByText("Newest")).toBeInTheDocument();
+    const old = screen.getByText("brew install shivammathur/php/php@7.4").closest("li");
+    expect(within(old as HTMLElement).getByText("7.4")).toBeInTheDocument();
+    await user.click(within(old as HTMLElement).getByRole("button", { name: "Copy" }));
+    expect(await navigator.clipboard.readText()).toBe("brew install shivammathur/php/php@7.4");
+    expect(within(old as HTMLElement).getByRole("button", { name: "Copied" })).toBeInTheDocument();
   });
 });
