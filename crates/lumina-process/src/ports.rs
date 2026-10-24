@@ -84,10 +84,17 @@ mod tests {
         (listener, port)
     }
 
+    // Below the ephemeral range, so a test binding port 0 at the same time
+    // cannot be handed it between here and `pick`.
     fn free_port() -> u16 {
-        let (listener, port) = busy_port();
-        drop(listener);
-        port
+        static NEXT: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(20_000);
+        loop {
+            let port = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            assert!(port < 30_000, "no free port below the ephemeral range");
+            if is_free(port) {
+                return port;
+            }
+        }
     }
 
     #[test]
