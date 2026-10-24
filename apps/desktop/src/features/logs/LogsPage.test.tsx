@@ -32,9 +32,16 @@ const EMPTY: api.Chunk = { text: "", offset: 0, size: 0, reset: false, skipped: 
 
 describe("LogsPage", () => {
   // jsdom has no layout; the virtualized list needs a size to show rows.
+  // Newer virtual-core reads the scroll element's client size, older its offset size.
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, get: () => 480 });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, get: () => 800 });
+    for (const [prop, size] of [
+      ["offsetHeight", 480],
+      ["offsetWidth", 800],
+      ["clientHeight", 480],
+      ["clientWidth", 800],
+    ] as const) {
+      Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get: () => size });
+    }
   });
   beforeEach(() => {
     vi.clearAllMocks();

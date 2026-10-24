@@ -5,7 +5,7 @@ members = ["apps/desktop/src-tauri", "crates/*", "xtask"]
 [workspace.package]
 version = "0.4.0"
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.90"
 license = "GPL-3.0-only"
 repository = "https://github.com/SaanPrasanna/Lumina"
 authors = ["Sandun Prasanna"]
@@ -36,17 +36,17 @@ tracing      = { version = "0.1", features = ["log"] }  # "log" forwards events 
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 directories  = "6"
 notify       = "8"
-tera         = "1"
+tera         = "2"
 rcgen        = { version = "0.14", default-features = false, features = ["crypto", "ring", "pem", "x509-parser"] }
 reqwest      = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
-sha2         = "0.10"
+sha2         = "0.11"
 zip          = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs", "deflate64"] }
 tar          = "0.4"
 flate2       = "1"
 # .tar.xz packages (MySQL for Linux); pure Rust, decoder only.
 lzma-rust2   = { version = "0.22", default-features = false, features = ["std", "xz", "optimization"] }
 semver       = { version = "1", features = ["serde"] }
-sysinfo      = "0.37"
+sysinfo      = "0.38"
 log          = "0.4"
 # TypeScript bindings for the UI (beta; `=` keeps it from moving under us).
 specta       = { version = "=2.0.0-rc.25", features = ["derive", "serde_json"] }
