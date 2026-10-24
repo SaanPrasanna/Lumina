@@ -7,7 +7,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [S
 
 - **Welcome page:** The page at `http://localhost` has a new design that works as a quick reference: how folders become sites, the address, user and password of every database and of the mail server, and links to Adminer, phpMyAdmin and the Mailpit inbox. It is easier to read in light mode. An unchanged copy from an earlier version is replaced with the new one when the web server starts; a page you edited is left alone.
 - **Fixes:** When a network blocks Cloudflare Tunnel, sharing through Cloudflare stops within about 20 seconds and says so, instead of waiting a full minute.
-- **Welcome page:** The page at `http://localhost` has a new design that works as a quick reference: how folders become sites, the address, user and password of every database and of the mail server, and links to Adminer, phpMyAdmin and the Mailpit inbox. It is easier to read in light mode. An unchanged copy from an earlier version is replaced with the new one when the web server starts; a page you edited is left alone.
+- **Under the hood:** Lumina is built on newer versions of Tauri and the other libraries it uses.
+
 ## [0.4.0] - 2026-10-18
 Lumina grows beyond PHP: Node.js and Python projects get their own `.test` address, more databases and services join the stack, and sharing, debugging and testing tools come built in.
 
