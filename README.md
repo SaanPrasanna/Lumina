@@ -44,7 +44,8 @@ running in the background.
   computer gives every site and `localhost` a certificate browsers trust.
 - **Quick Add.** Install and switch versions of PHP, nginx, Apache, MySQL,
   MariaDB, PostgreSQL, Redis, the services above, Node.js, Python, Bun, Deno,
-  uv, pnpm, Composer, Xdebug, phpMyAdmin, Adminer, ngrok and cloudflared.
+  uv, pnpm, Composer, Xdebug, phpMyAdmin, Adminer, ngrok and cloudflared, in
+  several versions each (PHP back to 7.4, the three newest patches of a line).
   Every download is verified against its SHA-256 checksum before it is used.
 - **QuickApp.** New Laravel, WordPress, Symfony, CodeIgniter, Drupal, Joomla,
   Statamic, Vite or plain PHP projects in one click, database and site included.
