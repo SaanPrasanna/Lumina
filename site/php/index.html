@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local PHP development environment for Windows, macOS and Linux</title>
+  <meta name="description" content="A free local PHP environment: PHP 7.4 to 8.5 side by side, nginx or Apache, MySQL, PostgreSQL and Redis, Composer and Xdebug, with .test sites and trusted HTTPS.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="Sandun Prasanna">
+  <meta name="application-name" content="Lumina">
+  <link rel="canonical" href="https://lumina.hexdev.tech/php/">
+  <meta name="theme-color" content="#1b1e20" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/icon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/icon-180.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Lumina">
+  <meta property="og:title" content="Local PHP development environment for Windows, macOS and Linux">
+  <meta property="og:description" content="A free local PHP environment: PHP 7.4 to 8.5 side by side, nginx or Apache, MySQL, PostgreSQL and Redis, Composer and Xdebug, with .test sites and trusted HTTPS.">
+  <meta property="og:url" content="https://lumina.hexdev.tech/php/">
+  <meta property="og:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Local PHP development environment for Windows, macOS and Linux">
+  <meta name="twitter:description" content="A free local PHP environment: PHP 7.4 to 8.5 side by side, nginx or Apache, MySQL, PostgreSQL and Redis, Composer and Xdebug, with .test sites and trusted HTTPS.">
+  <meta name="twitter:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <link rel="preload" href="../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": ["WebPage", "FAQPage"], "@id": "https://lumina.hexdev.tech/php/#webpage", "url": "https://lumina.hexdev.tech/php/", "name": "Local PHP development environment for Windows, macOS and Linux", "headline": "Local PHP development, set up in minutes", "description": "A free local PHP environment: PHP 7.4 to 8.5 side by side, nginx or Apache, MySQL, PostgreSQL and Redis, Composer and Xdebug, with .test sites and trusted HTTPS.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "about": {"@id": "https://lumina.hexdev.tech/#software"}, "author": {"@type": "Person", "name": "Sandun Prasanna", "url": "https://github.com/SaanPrasanna"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/php/#breadcrumb"}, "mainEntity": [{"@type": "Question", "name": "Is Lumina free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, open source under the GNU GPL v3.0, with no paid edition."}}, {"@type": "Question", "name": "Can I use Apache .htaccess files?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, choose Apache as the web server and .htaccess works as on most shared hosting."}}]}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/php/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Local PHP development, set up in minutes", "item": "https://lumina.hexdev.tech/php/"}]}]}</script>
+</head>
+<body class="lang-en">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <nav class="wrap nav" aria-label="Main">
+      <a class="brand" href="../"><img src="../assets/icon.svg" alt="" width="30" height="30"><span>Lumina</span></a>
+      <div class="nav-links">
+        <a href="../#features">Features</a>
+        <a href="../#download">Download</a>
+        <a href="../compare/">Compare</a>
+        <a href="../guides/">Guides</a>
+        <a href="../changelog/">Changelog</a>
+        <a class="icon-link" href="https://github.com/SaanPrasanna/Lumina" aria-label="GitHub"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="wrap compare">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="../">Lumina</a><span aria-hidden="true">/</span><span aria-current="page">Local PHP development, set up in minutes</span></nav>
+    <header class="cl-head">
+      <h1>Local PHP development, set up in minutes</h1>
+      <p class="lead">Lumina runs real PHP, a web server and a database on your own computer, with no Docker and no virtual machine. Every project gets its own address and the PHP version it needs.</p>
+      <div class="cta">
+        <a class="btn primary" href="../#download"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download Lumina, free</span></a>
+        <a class="btn" href="https://github.com/SaanPrasanna/Lumina"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg><span>View on GitHub</span></a>
+      </div>
+    </header>
+    <section class="cmp-section narrow article">
+      <h2>What you get</h2>
+      <ul>
+<li>PHP 7.4 to 8.5 as FastCGI, side by side, one version per site if you like.</li>
+<li>nginx or Apache, MySQL or MariaDB, PostgreSQL and Redis, started with one click.</li>
+<li><code>php</code> and <code>composer</code> in every terminal, following the active version.</li>
+<li>Xdebug in one switch, Mailpit for outgoing mail, phpMyAdmin and Adminer for databases.</li>
+<li>Every folder in <code>www</code> at <code>https://folder.test</code> with a trusted certificate.</li>
+</ul>
+    </section>
+    <section class="cmp-section narrow article">
+      <h2>Get started</h2>
+      <ol>
+<li>Download and install Lumina.</li>
+<li>In <strong>Quick Add</strong>, install PHP, a web server and a database.</li>
+<li>Press <strong>Start All</strong> and open <code>http://localhost</code>: the welcome page lists every database login.</li>
+</ol>
+    </section>
+
+    <section class="cmp-section narrow" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions</h2>
+      <details class="faq-item">
+        <summary>Is Lumina free?</summary>
+        <p>Yes, open source under the GNU GPL v3.0, with no paid edition.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I use Apache .htaccess files?</summary>
+        <p>Yes, choose Apache as the web server and .htaccess works as on most shared hosting.</p>
+      </details>
+    </section>
+
+    <section class="cmp-section" aria-labelledby="more-title">
+      <h2 id="more-title">Guides</h2>
+      <ul class="grid features">
+        <li class="card feature">
+          <h3><a href="../guides/php-versions-side-by-side-windows/">Run PHP 7.4 and PHP 8.4 side by side on Windows</a></h3>
+          <p>How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give each project its own version, without editing Apache or nginx configs by hand.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../guides/test-domains-windows/">Local .test domains on Windows</a></h3>
+          <p>Give every local project its own address like http://blog.test on Windows, without editing the hosts file or Apache virtual hosts by hand.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../guides/https-localhost/">Trusted HTTPS for localhost</a></h3>
+          <p>Get https://localhost and https://project.test with a padlock and no browser warning, using a certificate authority that exists only on your computer.</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <div>
+        <a class="brand" href="../"><img src="../assets/icon.svg" alt="" width="26" height="26"><span>Lumina</span></a>
+        <p>A local development environment for web developers.</p>
+      </div>
+      <div class="foot-links">
+        <p><a href="https://github.com/SaanPrasanna/Lumina">GitHub</a> · <a href="https://github.com/SaanPrasanna/Lumina/releases">Releases</a> · <a href="https://lumina.hexdev.tech/changelog/">Changelog</a> · <a href="https://lumina.hexdev.tech/compare/">Compare</a> · <a href="https://lumina.hexdev.tech/guides/">Guides</a> · <a href="https://github.com/SaanPrasanna/Lumina/issues/new/choose">Report a bug</a> · <a href="https://github.com/SaanPrasanna/Lumina/blob/master/SECURITY.md">Security</a></p>
+        <p>© 2026 Sandun Prasanna. Released under the <a href="https://github.com/SaanPrasanna/Lumina/blob/master/LICENSE">GNU GPL v3.0</a>.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

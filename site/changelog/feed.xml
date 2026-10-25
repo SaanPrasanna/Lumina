@@ -5,11 +5,28 @@
   <link rel="self" type="application/atom+xml" href="https://lumina.hexdev.tech/changelog/feed.xml"/>
   <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/"/>
   <id>https://lumina.hexdev.tech/changelog/</id>
-  <updated>2026-10-18T00:00:00Z</updated>
+  <updated>2026-10-24T00:00:00Z</updated>
   <author><name>Sandun Prasanna</name><uri>https://github.com/SaanPrasanna</uri></author>
   <icon>https://lumina.hexdev.tech/assets/icon-180.png</icon>
   <logo>https://lumina.hexdev.tech/assets/icon-512.png</logo>
   <rights>GNU GPL v3.0</rights>
+  <entry>
+    <title>Lumina 0.5.0</title>
+    <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/#v0.5.0"/>
+    <id>tag:lumina.hexdev.tech,2026-10-24:v0.5.0</id>
+    <published>2026-10-24T00:00:00Z</published>
+    <updated>2026-10-24T00:00:00Z</updated>
+    <summary>Many more versions to choose from: PHP back to 7.4, older Node.js, Python and database lines, and the three newest patch releases of each, with a brew install command for every version line on macOS and Linux. The page at http://localhost is redesigned as a quick reference.</summary>
+    <content type="html">
+          &lt;p class=&quot;rel-intro&quot;&gt;Many more versions to choose from: PHP back to 7.4, older Node.js, Python and database lines, and the three newest patch releases of each, with a &lt;code&gt;brew install&lt;/code&gt; command for every version line on macOS and Linux. The page at &lt;code&gt;http://localhost&lt;/code&gt; is redesigned as a quick reference.&lt;/p&gt;
+&lt;ul&gt;
+            &lt;li&gt;&lt;strong&gt;More versions:&lt;/strong&gt; Quick Add offers PHP 8.0 and 7.4 (with Xdebug), Node.js 20 and 18, Python 3.12, 3.11 and 3.10, MySQL 8.0, MariaDB 10.6, PostgreSQL 16, 15 and 14, and Redis 7.4 and 7.2 (on Windows). Each version line now lists its three newest patch releases, so you can match the exact version a server runs. On macOS and Linux, servers that come from Homebrew list a &lt;code&gt;brew install&lt;/code&gt; command for every version line (PHP 8.4 to 7.4, MariaDB 12.3 to 10.6, PostgreSQL 18 to 14, Redis 8.2), not just the newest.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Welcome page:&lt;/strong&gt; The page at &lt;code&gt;http://localhost&lt;/code&gt; has a new design that works as a quick reference: how folders become sites, the address, user and password of every database and of the mail server, and links to Adminer, phpMyAdmin and the Mailpit inbox. It is easier to read in light mode. An unchanged copy from an earlier version is replaced with the new one when the web server starts; a page you edited is left alone.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Tray:&lt;/strong&gt; On macOS the menu bar shows Lumina&#x27;s L and dot in one colour, tinted to match the menu bar like the system icons, instead of the full-colour app icon. The tray menu shows Stop All while any service runs and Start All when none does, instead of both at once.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Fixes:&lt;/strong&gt; When a network blocks Cloudflare Tunnel, sharing through Cloudflare stops within about 20 seconds and says so, instead of waiting a full minute.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Under the hood:&lt;/strong&gt; Lumina is built on newer versions of Tauri and the other libraries it uses.&lt;/li&gt;
+&lt;/ul&gt;</content>
+  </entry>
   <entry>
     <title>Lumina 0.4.0</title>
     <link rel="alternate" type="text/html" href="https://lumina.hexdev.tech/changelog/#v0.4.0"/>

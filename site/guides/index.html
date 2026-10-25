@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local development guides: PHP versions, .test domains, HTTPS, Laravel, Next.js</title>
+  <meta name="description" content="Step-by-step guides for local web development with Lumina: several PHP versions, .test domains, trusted HTTPS, Laravel, WordPress, Next.js and Django, on Windows, macOS and Linux.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="Sandun Prasanna">
+  <meta name="application-name" content="Lumina">
+  <link rel="canonical" href="https://lumina.hexdev.tech/guides/">
+  <meta name="theme-color" content="#1b1e20" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/icon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/icon-180.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Lumina">
+  <meta property="og:title" content="Local development guides: PHP versions, .test domains, HTTPS, Laravel, Next.js">
+  <meta property="og:description" content="Step-by-step guides for local web development with Lumina: several PHP versions, .test domains, trusted HTTPS, Laravel, WordPress, Next.js and Django, on Windows, macOS and Linux.">
+  <meta property="og:url" content="https://lumina.hexdev.tech/guides/">
+  <meta property="og:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Local development guides: PHP versions, .test domains, HTTPS, Laravel, Next.js">
+  <meta name="twitter:description" content="Step-by-step guides for local web development with Lumina: several PHP versions, .test domains, trusted HTTPS, Laravel, WordPress, Next.js and Django, on Windows, macOS and Linux.">
+  <meta name="twitter:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <link rel="preload" href="../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "CollectionPage", "@id": "https://lumina.hexdev.tech/guides/#webpage", "url": "https://lumina.hexdev.tech/guides/", "name": "Local development guides: PHP versions, .test domains, HTTPS, Laravel, Next.js", "description": "Step-by-step guides for local web development with Lumina: several PHP versions, .test domains, trusted HTTPS, Laravel, WordPress, Next.js and Django, on Windows, macOS and Linux.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/guides/#breadcrumb"}, "hasPart": [{"@type": "TechArticle", "url": "https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/", "headline": "Run PHP 7.4 and PHP 8.4 side by side on Windows"}, {"@type": "TechArticle", "url": "https://lumina.hexdev.tech/guides/laravel-https/", "headline": "Run Laravel locally with HTTPS"}, {"@type": "TechArticle", "url": "https://lumina.hexdev.tech/guides/test-domains-windows/", "headline": "Local .test domains on Windows"}, {"@type": "TechArticle", "url": "https://lumina.hexdev.tech/guides/https-localhost/", "headline": "Trusted HTTPS for localhost"}, {"@type": "TechArticle", "url": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/", "headline": "Run Next.js, Vite or Django at a local domain"}, {"@type": "TechArticle", "url": "https://lumina.hexdev.tech/guides/laravel-mailpit/", "headline": "Catch Laravel mail locally with Mailpit"}]}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/guides/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://lumina.hexdev.tech/guides/"}]}]}</script>
+</head>
+<body class="lang-en">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <nav class="wrap nav" aria-label="Main">
+      <a class="brand" href="../"><img src="../assets/icon.svg" alt="" width="30" height="30"><span>Lumina</span></a>
+      <div class="nav-links">
+        <a href="../#features">Features</a>
+        <a href="../#download">Download</a>
+        <a href="../compare/">Compare</a>
+        <a href="../guides/" aria-current="page">Guides</a>
+        <a href="../changelog/">Changelog</a>
+        <a class="icon-link" href="https://github.com/SaanPrasanna/Lumina" aria-label="GitHub"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="wrap compare">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="../">Lumina</a><span aria-hidden="true">/</span><span aria-current="page">Guides</span></nav>
+    <header class="cl-head">
+      <h1>Guides</h1>
+      <p class="lead">Short, practical guides for running web projects on your own computer with Lumina.</p>
+    </header>
+
+    <section class="cmp-section" aria-labelledby="how-title">
+      <h2 id="how-title">How to</h2>
+      <ul class="grid features">
+        <li class="card feature">
+          <h3><a href="php-versions-side-by-side-windows/">Run PHP 7.4 and PHP 8.4 side by side on Windows</a></h3>
+          <p>How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give each project its own version, without editing Apache or nginx configs by hand.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="laravel-https/">Run Laravel locally with HTTPS</a></h3>
+          <p>Set up a Laravel project locally with a real https:// address and a certificate your browser trusts, plus MySQL and Mailpit, on Windows, macOS or Linux.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="test-domains-windows/">Local .test domains on Windows</a></h3>
+          <p>Give every local project its own address like http://blog.test on Windows, without editing the hosts file or Apache virtual hosts by hand.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="https-localhost/">Trusted HTTPS for localhost</a></h3>
+          <p>Get https://localhost and https://project.test with a padlock and no browser warning, using a certificate authority that exists only on your computer.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="nextjs-django-local-domain/">Run Next.js, Vite or Django at a local domain</a></h3>
+          <p>Serve Next.js, Nuxt, Vite, SvelteKit, Django, FastAPI or Flask dev servers at https://project.test instead of localhost:3000, with hot reload.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="laravel-mailpit/">Catch Laravel mail locally with Mailpit</a></h3>
+          <p>Send every email from your local Laravel or PHP app to a local Mailpit inbox instead of real people, with the .env settings to use.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="cmp-section" aria-labelledby="stack-title">
+      <h2 id="stack-title">By stack</h2>
+      <ul class="grid features">
+        <li class="card feature">
+          <h3><a href="../php/">Local PHP development, set up in minutes</a></h3>
+          <p>A free local PHP environment: PHP 7.4 to 8.5 side by side, nginx or Apache, MySQL, PostgreSQL and Redis, Composer and Xdebug, with .test sites and trusted HTTPS.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../laravel/">Laravel, locally, with everything included</a></h3>
+          <p>Run Laravel locally with PHP 8.4, nginx, MySQL or PostgreSQL, Redis and Mailpit, at https://app.test, on Windows, macOS and Linux. Free and open source.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../wordpress/">WordPress on your own computer</a></h3>
+          <p>Run WordPress locally at https://site.test with PHP, MySQL, Apache or nginx and Mailpit, on Windows, macOS and Linux. Free and open source.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../nodejs/">Node.js projects at their own local domain</a></h3>
+          <p>Install Node.js versions side by side and serve Next.js, Vite, Nuxt, Astro or SvelteKit dev servers at their own https://name.test address, with hot reload.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../python/">Python projects at their own local domain</a></h3>
+          <p>Install Python versions side by side and serve Django, FastAPI or Flask dev servers at their own https://name.test address, with PostgreSQL and Redis next to them.</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <div>
+        <a class="brand" href="../"><img src="../assets/icon.svg" alt="" width="26" height="26"><span>Lumina</span></a>
+        <p>A local development environment for web developers.</p>
+      </div>
+      <div class="foot-links">
+        <p><a href="https://github.com/SaanPrasanna/Lumina">GitHub</a> · <a href="https://github.com/SaanPrasanna/Lumina/releases">Releases</a> · <a href="https://lumina.hexdev.tech/changelog/">Changelog</a> · <a href="https://lumina.hexdev.tech/compare/">Compare</a> · <a href="https://lumina.hexdev.tech/guides/">Guides</a> · <a href="https://github.com/SaanPrasanna/Lumina/issues/new/choose">Report a bug</a> · <a href="https://github.com/SaanPrasanna/Lumina/blob/master/SECURITY.md">Security</a></p>
+        <p>© 2026 Sandun Prasanna. Released under the <a href="https://github.com/SaanPrasanna/Lumina/blob/master/LICENSE">GNU GPL v3.0</a>.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install PHP 7.4 and 8.4 side by side on Windows (one per site)</title>
+  <meta name="description" content="How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give each project its own version, without editing Apache or nginx configs by hand.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="Sandun Prasanna">
+  <meta name="application-name" content="Lumina">
+  <link rel="canonical" href="https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/">
+  <meta name="theme-color" content="#1b1e20" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="../../assets/icon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../../assets/icon-180.png">
+  <link rel="manifest" href="../../site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Lumina">
+  <meta property="og:title" content="Install PHP 7.4 and 8.4 side by side on Windows (one per site)">
+  <meta property="og:description" content="How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give each project its own version, without editing Apache or nginx configs by hand.">
+  <meta property="og:url" content="https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/">
+  <meta property="og:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Install PHP 7.4 and 8.4 side by side on Windows (one per site)">
+  <meta name="twitter:description" content="How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give each project its own version, without editing Apache or nginx configs by hand.">
+  <meta name="twitter:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <link rel="preload" href="../../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": ["TechArticle", "FAQPage"], "@id": "https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/#webpage", "url": "https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/", "name": "Install PHP 7.4 and 8.4 side by side on Windows (one per site)", "headline": "Run PHP 7.4 and PHP 8.4 side by side on Windows", "description": "How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give each project its own version, without editing Apache or nginx configs by hand.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "about": {"@id": "https://lumina.hexdev.tech/#software"}, "author": {"@type": "Person", "name": "Sandun Prasanna", "url": "https://github.com/SaanPrasanna"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/#breadcrumb"}, "mainEntity": [{"@type": "Question", "name": "Which PHP versions can I install?", "acceptedAnswer": {"@type": "Answer", "text": "PHP 7.4, 8.0, 8.1, 8.2, 8.3, 8.4 and 8.5, each with its three newest patch releases. PHP 7.4 to 8.0 are end of life, so use them only for old projects."}}, {"@type": "Question", "name": "Does Xdebug work with every version?", "acceptedAnswer": {"@type": "Answer", "text": "On Windows, Quick Add offers Xdebug for every PHP line from 7.4 to 8.5, and the PHP card switches it on in one click."}}, {"@type": "Question", "name": "And on macOS or Linux?", "acceptedAnswer": {"@type": "Answer", "text": "There PHP comes from Homebrew. Quick Add shows the brew install command for each version line (PHP 8.0 and 7.4 from the shivammathur/php tap), and Lumina finds them on its own."}}]}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://lumina.hexdev.tech/guides/"}, {"@type": "ListItem", "position": 3, "name": "Run PHP 7.4 and PHP 8.4 side by side on Windows", "item": "https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/"}]}]}</script>
+</head>
+<body class="lang-en">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <nav class="wrap nav" aria-label="Main">
+      <a class="brand" href="../../"><img src="../../assets/icon.svg" alt="" width="30" height="30"><span>Lumina</span></a>
+      <div class="nav-links">
+        <a href="../../#features">Features</a>
+        <a href="../../#download">Download</a>
+        <a href="../../compare/">Compare</a>
+        <a href="../../guides/" aria-current="page">Guides</a>
+        <a href="../../changelog/">Changelog</a>
+        <a class="icon-link" href="https://github.com/SaanPrasanna/Lumina" aria-label="GitHub"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="wrap compare">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">Lumina</a><span aria-hidden="true">/</span><a href="../../guides/">Guides</a><span aria-hidden="true">/</span><span aria-current="page">Run PHP 7.4 and PHP 8.4 side by side on Windows</span></nav>
+    <header class="cl-head">
+      <h1>Run PHP 7.4 and PHP 8.4 side by side on Windows</h1>
+      <p class="lead">An old shop that needs PHP 7.4 and a new Laravel app on PHP 8.4, on the same computer, at the same time. On Windows that usually means two installs and hand-edited server configs. With Lumina it takes a few clicks.</p>
+      <div class="cta">
+        <a class="btn primary" href="../../#download"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download Lumina, free</span></a>
+        <a class="btn" href="https://github.com/SaanPrasanna/Lumina"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg><span>View on GitHub</span></a>
+      </div>
+    </header>
+    <section class="cmp-section narrow article">
+      <h2>1. Install the PHP versions</h2>
+      <ol>
+<li>Open <strong>Quick Add</strong> and pick <strong>PHP</strong>.</li>
+<li>Click <strong>Install</strong> next to each version you need, for example 8.4 and 7.4. Every line lists its three newest patch releases, so you can match a server exactly.</li>
+<li>Each download is checked against its published SHA-256 before it is unpacked.</li>
+</ol>
+    </section>
+    <section class="cmp-section narrow article">
+      <h2>2. Choose the version for everything</h2>
+      <p>On the <strong>Services</strong> page, the PHP card's <strong>Version</strong> list sets the PHP that every site uses by default. "Newest installed" follows new versions as you install them.</p>
+    </section>
+    <section class="cmp-section narrow article">
+      <h2>3. Give one project its own version</h2>
+      <ol>
+<li>Open <strong>Sites</strong> and click <strong>Edit</strong> on the project.</li>
+<li>Pick its PHP version, for example 7.4, and save.</li>
+<li>The site gets its own PHP pool; every other site keeps the shared one. This works with nginx and Apache.</li>
+</ol>
+    </section>
+    <section class="cmp-section narrow article">
+      <h2>4. Use the same version in the terminal</h2>
+      <p>Lumina puts <code>php</code> and <code>composer</code> on PATH (the <strong>PATH</strong> page), following the active version. Check it with:</p>
+<pre><code>php -v
+composer --version</code></pre>
+    </section>
+
+    <section class="cmp-section narrow" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions</h2>
+      <details class="faq-item">
+        <summary>Which PHP versions can I install?</summary>
+        <p>PHP 7.4, 8.0, 8.1, 8.2, 8.3, 8.4 and 8.5, each with its three newest patch releases. PHP 7.4 to 8.0 are end of life, so use them only for old projects.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does Xdebug work with every version?</summary>
+        <p>On Windows, Quick Add offers Xdebug for every PHP line from 7.4 to 8.5, and the PHP card switches it on in one click.</p>
+      </details>
+      <details class="faq-item">
+        <summary>And on macOS or Linux?</summary>
+        <p>There PHP comes from Homebrew. Quick Add shows the <code>brew install</code> command for each version line (PHP 8.0 and 7.4 from the shivammathur/php tap), and Lumina finds them on its own.</p>
+      </details>
+    </section>
+
+    <section class="cmp-section" aria-labelledby="more-title">
+      <h2 id="more-title">Related guides</h2>
+      <ul class="grid features">
+        <li class="card feature">
+          <h3><a href="../../guides/laravel-https/">Run Laravel locally with HTTPS</a></h3>
+          <p>Set up a Laravel project locally with a real https:// address and a certificate your browser trusts, plus MySQL and Mailpit, on Windows, macOS or Linux.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../../guides/test-domains-windows/">Local .test domains on Windows</a></h3>
+          <p>Give every local project its own address like http://blog.test on Windows, without editing the hosts file or Apache virtual hosts by hand.</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <div>
+        <a class="brand" href="../../"><img src="../../assets/icon.svg" alt="" width="26" height="26"><span>Lumina</span></a>
+        <p>A local development environment for web developers.</p>
+      </div>
+      <div class="foot-links">
+        <p><a href="https://github.com/SaanPrasanna/Lumina">GitHub</a> · <a href="https://github.com/SaanPrasanna/Lumina/releases">Releases</a> · <a href="https://lumina.hexdev.tech/changelog/">Changelog</a> · <a href="https://lumina.hexdev.tech/compare/">Compare</a> · <a href="https://lumina.hexdev.tech/guides/">Guides</a> · <a href="https://github.com/SaanPrasanna/Lumina/issues/new/choose">Report a bug</a> · <a href="https://github.com/SaanPrasanna/Lumina/blob/master/SECURITY.md">Security</a></p>
+        <p>© 2026 Sandun Prasanna. Released under the <a href="https://github.com/SaanPrasanna/Lumina/blob/master/LICENSE">GNU GPL v3.0</a>.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

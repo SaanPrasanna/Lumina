@@ -32,7 +32,7 @@
   <meta name="twitter:image" content="https://lumina.hexdev.tech/assets/og-en.png">
   <link rel="preload" href="../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../assets/style.css">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebPage", "@id": "https://lumina.hexdev.tech/changelog/#webpage", "url": "https://lumina.hexdev.tech/changelog/", "name": "Changelog · Lumina", "description": "Every Lumina release and what changed in it: new features, improvements and fixes, newest first.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "about": {"@id": "https://lumina.hexdev.tech/#software"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/changelog/#breadcrumb"}, "dateModified": "2026-10-18"}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/changelog/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Changelog", "item": "https://lumina.hexdev.tech/changelog/"}]}]}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebPage", "@id": "https://lumina.hexdev.tech/changelog/#webpage", "url": "https://lumina.hexdev.tech/changelog/", "name": "Changelog · Lumina", "description": "Every Lumina release and what changed in it: new features, improvements and fixes, newest first.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "about": {"@id": "https://lumina.hexdev.tech/#software"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/changelog/#breadcrumb"}, "dateModified": "2026-10-24"}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/changelog/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Changelog", "item": "https://lumina.hexdev.tech/changelog/"}]}]}</script>
 </head>
 <body class="lang-en">
   <a class="skip" href="#main">Skip to content</a>
@@ -55,7 +55,7 @@
       <h1>Changelog</h1>
       <p class="lead">Every Lumina release and what changed in it, newest first. Lumina updates itself; every version can also be downloaded from GitHub.</p>
       <div class="cta">
-        <a class="btn primary" href="../#download"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download Lumina 0.4.0</span></a>
+        <a class="btn primary" href="../#download"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download Lumina 0.5.0</span></a>
         <a class="btn" href="feed.xml"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/></svg><span>Subscribe (Atom feed)</span></a>
       </div>
     </header>
@@ -63,6 +63,7 @@
       <nav class="cl-toc" aria-label="Releases">
         <p class="eyebrow">Releases</p>
         <ul>
+          <li><a href="#v0.5.0"><span>0.5.0</span><time datetime="2026-10-24">October 24, 2026</time></a></li>
           <li><a href="#v0.4.0"><span>0.4.0</span><time datetime="2026-10-18">October 18, 2026</time></a></li>
           <li><a href="#v0.3.0"><span>0.3.0</span><time datetime="2026-10-15">October 15, 2026</time></a></li>
           <li><a href="#v0.2.0"><span>0.2.0</span><time datetime="2026-10-15">October 15, 2026</time></a></li>
@@ -70,9 +71,24 @@
         </ul>
       </nav>
       <div class="cl-list">
+        <article id="v0.5.0" class="card release" aria-labelledby="v0.5.0-title">
+          <header class="rel-head">
+            <h2 id="v0.5.0-title"><a href="#v0.5.0">Lumina 0.5.0</a></h2><span class="rel-badge">Latest</span>
+            <time datetime="2026-10-24">October 24, 2026</time>
+          </header>
+          <p class="rel-intro">Many more versions to choose from: PHP back to 7.4, older Node.js, Python and database lines, and the three newest patch releases of each, with a <code>brew install</code> command for every version line on macOS and Linux. The page at <code>http://localhost</code> is redesigned as a quick reference.</p>
+          <ul class="rel-items">
+            <li><strong>More versions:</strong> Quick Add offers PHP 8.0 and 7.4 (with Xdebug), Node.js 20 and 18, Python 3.12, 3.11 and 3.10, MySQL 8.0, MariaDB 10.6, PostgreSQL 16, 15 and 14, and Redis 7.4 and 7.2 (on Windows). Each version line now lists its three newest patch releases, so you can match the exact version a server runs. On macOS and Linux, servers that come from Homebrew list a <code>brew install</code> command for every version line (PHP 8.4 to 7.4, MariaDB 12.3 to 10.6, PostgreSQL 18 to 14, Redis 8.2), not just the newest.</li>
+            <li><strong>Welcome page:</strong> The page at <code>http://localhost</code> has a new design that works as a quick reference: how folders become sites, the address, user and password of every database and of the mail server, and links to Adminer, phpMyAdmin and the Mailpit inbox. It is easier to read in light mode. An unchanged copy from an earlier version is replaced with the new one when the web server starts; a page you edited is left alone.</li>
+            <li><strong>Tray:</strong> On macOS the menu bar shows Lumina's L and dot in one colour, tinted to match the menu bar like the system icons, instead of the full-colour app icon. The tray menu shows Stop All while any service runs and Start All when none does, instead of both at once.</li>
+            <li><strong>Fixes:</strong> When a network blocks Cloudflare Tunnel, sharing through Cloudflare stops within about 20 seconds and says so, instead of waiting a full minute.</li>
+            <li><strong>Under the hood:</strong> Lumina is built on newer versions of Tauri and the other libraries it uses.</li>
+          </ul>
+          <p class="rel-links"><a href="https://github.com/SaanPrasanna/Lumina/releases/tag/v0.5.0">Downloads and checksums for 0.5.0</a></p>
+        </article>
         <article id="v0.4.0" class="card release" aria-labelledby="v0.4.0-title">
           <header class="rel-head">
-            <h2 id="v0.4.0-title"><a href="#v0.4.0">Lumina 0.4.0</a></h2><span class="rel-badge">Latest</span>
+            <h2 id="v0.4.0-title"><a href="#v0.4.0">Lumina 0.4.0</a></h2>
             <time datetime="2026-10-18">October 18, 2026</time>
           </header>
           <p class="rel-intro">Lumina grows beyond PHP: Node.js and Python projects get their own <code>.test</code> address, more databases and services join the stack, and sharing, debugging and testing tools come built in.</p>
@@ -157,7 +173,7 @@
         <p>A local development environment for web developers.</p>
       </div>
       <div class="foot-links">
-        <p><a href="https://github.com/SaanPrasanna/Lumina">GitHub</a> · <a href="https://github.com/SaanPrasanna/Lumina/releases">Releases</a> · <a href="https://lumina.hexdev.tech/changelog/">Changelog</a> · <a href="https://github.com/SaanPrasanna/Lumina/issues/new/choose">Report a bug</a> · <a href="https://github.com/SaanPrasanna/Lumina/blob/master/SECURITY.md">Security</a></p>
+        <p><a href="https://github.com/SaanPrasanna/Lumina">GitHub</a> · <a href="https://github.com/SaanPrasanna/Lumina/releases">Releases</a> · <a href="https://lumina.hexdev.tech/changelog/">Changelog</a> · <a href="https://lumina.hexdev.tech/compare/">Compare</a> · <a href="https://lumina.hexdev.tech/guides/">Guides</a> · <a href="https://github.com/SaanPrasanna/Lumina/issues/new/choose">Report a bug</a> · <a href="https://github.com/SaanPrasanna/Lumina/blob/master/SECURITY.md">Security</a></p>
         <p>© 2026 Sandun Prasanna. Released under the <a href="https://github.com/SaanPrasanna/Lumina/blob/master/LICENSE">GNU GPL v3.0</a>.</p>
       </div>
     </div>

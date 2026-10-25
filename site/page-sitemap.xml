@@ -5,7 +5,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://lumina.hexdev.tech/</loc>
-    <lastmod>2026-10-18T04:58:37+00:00</lastmod>
+    <lastmod>2026-10-25T13:57:44+00:00</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
     <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
@@ -15,10 +15,22 @@
     <image:image>
       <image:loc>https://lumina.hexdev.tech/assets/icon-512.png</image:loc>
     </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/dashboard@2x.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/sites@2x.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/quick-add@2x.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/services@2x.webp</image:loc>
+    </image:image>
   </url>
   <url>
     <loc>https://lumina.hexdev.tech/si/</loc>
-    <lastmod>2026-10-18T04:58:37+00:00</lastmod>
+    <lastmod>2026-10-25T13:57:44+00:00</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://lumina.hexdev.tech/"/>
     <xhtml:link rel="alternate" hreflang="si" href="https://lumina.hexdev.tech/si/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://lumina.hexdev.tech/"/>
@@ -28,10 +40,148 @@
     <image:image>
       <image:loc>https://lumina.hexdev.tech/assets/icon-512.png</image:loc>
     </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/dashboard@2x.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/sites@2x.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/quick-add@2x.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/screens/services@2x.webp</image:loc>
+    </image:image>
   </url>
   <url>
     <loc>https://lumina.hexdev.tech/changelog/</loc>
-    <lastmod>2026-10-18T04:58:37+00:00</lastmod>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/compare/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/compare/laragon/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/compare/xampp/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/compare/herd/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/compare/mamp/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/compare/local/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/guides/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/guides/php-versions-side-by-side-windows/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/guides/laravel-https/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/guides/test-domains-windows/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/guides/https-localhost/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/guides/nextjs-django-local-domain/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/guides/laravel-mailpit/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/php/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/laravel/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/wordpress/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/nodejs/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
+    <image:image>
+      <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://lumina.hexdev.tech/python/</loc>
+    <lastmod>2026-10-25T13:56:38+00:00</lastmod>
     <image:image>
       <image:loc>https://lumina.hexdev.tech/assets/og-en.png</image:loc>
     </image:image>

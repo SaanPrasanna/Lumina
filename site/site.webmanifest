@@ -1,7 +1,7 @@
 {
   "name": "Lumina",
   "short_name": "Lumina",
-  "description": "Lumina is a free, open-source local development environment for web developers. Run PHP, Node.js and Python with nginx or Apache, MySQL, PostgreSQL, Redis and more, with automatic .test sites and trusted HTTPS, on Windows, macOS and Linux.",
+  "description": "Lumina is a free, open-source local development environment for web developers, and an alternative to Laragon, XAMPP, Herd and MAMP. Run PHP 7.4 to 8.5, Node.js and Python with nginx or Apache, MySQL, PostgreSQL and Redis, with .test sites and trusted HTTPS, on Windows, macOS and Linux.",
   "start_url": "/",
   "scope": "/",
   "display": "browser",

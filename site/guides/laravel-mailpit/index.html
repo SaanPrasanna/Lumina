@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catch Laravel mail locally with Mailpit (no real emails sent)</title>
+  <meta name="description" content="Send every email from your local Laravel or PHP app to a local Mailpit inbox instead of real people, with the .env settings to use.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="Sandun Prasanna">
+  <meta name="application-name" content="Lumina">
+  <link rel="canonical" href="https://lumina.hexdev.tech/guides/laravel-mailpit/">
+  <meta name="theme-color" content="#1b1e20" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="../../assets/icon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../../assets/icon-180.png">
+  <link rel="manifest" href="../../site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Lumina">
+  <meta property="og:title" content="Catch Laravel mail locally with Mailpit (no real emails sent)">
+  <meta property="og:description" content="Send every email from your local Laravel or PHP app to a local Mailpit inbox instead of real people, with the .env settings to use.">
+  <meta property="og:url" content="https://lumina.hexdev.tech/guides/laravel-mailpit/">
+  <meta property="og:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Catch Laravel mail locally with Mailpit (no real emails sent)">
+  <meta name="twitter:description" content="Send every email from your local Laravel or PHP app to a local Mailpit inbox instead of real people, with the .env settings to use.">
+  <meta name="twitter:image" content="https://lumina.hexdev.tech/assets/og-en.png">
+  <link rel="preload" href="../../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": ["TechArticle", "FAQPage"], "@id": "https://lumina.hexdev.tech/guides/laravel-mailpit/#webpage", "url": "https://lumina.hexdev.tech/guides/laravel-mailpit/", "name": "Catch Laravel mail locally with Mailpit (no real emails sent)", "headline": "Catch Laravel mail locally with Mailpit", "description": "Send every email from your local Laravel or PHP app to a local Mailpit inbox instead of real people, with the .env settings to use.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "about": {"@id": "https://lumina.hexdev.tech/#software"}, "author": {"@type": "Person", "name": "Sandun Prasanna", "url": "https://github.com/SaanPrasanna"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/guides/laravel-mailpit/#breadcrumb"}, "mainEntity": [{"@type": "Question", "name": "Can mail still reach the internet?", "acceptedAnswer": {"@type": "Answer", "text": "No. Mailpit keeps every message locally; nothing is delivered."}}, {"@type": "Question", "name": "Which port is the inbox on?", "acceptedAnswer": {"@type": "Answer", "text": "SMTP on 1025 and the web inbox on 8025, both on your computer only."}}]}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/guides/laravel-mailpit/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://lumina.hexdev.tech/guides/"}, {"@type": "ListItem", "position": 3, "name": "Catch Laravel mail locally with Mailpit", "item": "https://lumina.hexdev.tech/guides/laravel-mailpit/"}]}]}</script>
+</head>
+<body class="lang-en">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <nav class="wrap nav" aria-label="Main">
+      <a class="brand" href="../../"><img src="../../assets/icon.svg" alt="" width="30" height="30"><span>Lumina</span></a>
+      <div class="nav-links">
+        <a href="../../#features">Features</a>
+        <a href="../../#download">Download</a>
+        <a href="../../compare/">Compare</a>
+        <a href="../../guides/" aria-current="page">Guides</a>
+        <a href="../../changelog/">Changelog</a>
+        <a class="icon-link" href="https://github.com/SaanPrasanna/Lumina" aria-label="GitHub"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="wrap compare">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">Lumina</a><span aria-hidden="true">/</span><a href="../../guides/">Guides</a><span aria-hidden="true">/</span><span aria-current="page">Catch Laravel mail locally with Mailpit</span></nav>
+    <header class="cl-head">
+      <h1>Catch Laravel mail locally with Mailpit</h1>
+      <p class="lead">Testing password resets and order mails should never reach a real customer. Mailpit is a local mail server with a web inbox: everything your apps send lands there.</p>
+      <div class="cta">
+        <a class="btn primary" href="../../#download"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Download Lumina, free</span></a>
+        <a class="btn" href="https://github.com/SaanPrasanna/Lumina"><svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.7-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg><span>View on GitHub</span></a>
+      </div>
+    </header>
+    <section class="cmp-section narrow article">
+      <h2>Install and start Mailpit</h2>
+      <ol>
+<li>Open <strong>Quick Add</strong> and install <strong>Mailpit</strong>.</li>
+<li>Start it from its card on the <strong>Services</strong> page, or with Start All.</li>
+<li>Open the inbox from the same card or from the tray.</li>
+</ol>
+    </section>
+    <section class="cmp-section narrow article">
+      <h2>Point Laravel at it</h2>
+      <p>New Laravel projects from QuickApp are set up already. For an existing one, in <code>.env</code>:</p>
+<pre><code>MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null</code></pre>
+<p>Any user name and password are accepted.</p>
+    </section>
+    <section class="cmp-section narrow article">
+      <h2>Plain PHP and WordPress</h2>
+      <p>PHP's <code>mail()</code> goes to Mailpit too while it runs, so WordPress and other PHP apps need no plugin. Switch that off in Settings &rsaquo; Mail.</p>
+    </section>
+
+    <section class="cmp-section narrow" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions</h2>
+      <details class="faq-item">
+        <summary>Can mail still reach the internet?</summary>
+        <p>No. Mailpit keeps every message locally; nothing is delivered.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Which port is the inbox on?</summary>
+        <p>SMTP on 1025 and the web inbox on 8025, both on your computer only.</p>
+      </details>
+    </section>
+
+    <section class="cmp-section" aria-labelledby="more-title">
+      <h2 id="more-title">Related guides</h2>
+      <ul class="grid features">
+        <li class="card feature">
+          <h3><a href="../../guides/laravel-https/">Run Laravel locally with HTTPS</a></h3>
+          <p>Set up a Laravel project locally with a real https:// address and a certificate your browser trusts, plus MySQL and Mailpit, on Windows, macOS or Linux.</p>
+        </li>
+        <li class="card feature">
+          <h3><a href="../../guides/php-versions-side-by-side-windows/">Run PHP 7.4 and PHP 8.4 side by side on Windows</a></h3>
+          <p>How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give each project its own version, without editing Apache or nginx configs by hand.</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <div>
+        <a class="brand" href="../../"><img src="../../assets/icon.svg" alt="" width="26" height="26"><span>Lumina</span></a>
+        <p>A local development environment for web developers.</p>
+      </div>
+      <div class="foot-links">
+        <p><a href="https://github.com/SaanPrasanna/Lumina">GitHub</a> · <a href="https://github.com/SaanPrasanna/Lumina/releases">Releases</a> · <a href="https://lumina.hexdev.tech/changelog/">Changelog</a> · <a href="https://lumina.hexdev.tech/compare/">Compare</a> · <a href="https://lumina.hexdev.tech/guides/">Guides</a> · <a href="https://github.com/SaanPrasanna/Lumina/issues/new/choose">Report a bug</a> · <a href="https://github.com/SaanPrasanna/Lumina/blob/master/SECURITY.md">Security</a></p>
+        <p>© 2026 Sandun Prasanna. Released under the <a href="https://github.com/SaanPrasanna/Lumina/blob/master/LICENSE">GNU GPL v3.0</a>.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
