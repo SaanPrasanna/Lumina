@@ -12,7 +12,8 @@
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "icons": "pnpm --filter @lumina/desktop tauri icon ../../assets/branding/app-icon.svg"
+    "icons": "pnpm --filter @lumina/desktop tauri icon ../../assets/branding/app-icon.svg",
+    "icons:tray": "pnpm --filter @lumina/desktop tauri icon ../../assets/branding/tray-template.svg -o ../../target/tray-icons && node -e \"require('fs').copyFileSync('target/tray-icons/64x64.png','apps/desktop/src-tauri/icons/tray-template.png')\""
   },
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="262 210 560 560" width="1024" height="1024">
+  <!-- macOS menu bar icon: the app icon's L and dot without the background, in
+       black only. macOS draws it as a template image, tinted to match the menu
+       bar. Regenerate icons/tray-template.png with `pnpm icons:tray`. -->
+  <path d="M380 280 V700 H680" fill="none" stroke="#000000" stroke-width="112"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="668" cy="336" r="92" fill="#000000"/>
+</svg>

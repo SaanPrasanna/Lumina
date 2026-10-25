@@ -1,6 +1,6 @@
 //! System tray (and the window's right-click menu), laid out like a classic local-server panel: one submenu per
 //! service (start/stop, version, config file, log), the projects under www,
-//! shortcuts into the app, and Start/Stop All.
+//! shortcuts into the app, and Start All or Stop All.
 //!
 //! The menu is rebuilt whenever a service, the config, the projects or the
 //! installed packages change, so check marks and versions always match
@@ -516,10 +516,15 @@ fn build_menu(
     for row in &s.tools {
         top.push(Box::new(service_menu(app, &l, row, on)?));
     }
+    // One toggle: Stop All while anything runs, Start All otherwise.
+    let all = if s.services.iter().any(|row| row.running.is_some()) {
+        item(app, "stop-all", l.stop_all, on)?
+    } else {
+        item(app, "start-all", l.start_all, on)?
+    };
     top.extend([
         separator(app)?,
-        item(app, "start-all", l.start_all, on)?,
-        item(app, "stop-all", l.stop_all, on)?,
+        all,
         separator(app)?,
         item(app, "quit", l.quit, true)?,
     ]);
@@ -544,7 +549,13 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
                 show_main(tray.app_handle());
             }
         });
-    if let Some(icon) = app.default_window_icon() {
+    // The macOS menu bar wants a one-colour template image, tinted to match the
+    // bar like the system icons; other trays show the app icon in colour.
+    if cfg!(target_os = "macos") {
+        builder = builder
+            .icon(tauri::include_image!("icons/tray-template.png"))
+            .icon_as_template(true);
+    } else if let Some(icon) = app.default_window_icon() {
         builder = builder.icon(icon.clone());
     }
     builder.build(app)?;

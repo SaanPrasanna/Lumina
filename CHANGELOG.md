@@ -10,6 +10,7 @@ Many more versions to choose from: PHP back to 7.4, older Node.js, Python and da
 
 - **More versions:** Quick Add offers PHP 8.0 and 7.4 (with Xdebug), Node.js 20 and 18, Python 3.12, 3.11 and 3.10, MySQL 8.0, MariaDB 10.6, PostgreSQL 16, 15 and 14, and Redis 7.4 and 7.2 (on Windows). Each version line now lists its three newest patch releases, so you can match the exact version a server runs. On macOS and Linux, servers that come from Homebrew list a `brew install` command for every version line (PHP 8.4 to 7.4, MariaDB 12.3 to 10.6, PostgreSQL 18 to 14, Redis 8.2), not just the newest.
 - **Welcome page:** The page at `http://localhost` has a new design that works as a quick reference: how folders become sites, the address, user and password of every database and of the mail server, and links to Adminer, phpMyAdmin and the Mailpit inbox. It is easier to read in light mode. An unchanged copy from an earlier version is replaced with the new one when the web server starts; a page you edited is left alone.
+- **Tray:** On macOS the menu bar shows Lumina's L and dot in one colour, tinted to match the menu bar like the system icons, instead of the full-colour app icon. The tray menu shows Stop All while any service runs and Start All when none does, instead of both at once.
 - **Fixes:** When a network blocks Cloudflare Tunnel, sharing through Cloudflare stops within about 20 seconds and says so, instead of waiting a full minute.
 - **Under the hood:** Lumina is built on newer versions of Tauri and the other libraries it uses.
 
