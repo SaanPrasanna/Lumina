@@ -10,6 +10,7 @@
 
 [![Website](https://img.shields.io/badge/website-lumina.hexdev.tech-d97706)](https://lumina.hexdev.tech/)
 [![Latest release](https://img.shields.io/github/v/release/SaanPrasanna/Lumina?sort=semver)](https://github.com/SaanPrasanna/Lumina/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/SaanPrasanna/Lumina/total)](https://github.com/SaanPrasanna/Lumina/releases)
 [![CI](https://github.com/SaanPrasanna/Lumina/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/SaanPrasanna/Lumina/actions/workflows/ci.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
