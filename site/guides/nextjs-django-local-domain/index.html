@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Run Next.js, Vite or Django at a custom local domain with HTTPS</title>
+  <title>Run Next.js, Vite or Django at a local domain with HTTPS</title>
   <meta name="description" content="Serve Next.js, Nuxt, Vite, SvelteKit, Django, FastAPI or Flask dev servers at https://project.test instead of localhost:3000, with hot reload.">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
   <meta name="author" content="Sandun Prasanna">
@@ -18,7 +18,7 @@
   <link rel="manifest" href="../../site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Lumina">
-  <meta property="og:title" content="Run Next.js, Vite or Django at a custom local domain with HTTPS">
+  <meta property="og:title" content="Run Next.js, Vite or Django at a local domain with HTTPS">
   <meta property="og:description" content="Serve Next.js, Nuxt, Vite, SvelteKit, Django, FastAPI or Flask dev servers at https://project.test instead of localhost:3000, with hot reload.">
   <meta property="og:url" content="https://lumina.hexdev.tech/guides/nextjs-django-local-domain/">
   <meta property="og:image" content="https://lumina.hexdev.tech/assets/og-en.png">
@@ -26,12 +26,12 @@
   <meta property="og:image:height" content="630">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Run Next.js, Vite or Django at a custom local domain with HTTPS">
+  <meta name="twitter:title" content="Run Next.js, Vite or Django at a local domain with HTTPS">
   <meta name="twitter:description" content="Serve Next.js, Nuxt, Vite, SvelteKit, Django, FastAPI or Flask dev servers at https://project.test instead of localhost:3000, with hot reload.">
   <meta name="twitter:image" content="https://lumina.hexdev.tech/assets/og-en.png">
   <link rel="preload" href="../../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../../assets/style.css">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": ["TechArticle", "FAQPage"], "@id": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/#webpage", "url": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/", "name": "Run Next.js, Vite or Django at a custom local domain with HTTPS", "headline": "Run Next.js, Vite or Django at a local domain", "description": "Serve Next.js, Nuxt, Vite, SvelteKit, Django, FastAPI or Flask dev servers at https://project.test instead of localhost:3000, with hot reload.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "about": {"@id": "https://lumina.hexdev.tech/#software"}, "author": {"@type": "Person", "name": "Sandun Prasanna", "url": "https://github.com/SaanPrasanna"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/#breadcrumb"}, "mainEntity": [{"@type": "Question", "name": "Can the dev server start with Start All?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, switch on autostart for it in Edit."}}, {"@type": "Question", "name": "Does it work with pnpm, Bun or uv?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Bun, Deno, uv and pnpm are in Quick Add and on PATH in every terminal."}}]}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://lumina.hexdev.tech/guides/"}, {"@type": "ListItem", "position": 3, "name": "Run Next.js, Vite or Django at a local domain", "item": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/"}]}]}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": ["TechArticle", "FAQPage"], "@id": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/#webpage", "url": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/", "name": "Run Next.js, Vite or Django at a local domain with HTTPS", "headline": "Run Next.js, Vite or Django at a local domain", "description": "Serve Next.js, Nuxt, Vite, SvelteKit, Django, FastAPI or Flask dev servers at https://project.test instead of localhost:3000, with hot reload.", "inLanguage": "en", "isPartOf": {"@id": "https://lumina.hexdev.tech/#website"}, "about": {"@id": "https://lumina.hexdev.tech/#software"}, "author": {"@type": "Person", "name": "Sandun Prasanna", "url": "https://github.com/SaanPrasanna"}, "breadcrumb": {"@id": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/#breadcrumb"}, "mainEntity": [{"@type": "Question", "name": "Can the dev server start with Start All?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, switch on autostart for it in Edit."}}, {"@type": "Question", "name": "Does it work with pnpm, Bun or uv?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Bun, Deno, uv and pnpm are in Quick Add and on PATH in every terminal."}}]}, {"@type": "BreadcrumbList", "@id": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Lumina", "item": "https://lumina.hexdev.tech/"}, {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://lumina.hexdev.tech/guides/"}, {"@type": "ListItem", "position": 3, "name": "Run Next.js, Vite or Django at a local domain", "item": "https://lumina.hexdev.tech/guides/nextjs-django-local-domain/"}]}]}</script>
 </head>
 <body class="lang-en">
   <a class="skip" href="#main">Skip to content</a>

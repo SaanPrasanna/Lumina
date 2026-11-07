@@ -63,9 +63,9 @@ STACK = ['PHP', 'Node.js', 'Python', 'Bun', 'Deno', 'nginx', 'Apache', 'MySQL', 
 GUIDES = [
     {
         'slug': 'php-versions-side-by-side-windows',
-        'title': 'Install PHP 7.4 and 8.4 side by side on Windows (one per site)',
-        'description': ('How to run several PHP versions on Windows at the same time, PHP 7.4 to 8.5, and give '
-                        'each project its own version, without editing Apache or nginx configs by hand.'),
+        'title': 'Install PHP 7.4 and 8.4 side by side on Windows',
+        'description': ('How to run several PHP versions on Windows at once, PHP 7.4 to 8.5, and give each project its '
+                        'own version, without editing Apache or nginx configs.'),
         'h1': 'Run PHP 7.4 and PHP 8.4 side by side on Windows',
         'intro': ('An old shop that needs PHP 7.4 and a new Laravel app on PHP 8.4, on the same computer, at the '
                   'same time. On Windows that usually means two installs and hand-edited server configs. With '
@@ -157,7 +157,7 @@ DB_PASSWORD=</code></pre>'''),
     },
     {
         'slug': 'https-localhost',
-        'title': 'Trusted HTTPS for localhost and local sites, without warnings',
+        'title': 'Trusted HTTPS for localhost and local sites, no warnings',
         'description': ('Get https://localhost and https://project.test with a padlock and no browser warning, '
                         'using a certificate authority that exists only on your computer.'),
         'h1': 'Trusted HTTPS for localhost',
@@ -181,7 +181,7 @@ DB_PASSWORD=</code></pre>'''),
     },
     {
         'slug': 'nextjs-django-local-domain',
-        'title': 'Run Next.js, Vite or Django at a custom local domain with HTTPS',
+        'title': 'Run Next.js, Vite or Django at a local domain with HTTPS',
         'description': ('Serve Next.js, Nuxt, Vite, SvelteKit, Django, FastAPI or Flask dev servers at '
                         'https://project.test instead of localhost:3000, with hot reload.'),
         'h1': 'Run Next.js, Vite or Django at a local domain',
@@ -206,7 +206,7 @@ DB_PASSWORD=</code></pre>'''),
     },
     {
         'slug': 'laravel-mailpit',
-        'title': 'Catch Laravel mail locally with Mailpit (no real emails sent)',
+        'title': 'Catch Laravel mail locally with Mailpit (no real emails)',
         'description': ('Send every email from your local Laravel or PHP app to a local Mailpit inbox instead of '
                         'real people, with the .env settings to use.'),
         'h1': 'Catch Laravel mail locally with Mailpit',
@@ -238,9 +238,9 @@ MAIL_PASSWORD=null</code></pre>
 FRAMEWORKS = [
     {
         'slug': 'php',
-        'title': 'Local PHP development environment for Windows, macOS and Linux',
-        'description': ('A free local PHP environment: PHP 7.4 to 8.5 side by side, nginx or Apache, MySQL, '
-                        'PostgreSQL and Redis, Composer and Xdebug, with .test sites and trusted HTTPS.'),
+        'title': 'Local PHP dev environment for Windows, macOS and Linux',
+        'description': ('A free local PHP environment: PHP 7.4 to 8.5 side by side, nginx or Apache, MySQL, PostgreSQL, '
+                        'Redis and Xdebug, with .test sites and trusted HTTPS.'),
         'h1': 'Local PHP development, set up in minutes',
         'intro': ('Lumina runs real PHP, a web server and a database on your own computer, with no Docker and no '
                   'virtual machine. Every project gets its own address and the PHP version it needs.'),
@@ -266,7 +266,7 @@ FRAMEWORKS = [
     },
     {
         'slug': 'laravel',
-        'title': 'Local Laravel development environment, free (Herd and Valet alternative)',
+        'title': 'Free local Laravel environment (Herd and Valet alternative)',
         'description': ('Run Laravel locally with PHP 8.4, nginx, MySQL or PostgreSQL, Redis and Mailpit, at '
                         'https://app.test, on Windows, macOS and Linux. Free and open source.'),
         'h1': 'Laravel, locally, with everything included',
@@ -289,7 +289,7 @@ FRAMEWORKS = [
     },
     {
         'slug': 'wordpress',
-        'title': 'Local WordPress development environment, free (Local and XAMPP alternative)',
+        'title': 'Free local WordPress dev, a Local and XAMPP alternative',
         'description': ('Run WordPress locally at https://site.test with PHP, MySQL, Apache or nginx and Mailpit, '
                         'on Windows, macOS and Linux. Free and open source.'),
         'h1': 'WordPress on your own computer',
@@ -312,7 +312,7 @@ FRAMEWORKS = [
     },
     {
         'slug': 'nodejs',
-        'title': 'Local Node.js development: Next.js, Vite and Nuxt at https://app.test',
+        'title': 'Local Node.js dev: Next.js, Vite and Nuxt with HTTPS',
         'description': ('Install Node.js versions side by side and serve Next.js, Vite, Nuxt, Astro or SvelteKit '
                         'dev servers at their own https://name.test address, with hot reload.'),
         'h1': 'Node.js projects at their own local domain',
@@ -337,9 +337,9 @@ FRAMEWORKS = [
     },
     {
         'slug': 'python',
-        'title': 'Local Python development: Django, FastAPI and Flask at https://app.test',
-        'description': ('Install Python versions side by side and serve Django, FastAPI or Flask dev servers at '
-                        'their own https://name.test address, with PostgreSQL and Redis next to them.'),
+        'title': 'Local Python dev: Django, FastAPI and Flask with HTTPS',
+        'description': ('Install Python versions side by side and serve Django, FastAPI or Flask at their own '
+                        'https://name.test address, with PostgreSQL and Redis next to them.'),
         'h1': 'Python projects at their own local domain',
         'intro': ('Python 3.10 to 3.14, uv, and Django, FastAPI or Flask served at <code>https://name.test</code>, '
                   'next to PostgreSQL, MySQL and Redis.'),
@@ -365,11 +365,9 @@ FRAMEWORKS = [
 T = {
     'en': {
         'lang': 'en', 'dir': '', 'path': '', 'og': 'og-en.png',
-        'title': 'Lumina – free Laragon and XAMPP alternative for PHP, Laravel and Node.js',
-        'description': ('Lumina is a free, open-source local development environment for web developers, '
-                        'and an alternative to Laragon, XAMPP, Herd and MAMP. Run PHP 7.4 to 8.5, Node.js and Python '
-                        'with nginx or Apache, MySQL, PostgreSQL and Redis, with .test sites and trusted HTTPS, '
-                        'on Windows, macOS and Linux.'),
+        'title': 'Lumina – free Laragon and XAMPP alternative for PHP',
+        'description': ('Lumina is a free, open-source local dev environment: PHP, Node.js and Python with MySQL, '
+                        'PostgreSQL, .test sites and trusted HTTPS, on Windows, macOS and Linux.'),
         'og_title': 'Lumina – local development, one click away',
         'og_alt': 'Lumina – local development, one click away. Free and open source for Windows, macOS and Linux, '
                   'with PHP, Node.js, Python, MySQL and PostgreSQL.',
@@ -448,10 +446,9 @@ T = {
     },
     'si': {
         'lang': 'si', 'dir': '', 'path': 'si/', 'og': 'og-si.png',
-        'title': 'Lumina – නොමිලේ දේශීය සංවර්ධන පරිසරය, Laragon සහ XAMPP සඳහා විකල්පයක්',
+        'title': 'Lumina – නොමිලේ සංවර්ධන පරිසරය, Laragon සහ XAMPP විකල්පයක්',
         'description': ('Lumina යනු වෙබ් සංවර්ධකයින් සඳහා නොමිලේ ලබා ගත හැකි විවෘත මූලාශ්‍ර දේශීය සංවර්ධන පරිසරයකි. '
-                        'nginx හෝ Apache, MySQL, PostgreSQL, Redis සහ තවත් දේ සමඟ PHP, Node.js සහ Python ධාවනය කරන්න; ස්වයංක්‍රීය '
-                        '.test අඩවි සහ විශ්වාසනීය HTTPS සමඟ, Windows, macOS සහ Linux මත. Laragon, XAMPP, Herd සහ MAMP සඳහා විකල්පයකි.'),
+                        'Laragon, XAMPP, Herd සහ MAMP සඳහා විකල්පයකි.'),
         'og_title': 'Lumina – ඔබේ සංවර්ධන පරිසරය, එක ක්ලික් එකකින්',
         'og_alt': 'Lumina – ඔබේ සංවර්ධන පරිසරය, එක ක්ලික් එකකින්. Windows, macOS සහ Linux සඳහා නොමිලේ සහ විවෘත මූලාශ්‍ර; '
                   'PHP, Node.js, Python, MySQL සහ PostgreSQL සමඟ.',
@@ -1162,9 +1159,8 @@ COMPETITORS = [
     {
         'slug': 'laragon', 'name': 'Laragon', 'site': 'https://laragon.org/',
         'title': 'Lumina vs Laragon: a free, open-source Laragon alternative',
-        'description': ('Looking for a Laragon alternative? Lumina is free and open source, runs on Windows, '
-                        'macOS and Linux, and gives every project a .test address with trusted HTTPS, '
-                        'like Laragon, plus Node.js and Python dev servers.'),
+        'description': ('Looking for a Laragon alternative? Lumina is free and open source, runs on Windows, macOS and '
+                        'Linux, with .test sites, trusted HTTPS and Node.js and Python.'),
         'intro': ('Laragon made local PHP development on Windows fast and simple: every folder a <code>.test</code> '
                   'site, Apache or nginx, MySQL, all from the tray. Recent versions need a paid license, and it '
                   'still runs on Windows only. Lumina works the same way, stays free and open source, and runs '
@@ -1205,10 +1201,9 @@ COMPETITORS = [
     },
     {
         'slug': 'xampp', 'name': 'XAMPP', 'site': 'https://www.apachefriends.org/',
-        'title': 'Lumina vs XAMPP: a modern XAMPP alternative with .test sites and HTTPS',
-        'description': ('Looking for an XAMPP alternative? Lumina is free and open source, with PHP 7.4 to 8.5 '
-                        'side by side, nginx or Apache, MySQL and PostgreSQL, automatic .test sites and trusted '
-                        'HTTPS, on Windows, macOS and Linux.'),
+        'title': 'Lumina vs XAMPP: a modern XAMPP alternative with HTTPS',
+        'description': ('Looking for an XAMPP alternative? Lumina is free and open source, with PHP 7.4 to 8.5 side by '
+                        'side, nginx or Apache, .test sites and trusted HTTPS.'),
         'intro': ('XAMPP is where many developers started: Apache, MariaDB and PHP in one installer. It is free, '
                   'but every project lives at <code>localhost/folder</code>, there is one PHP version per install '
                   'and HTTPS comes with a browser warning. Lumina keeps the one-installer simplicity and adds '
@@ -1249,9 +1244,9 @@ COMPETITORS = [
     },
     {
         'slug': 'herd', 'name': 'Laravel Herd', 'site': 'https://herd.laravel.com/',
-        'title': 'Lumina vs Laravel Herd: a free Herd alternative with databases included',
-        'description': ('Looking for a Laravel Herd alternative? Lumina is free and open source, includes MySQL, '
-                        'PostgreSQL, Redis, Mailpit and Xdebug at no cost, and runs on Windows, macOS and Linux.'),
+        'title': 'Lumina vs Laravel Herd: a free Herd alternative',
+        'description': ('Looking for a Laravel Herd alternative? Lumina is free and open source, with MySQL, PostgreSQL,'
+                        ' Redis, Mailpit and Xdebug included, on Windows, macOS and Linux.'),
         'intro': ('Laravel Herd is a fast, polished way to run PHP and nginx for Laravel. Its databases, mail '
                   'catcher and Xdebug are part of Herd Pro, a paid subscription, and there is no Linux version. '
                   'Lumina includes all of them for free, on all three systems, and is open source.'),
@@ -1292,9 +1287,8 @@ COMPETITORS = [
     {
         'slug': 'mamp', 'name': 'MAMP', 'site': 'https://www.mamp.info/',
         'title': 'Lumina vs MAMP: a free, open-source MAMP PRO alternative',
-        'description': ('Looking for a MAMP or MAMP PRO alternative? Lumina is free and open source, with .test '
-                        'sites, trusted HTTPS, PHP 7.4 to 8.5 per site and MySQL or PostgreSQL, on Windows, macOS '
-                        'and Linux.'),
+        'description': ('Looking for a MAMP PRO alternative? Lumina is free and open source, with .test sites, trusted '
+                        'HTTPS and PHP 7.4 to 8.5 per site, on Windows, macOS and Linux.'),
         'intro': ('MAMP brought Apache, MySQL and PHP to the Mac in one app. Named hosts, HTTPS and most extras '
                   'are part of MAMP PRO, which is paid. Lumina gives you those for free, on Windows, macOS and '
                   'Linux, and is open source.'),
@@ -1336,9 +1330,9 @@ COMPETITORS = [
 
 COMPETITORS.append({
     'slug': 'local', 'name': 'Local', 'site': 'https://localwp.com/',
-    'title': 'Lumina vs Local (LocalWP): a free alternative beyond WordPress',
-    'description': ('Looking for a Local by Flywheel alternative? Lumina is free and open source, runs WordPress '
-                    'and any other PHP, Node.js or Python project, with .test sites and trusted HTTPS.'),
+    'title': 'Lumina vs LocalWP: a free alternative beyond WordPress',
+    'description': ('Looking for a Local by Flywheel alternative? Lumina is free and open source and runs WordPress '
+                    'plus any PHP, Node.js or Python project, with trusted HTTPS.'),
     'intro': ('Local (formerly Local by Flywheel) is a friendly way to run WordPress sites. It is built for '
               'WordPress only. Lumina keeps the one-click WordPress setup and also runs Laravel, Symfony, plain '
               'PHP, Next.js, Django and more, from one open-source app.'),
@@ -1574,9 +1568,9 @@ def compare_hub():
     path = 'compare/'
     url = BASE + path
     esc = html.escape
-    title = 'Lumina vs Laragon, XAMPP, Herd, MAMP and Local: local dev tools compared'
-    description = ('Compare local development environments side by side: Lumina, Laragon, XAMPP, Laravel Herd, '
-                   'MAMP and Local. Price, open source, Windows, macOS and Linux, .test sites, HTTPS and databases.')
+    title = 'Lumina vs Laragon, XAMPP, Herd, MAMP and Local compared'
+    description = ('Compare Lumina, Laragon, XAMPP, Laravel Herd, MAMP and Local side by side: price, open source, '
+                   'platforms, .test sites, HTTPS and databases.')
     crumbs = [('Lumina', ''), ('Compare', path)]
     ld = {'@context': 'https://schema.org', '@graph': [
         {'@type': 'CollectionPage', '@id': url + '#webpage', 'url': url, 'name': title,
@@ -1674,9 +1668,9 @@ def guides_hub():
     path = 'guides/'
     url = BASE + path
     esc = html.escape
-    title = 'Local development guides: PHP versions, .test domains, HTTPS, Laravel, Next.js'
-    description = ('Step-by-step guides for local web development with Lumina: several PHP versions, .test '
-                   'domains, trusted HTTPS, Laravel, WordPress, Next.js and Django, on Windows, macOS and Linux.')
+    title = 'Local development guides: PHP, .test domains and HTTPS'
+    description = ('Step-by-step guides for local web development: several PHP versions, .test domains, trusted '
+                   'HTTPS, Laravel, WordPress, Next.js and Django.')
     crumbs = [('Lumina', ''), ('Guides', path)]
     ld = {'@context': 'https://schema.org', '@graph': [
         {'@type': 'CollectionPage', '@id': url + '#webpage', 'url': url, 'name': title,
